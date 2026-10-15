@@ -136,7 +136,8 @@ html, body { min-height: 100%; background: var(--canvas); color: var(--ink); fon
 .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .step-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; }
 .step-card .n { width: 24px; height: 24px; border-radius: 50%; background: rgba(59,125,216,.12); color: var(--blue-strong); display: grid; place-items: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-.step-card b { display: block; font-weight: 600; }
+.step-card > div > b { display: block; font-weight: 600; }
+.step-card span b { display: inline; font-weight: 600; color: var(--ink); } /* 설명문 안의 강조는 문장 흐름을 끊지 않는다 */
 .step-card span { color: var(--ink-2); font-size: 13px; }
 
 /* ---------- 템플릿 / 탭 ---------- */
@@ -210,7 +211,6 @@ html, body { min-height: 100%; background: var(--canvas); color: var(--ink); fon
 .print-sheet { display: none; }
 
 /* ---------- 결과 분석 ---------- */
-.filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .result-top { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: stretch; }
 .level-box { background: var(--navy); color: #fff; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: center; }
 .level-box .lbl { font-size: 12px; opacity: .7; }
@@ -343,7 +343,7 @@ td.jd { width: 96px; }
   .topbar { padding: 10px 16px; position: static; }
   .tabs-bar { top: 0; }
   .content { padding: 20px 16px 40px; }
-  .preset-grid, .steps-grid, .grid-2, .filters, .char-grid { grid-template-columns: 1fr; }
+  .preset-grid, .steps-grid, .grid-2, .char-grid { grid-template-columns: 1fr; }
 }
 
 /* ---------- 인쇄 (A4 배부용 QR) ---------- */
@@ -490,3 +490,35 @@ table.data.tlink { min-width: 820px; }
 .gd-list b { color: var(--ink); font-weight: 600; }
 .gd-list code { font-size: 12px; padding: 1px 5px; border-radius: 6px; background: rgba(59,125,216,.1); color: var(--blue-strong); }
 @media (max-width: 720px) { .guide-modal .gd-flow { grid-template-columns: 1fr; } }
+
+/* 결과 분석: 학급 → 탐구 주제 → 모둠 단추 (선택 규칙은 js/pick-logic.js) */
+.pick-flow { display: grid; gap: 12px; }
+.pick-step { padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.pick-step.locked { background: var(--canvas); }
+.pick-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 10px; }
+.pick-head b { font-size: 14px; font-weight: 700; }
+.pick-no { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: rgba(59,125,216,.14); color: var(--blue-strong); }
+.pick-step.locked .pick-no { background: rgba(116,119,126,.16); color: var(--ink-3); }
+.pick-hint { font-size: 12px; color: var(--ink-3); }
+.pick-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.pick-none { font-size: 13px; color: var(--ink-3); }
+.pick-btn {
+  display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; min-width: 104px; min-height: 50px; padding: 8px 16px;
+  border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.pick-btn:hover:not(:disabled):not(.on) { border-color: var(--blue); background: rgba(59,125,216,.05); }
+.pick-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.pick-btn.on { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 4px 10px rgba(59,125,216,.28); }
+.pick-name { font-size: 14px; font-weight: 600; line-height: 20px; }
+.pick-sub { font-size: 11px; font-weight: 500; line-height: 16px; color: var(--ink-3); }
+.pick-btn.on .pick-sub { color: rgba(255,255,255,.88); }
+.pick-btn:disabled { cursor: not-allowed; }
+.pick-btn.locked { opacity: .5; }
+.pick-btn.empty, .pick-btn.excluded { background: var(--canvas); border-style: dashed; color: var(--ink-3); }
+.pick-btn.empty .pick-sub { font-weight: 700; }
+.pick-btn.excluded .pick-sub { color: #b45309; font-weight: 700; }
+.pick-summary { margin: 12px 0 4px; padding: 10px 14px; border-radius: 10px; background: var(--canvas); font-size: 13px; color: var(--ink-3); }
+.pick-summary.ready { background: rgba(59,125,216,.08); color: var(--blue-strong); font-weight: 600; }
+.pick-note { margin: 8px 0 0; font-size: 12px; color: var(--ink-3); }
+@media (max-width: 720px) { .pick-btn { min-width: calc(50% - 4px); flex: 1 1 calc(50% - 4px); } }

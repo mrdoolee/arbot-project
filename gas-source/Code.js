@@ -57,14 +57,14 @@ function requireSheet_(name) {
 //  2) 학생 입구(getInitialData·processChatMessage): 교사가 정한 '수업 입장 코드'(accessCode)가 맞아야 한다.
 //     주소만 아는 외부인이 대화방을 쓰거나 학급·모둠 목록을 보지 못하게 하고, 코드를 바꾸면 이미 퍼진 링크도 무효가 된다.
 // ---------------------------------------------------------------------------
-var TEACHER_ACTIONS_ = ["teacherAnalyze", "listGeminiModels", "testGeminiModel", "getTeacherSettings",
+var TEACHER_ACTIONS_ = ["teacherAnalyze", "getChatOverview", "listGeminiModels", "testGeminiModel", "getTeacherSettings",
   "getTopicMaterials", "saveTopicMaterial", "saveTeacherSettings", "setTeacherPin", "getApiKeys", "saveApiKeys", "resetApiKeyStatus",
   "getProfiles", "saveProfile", "deleteProfile", "saveTopicSetting", "getAccessCode", "setAccessCode"];
 var STUDENT_ACTIONS_ = ["getInitialData", "processChatMessage"]; // 수업 입장 코드가 필요한 공개 action
 // 이 GAS 코드의 API 버전. testConnection 이 알려 주고, 교사 콘솔은 자기가 요구하는 버전(REQUIRED_API_VERSION)보다 낮으면
 // "시트의 GAS 가 옛 버전이에요"를 안내한다 (콘솔은 모두가 공유하지만 GAS 는 시트마다 따로 배포되기 때문).
 // 콘솔이 새 action 을 쓰기 시작하면 이 숫자와 콘솔의 REQUIRED_API_VERSION 을 함께 올린다. (버전 1 = 이 값이 없던 옛 코드)
-var API_VERSION_ = 2;
+var API_VERSION_ = 3; // 3: getChatOverview (결과 분석의 학급 → 주제 → 모둠 단추가 기록 유무를 표시)
 var PIN_HASH_PROP_ = "TEACHER_PIN_HASH";
 var PIN_SALT_PROP_ = "TEACHER_PIN_SALT";
 var PIN_MIN_LENGTH_ = 8;
@@ -277,6 +277,8 @@ function routeAction(action, params) {
         return processChatMessage(params);
       case "teacherAnalyze":
         return apiAnalyze(params.classValue, params.groupValue, params.topicValue, params.useMaterial, params.rubricName);
+      case "getChatOverview":
+        return apiChatOverview();
       case "listGeminiModels":
         return listGeminiModels(params);
       case "testGeminiModel":
@@ -1489,6 +1491,35 @@ function processChatMessage(payload) {
   } catch (err) {
     throw new Error("오류 발생: " + err.message);
   }
+}
+
+// ---------------------------------------------------------
+// [JSON API 전용] 결과 분석 화면의 학급 → 주제 → 모둠 단추가 쓴다: 대화 기록(채팅기록)이 어느 학급·주제·모둠에 얼마나 있는지 센다.
+// 시트를 읽기만 한다(쓰기·Gemini 호출 없음). apiAnalyze 와 같은 이름 규칙(앞뒤 공백만 뺀 정확 일치)과 같은 '평가 제외' 기준
+// (H열 'qna' 또는 I열 '-')을 써서, 여기서 '기록 없음'이면 분석도 비어 있도록 맞춘다.
+//   combos: [{ classValue, topicValue, groupValue, total(모든 기록), analyzable(평가 대상), last('날짜 시간') }]
+// ---------------------------------------------------------
+function apiChatOverview() {
+  var rows = requireSheet_('채팅기록').getDataRange().getValues();
+  var cell = function(r, i) { return r[i] == null ? "" : String(r[i]).trim(); };
+  var byKey = {}, list = [];
+  for (var i = 1; i < rows.length; i++) {
+    var r = rows[i], c = cell(r, 2), g = cell(r, 3), t = cell(r, 4);
+    if (!c || !g || !t) continue; // 학급·모둠·주제가 빈 줄(손으로 지운 줄 등)은 어느 단추에도 속하지 않는다
+    var key = c + "\u0001" + t + "\u0001" + g;
+    var e = byKey[key];
+    if (!e) { e = byKey[key] = { classValue: c, topicValue: t, groupValue: g, total: 0, analyzable: 0, lastIndex: i }; list.push(e); }
+    e.total++;
+    if (cell(r, 7) !== "qna" && cell(r, 8) !== NO_RUBRIC_) e.analyzable++;
+    e.lastIndex = i; // 기록은 위에서 아래로 쌓이므로 마지막으로 본 줄이 가장 최근이다
+  }
+  var stamp = function(v, fmt) { return (v instanceof Date) ? Utilities.formatDate(v, "Asia/Seoul", fmt) : String(v == null ? "" : v); };
+  var combos = list.map(function(e) { // 시각 서식은 조합마다 한 번만 만든다(기록이 많아도 느려지지 않게)
+    var r = rows[e.lastIndex];
+    return { classValue: e.classValue, topicValue: e.topicValue, groupValue: e.groupValue, total: e.total, analyzable: e.analyzable,
+      last: (stamp(r[0], "yyyy-MM-dd") + " " + stamp(r[1], "HH:mm")).trim() };
+  });
+  return { success: true, data: { combos: combos } };
 }
 
 // ---------------------------------------------------------

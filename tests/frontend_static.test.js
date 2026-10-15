@@ -172,7 +172,7 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   const sections = ['메뉴 1', '메뉴 2', '메뉴 3', '메뉴 4', '메뉴 5', '학생 화면 안내', '보안과 개인정보', '자주 겪는 문제', 'ARgument chatBOT'];
   ok('가이드에 흐름 요약·메뉴 1~5·학생 화면·보안·문제 해결 항목이 있음', (guide.match(/class="step-card"/g) || []).length === 6 && sections.every((s) => guideText.includes(s)), sections.filter((s) => !guideText.includes(s)));
   // 가이드가 누르라고 안내하는 버튼 이름이 실제 화면에 있는지(없는 버튼을 안내하지 않게)
-  const consoleButtons = ['연결 테스트', 'URL 저장', '스프레드시트 접속', '쉬는 중 해제', '모델 목록 불러오기', '모델 테스트', '불러오기', '링크 복사', '코드 복사', '새 코드 만들기', '직접 정하기', '교실 TV 전체화면', 'A4 배부용 QR 인쇄', '대화 불러오기 및 분석 실행', '학급/모둠/주제 목록 불러오기', 'HTML 보고서', 'CSV', '학생 화면 열어보기', '예시 채우기'];
+  const consoleButtons = ['연결 테스트', 'URL 저장', '스프레드시트 접속', '쉬는 중 해제', '모델 목록 불러오기', '모델 테스트', '불러오기', '링크 복사', '코드 복사', '새 코드 만들기', '직접 정하기', '교실 TV 전체화면', 'A4 배부용 QR 인쇄', '대화 불러오기 및 분석 실행', '목록·기록 새로고침', 'HTML 보고서', 'CSV', '학생 화면 열어보기', '예시 채우기'];
   const missingBtn = consoleButtons.filter((b) => guideText.includes(b) && !restText.includes(b));
   ok('가이드가 안내하는 버튼 이름이 모두 실제 화면에 있음', consoleButtons.filter((b) => guideText.includes(b)).length >= 15 && missingBtn.length === 0, missingBtn);
   ok('가이드가 안내하는 학생 화면 버튼("탐구 대화방 입장하기")이 학생 화면에 있음', guideText.includes('탐구 대화방 입장하기') && pages['public/student.html'].includes('탐구 대화방 입장하기'), '');
@@ -214,9 +214,58 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('학생 대화 화면 푸터는 키보드가 올라온 낮은 화면에서 숨김', /@media \(max-height: 640px\) and \(max-width: 899px\) \{ \.chat-shell \.credit-footer \{ display: none; \} \}/.test(studentCss), '');
 }
 
-// ───────── 8) 기타 ─────────
+// ───────── 8) 결과 분석(메뉴 5): 학급 → 주제 → 모둠 순차 단추 ─────────
+{
+  const tea = pages['public/index.html'];
+  const adminCss = read('public/css/admin.css');
+  const logic = read('public/js/pick-logic.js');
+  const script = [...tea.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
+  const panel = tea.slice(tea.indexOf('id="panel-analyze"'), tea.indexOf('id="resultCard"'));
+  const at = (id) => panel.indexOf('id="' + id + '"');
+  const fnBody = (name, next) => { const a = script.indexOf('function ' + name), b = script.indexOf(next, a); return a < 0 || b < 0 ? '' : script.slice(a, b); };
+
+  ok('메뉴 5 에 드롭박스(select)가 없고 학급·주제·모둠 단추 영역이 이 순서(학급 → 주제 → 모둠)로 있음', !/<select/.test(panel) && at('pickClass') > 0 && at('pickClass') < at('pickTopic') && at('pickTopic') < at('pickGroup'), [at('pickClass'), at('pickTopic'), at('pickGroup')]);
+  ok('단계 번호가 1·2·3 이고 주제·모둠 단계는 처음에 잠겨(locked) 있음', /id="pickStepClass"/.test(panel) && /class="pick-step locked" id="pickStepTopic"/.test(panel) && /class="pick-step locked" id="pickStepGroup"/.test(panel) && ['1', '2', '3'].every((n) => new RegExp('<span class="pick-no">' + n + '</span>').test(panel)), '');
+  ok('분석 버튼은 처음에 꺼져 있음(disabled)', /<button id="btnAnalyze"[^>]*\bdisabled\b/.test(panel), '');
+  ok('각 단계 단추 묶음은 role=group 으로 제목과 연결됨', ['pickClass', 'pickTopic', 'pickGroup'].every((id) => new RegExp('id="' + id + '" role="group" aria-labelledby="[^"]+"').test(panel)) && /id="pickSummary" aria-live="polite"/.test(panel), '');
+  ok('선택 규칙(pick-logic.js)을 콘솔이 내 폴더에서 불러옴', fs.existsSync(path.join(ROOT, 'public/js/pick-logic.js')) && /<script src="js\/pick-logic\.js"><\/script>/.test(tea) && tea.indexOf('js/pick-logic.js') < tea.indexOf('<script>\n  const $ = '), '');
+  ok('옛 드롭박스 코드(selClass·selGroup·selTopic·populateSelect)가 남아 있지 않음', !/selClass|selGroup|selTopic|populateSelect/.test(tea), '');
+
+  const render = fnBody('renderPickStep', 'function syncAnalyzeBtn');
+  ok('단추의 이름·부가 글은 textContent 로만 넣음(시트에서 온 글이 HTML 로 해석되지 않게)', render.length > 200 && /name\.textContent = o\.value/.test(render) && /s\.textContent = sub/.test(render) && !/innerHTML/.test(render), render.slice(0, 80));
+  ok('기록 없음·평가 제외 표시와 못 누르는 단추(disabled)가 있음', /return '기록 없음'/.test(script) && /평가 제외 \$\{o\.total\}건/.test(script) && /b\.disabled = !ArguPick\.selectable\(o\)/.test(render), '');
+  ok('앞 단계를 고르기 전의 뒤 단계 단추는 잠긴(locked) 단추로 그려짐', /ArguPick\.topicOptions\(pickIdx, pick\.cls\) : lockedOptions\(/.test(script) && /ArguPick\.groupOptions\(pickIdx, pick\.cls, pick\.topic\) : lockedOptions\(/.test(script), '');
+  ok('학급을 바꾸면 주제·모둠이, 주제를 바꾸면 모둠이 비워짐', /function chooseClass\(v\) \{ pick = \{ cls: v, topic: '', group: '' \}/.test(script) && /function chooseTopic\(v\) \{ pick = \{ cls: pick\.cls, topic: v, group: '' \}/.test(script), '');
+  ok('선택이 바뀔 때마다 이전 분석의 루브릭 안내가 지워지고 탐구 도우미 안내가 갱신됨', /function afterPickChange\(\) \{ \$\('rubricNote'\)\.innerHTML = ''; renderPicker\(\); updateQnaNote\(\); \}/.test(script) && /normTopic\(pick\.topic\)/.test(script), '');
+  ok('분석 버튼은 세 단계가 유효할 때만 켜지고, 분석 중에는 꺼짐', /\$\('btnAnalyze'\)\.disabled = analyzing \|\| !\(pickIdx && ArguPick\.canAnalyze\(pickIdx, pick\)\)/.test(script) && /analyzing = true; syncAnalyzeBtn\(\)/.test(script) && /finally \{ analyzing = false; syncAnalyzeBtn\(\); \}/.test(script) && !/\$\('btnAnalyze'\)\.disabled = false/.test(script), '');
+  ok('분석을 실행하기 전에 한 번 더 선택이 유효한지 확인하고, 분석 요청은 고른 값(pick)으로 보냄', /if \(!pickIdx \|\| !ArguPick\.canAnalyze\(pickIdx, pick\)\)/.test(script) && /const f = \{ classValue: pick\.cls, groupValue: pick\.group, topicValue: pick\.topic \}/.test(script), '');
+  ok('기록 유무는 getChatOverview 로 불러오고, 실패해도 목록 단추는 그대로 쓰게 하며 옛 GAS 는 안내함', /GasClient\.callPost\('getChatOverview', \{\}\)/.test(script) && /\(error\) => \(\{ error \}\)/.test(script) && /ov\.combos \|\| null/.test(script) && /ov\.error\.oldBackend/.test(script), '');
+  ok('늦게 도착한 옛 응답은 버림(새로고침 순번 확인)', /const seq = \+\+pickLoadSeq/.test(script) && (script.match(/seq (!==|===) pickLoadSeq/g) || []).length >= 3 && /if \(seq !== pickLoadSeq\) return;/.test(script), '');
+  ok('단추 안내 문구의 조사가 받침에 맞음(탐구 주제를 · 모둠을 · 학급을)', /\$\{pick\.topic \? '모둠을' : '탐구 주제를'\} 골라 주세요/.test(script) && /학급을 골라 주세요/.test(script) && /'탐구 주제를 골라 주세요'/.test(script) && /'모둠을 골라 주세요 · /.test(script) && !/모둠를|주제을|학급를/.test(script), '');
+  ok('메뉴 5 에 들어올 때마다 목록·기록을 새로 읽음', /if \(name === 'analyze'\) refreshPicker\(false\)/.test(script) && /id="btnLoadOptions"[^>]*><span class="ms">sync<\/span>목록·기록 새로고침/.test(panel), '');
+  ok('getChatOverview 는 콘솔 호출 목록(TEACHER_ACTIONS)과 서버 교사 전용 목록 양쪽에 있고 버전 요구가 3 이상', /'getChatOverview'/.test(gasClient) && /"getChatOverview"/.test(server) && Number((script.match(/const REQUIRED_API_VERSION = (\d+)/) || [])[1]) >= 3, '');
+  ok('분석 결과 화면은 입력 폼이 아니라 분석 응답으로만 그림(드롭박스가 없어도 결과 제목이 나옴)', /lastFilters = f;/.test(script) && /\$\('resultTitle'\)\.textContent = `\$\{lastFilters\.classValue\} \$\{lastFilters\.groupValue\} 분석 결과`/.test(script), '');
+
+  ok('pick-logic.js 는 화면·저장소·네트워크를 쓰지 않는 순수 로직', !/\bdocument\b|localStorage|sessionStorage|fetch\(|XMLHttpRequest|eval\(|new Function/.test(logic.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')), '');
+  ok('단추 스타일: 기록 없음·평가 제외는 점선, 못 누르는 단추는 not-allowed, 선택된 단추는 파란색', /\.pick-btn\.empty, \.pick-btn\.excluded \{[^}]*border-style: dashed/.test(adminCss) && /\.pick-btn:disabled \{ cursor: not-allowed; \}/.test(adminCss) && /\.pick-btn\.on \{[^}]*background: var\(--blue\)/.test(adminCss), '');
+  ok('쓰지 않는 .filters 스타일이 정리됨', !/\.filters/.test(adminCss) && !/class="filters"/.test(tea), '');
+}
+
+// ───────── 9) 안내 카드 문장: 설명 속 굵은 글씨가 줄을 바꾸지 않음 ─────────
+{
+  const adminCss = read('public/css/admin.css');
+  const tea = pages['public/index.html'];
+  ok('.step-card 에서 제목(첫 b)만 블록이고, 설명 속 굵은 글씨(span b)는 인라인(줄바꿈 없음)', /\.step-card > div > b \{ display: block;/.test(adminCss) && /\.step-card span b \{ display: inline;/.test(adminCss) && !/\.step-card b \{ display: block/.test(adminCss), '');
+  const cards = [...tea.matchAll(/<div class="step-card">([\s\S]*?)<\/div><\/div>/g)].map((m) => m[1]);
+  ok('안내 카드 구조는 <b>제목</b> 다음 <span>설명</span> 하나(CSS 규칙이 전제하는 모양)', cards.length >= 17 && cards.every((c) => /^<span class="n">\d+<\/span><div><b>[^<]+<\/b><span>/.test(c)), cards.filter((c) => !/^<span class="n">\d+<\/span><div><b>[^<]+<\/b><span>/.test(c)).slice(0, 2));
+  ok('안내 카드에 줄바꿈 문자가 끼어 있지 않음(한 줄 마크업)', cards.every((c) => !/\n/.test(c)), '');
+  ok('옛 이름("논증 분석 스프레드시트")이 안내문에 남지 않고 해요체로 통일됨', !/논증 분석 스프레드시트/.test(tea) && !/복사합니다|엽니다\.|배포합니다|로그인합니다|누릅니다/.test(tea.slice(tea.indexOf('id="gasGuide"'), tea.indexOf('id="securityCard"'))), '');
+}
+
+// ───────── 10) 기타 ─────────
 const pkg = JSON.parse(read('package.json'));
 ok('package.json 에 npm test 가 있음', /node tests\/gas_logic\.test\.js/.test((pkg.scripts || {}).test || '') && /frontend_static/.test((pkg.scripts || {}).test || ''), pkg.scripts);
+ok('npm test 에 새 시험(gas_chat_overview·pick_logic)이 들어 있음', /gas_chat_overview\.test\.js/.test((pkg.scripts || {}).test || '') && /pick_logic\.test\.js/.test((pkg.scripts || {}).test || ''), pkg.scripts.test);
 
 asyncChecks.then(() => {
   console.log(`\n${pass} passed, ${fail} failed`);

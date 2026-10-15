@@ -87,9 +87,9 @@
           <details class="accordion" id="gasGuide">
             <summary><span class="ms" style="color:var(--blue)">build</span>아직 스프레드시트를 준비 안 했다면? (1분 설정 가이드)<span class="ms chev">expand_more</span></summary>
             <div class="body"><div class="steps-grid">
-              <div class="step-card"><span class="n">1</span><div><b>스프레드시트 사본 만들기</b><span>논증 분석 스프레드시트를 <b>파일 → 사본 만들기</b>로 내 드라이브에 복사합니다. Apps Script 코드가 이미 들어 있어요.</span></div></div>
-              <div class="step-card"><span class="n">2</span><div><b>Apps Script 열기</b><span>스프레드시트 상단 메뉴 <b>확장 프로그램 → Apps Script</b>를 엽니다.</span></div></div>
-              <div class="step-card"><span class="n">3</span><div><b>웹 앱으로 배포</b><span>우측 상단 <b>배포 → 새 배포</b>, 유형은 <b>웹 앱</b>, 액세스 권한은 <b>"모든 사용자"</b>로 배포합니다.</span></div></div>
+              <div class="step-card"><span class="n">1</span><div><b>스프레드시트 사본 만들기</b><span>아르봇(ARBOT) 스프레드시트를 <b>파일 → 사본 만들기</b>로 내 드라이브에 복사해요. Apps Script 코드가 이미 들어 있어요.</span></div></div>
+              <div class="step-card"><span class="n">2</span><div><b>Apps Script 열기</b><span>스프레드시트 상단 메뉴 <b>확장 프로그램 → Apps Script</b>를 열어요.</span></div></div>
+              <div class="step-card"><span class="n">3</span><div><b>웹 앱으로 배포</b><span>우측 상단 <b>배포 → 새 배포</b>를 눌러 유형은 <b>웹 앱</b>, 액세스 권한은 <b>"모든 사용자"</b>로 정하고 배포해요.</span></div></div>
               <div class="step-card"><span class="n">4</span><div><b>웹 앱 URL 등록</b><span>발급된 URL을 위 입력창에 붙여넣고 <b>연결 테스트</b> 후 <b>URL 저장</b>을 누르면 연동이 끝나요.</span></div></div>
             </div></div>
           </details>
@@ -182,10 +182,10 @@
           <details class="accordion">
             <summary><span class="ms" style="color:var(--blue)">vpn_key</span>Gemini API 키는 어떻게 발급받나요?<span class="ms chev">expand_more</span></summary>
             <div class="body"><div class="steps-grid">
-              <div class="step-card"><span class="n">1</span><div><b>AI Studio 접속</b><span><a href="https://aistudio.google.com" target="_blank" rel="noopener">aistudio.google.com</a>에 구글 계정으로 로그인합니다.</span></div></div>
-              <div class="step-card"><span class="n">2</span><div><b>Get API key 클릭</b><span>왼쪽 메뉴 또는 상단의 <b>"Get API key"</b>를 누릅니다.</span></div></div>
+              <div class="step-card"><span class="n">1</span><div><b>AI Studio 접속</b><span><a href="https://aistudio.google.com" target="_blank" rel="noopener">aistudio.google.com</a>에 구글 계정으로 로그인해요.</span></div></div>
+              <div class="step-card"><span class="n">2</span><div><b>Get API key 클릭</b><span>왼쪽 메뉴 또는 상단의 <b>"Get API key"</b>를 눌러요.</span></div></div>
               <div class="step-card"><span class="n">3</span><div><b>키 만들기</b><span><b>"Create API key"</b>를 누르면 <code>AIzaSy...</code> 형태의 키가 발급돼요.</span></div></div>
-              <div class="step-card"><span class="n">4</span><div><b>붙여넣고 저장</b><span>복사한 키를 위 입력창에 붙여넣고 <b>저장하기</b>를 누르세요.</span></div></div>
+              <div class="step-card"><span class="n">4</span><div><b>붙여넣고 저장</b><span>복사한 키를 위 입력창에 붙여넣고 <b>저장하기</b>를 눌러 주세요.</span></div></div>
             </div></div>
           </details>
         </div>
@@ -446,17 +446,28 @@
         <div class="card">
           <div class="card-head">
             <div class="tile"><span class="ms">query_stats</span></div>
-            <div><h2>대화 불러오기 및 툴민 분석</h2><p>학급 · 모둠 · 탐구 주제를 고르면 해당 대화 기록을 AI가 논증 요소별로 분석합니다.</p></div>
+            <div><h2>대화 불러오기 및 툴민 분석</h2><p>학급 → 탐구 주제 → 모둠 순서로 단추를 눌러 고르면, 해당 대화 기록을 AI가 논증 요소별로 분석해요.</p></div>
           </div>
-          <div class="filters">
-            <div class="field"><label for="selClass">학급 선택</label><select id="selClass" class="select"></select></div>
-            <div class="field"><label for="selGroup">모둠 선택</label><select id="selGroup" class="select"></select></div>
-            <div class="field"><label for="selTopic">탐구 주제</label><select id="selTopic" class="select"></select></div>
+          <div class="pick-flow" id="pickFlow">
+            <section class="pick-step" id="pickStepClass" aria-labelledby="pickClassLabel">
+              <div class="pick-head"><span class="pick-no">1</span><b id="pickClassLabel">학급</b><span class="pick-hint" id="pickClassHint"></span></div>
+              <div class="pick-btns" id="pickClass" role="group" aria-labelledby="pickClassLabel"></div>
+            </section>
+            <section class="pick-step locked" id="pickStepTopic" aria-labelledby="pickTopicLabel">
+              <div class="pick-head"><span class="pick-no">2</span><b id="pickTopicLabel">탐구 주제</b><span class="pick-hint" id="pickTopicHint"></span></div>
+              <div class="pick-btns" id="pickTopic" role="group" aria-labelledby="pickTopicLabel"></div>
+            </section>
+            <section class="pick-step locked" id="pickStepGroup" aria-labelledby="pickGroupLabel">
+              <div class="pick-head"><span class="pick-no">3</span><b id="pickGroupLabel">모둠</b><span class="pick-hint" id="pickGroupHint"></span></div>
+              <div class="pick-btns" id="pickGroup" role="group" aria-labelledby="pickGroupLabel"></div>
+            </section>
           </div>
+          <div class="pick-summary" id="pickSummary" aria-live="polite"></div>
+          <div id="pickNote"></div>
           <label class="chk-row"><input id="chkMaterial" type="checkbox" checked><span>이 주제의 <b>탐구 자료</b>(실험 과정·유의사항·오개념 메모)를 분석에 반영하기</span></label>
           <div class="btn-row">
-            <button id="btnLoadOptions" class="btn secondary" type="button"><span class="ms">sync</span>학급/모둠/주제 목록 불러오기</button>
-            <button id="btnAnalyze" class="btn" type="button"><span class="ms">auto_awesome</span>대화 불러오기 및 분석 실행</button>
+            <button id="btnLoadOptions" class="btn secondary" type="button"><span class="ms">sync</span>목록·기록 새로고침</button>
+            <button id="btnAnalyze" class="btn" type="button" disabled><span class="ms">auto_awesome</span>대화 불러오기 및 분석 실행</button>
           </div>
           <div id="step3Status" class="status-slot"></div>
           <div id="rubricNote"></div>
@@ -602,7 +613,8 @@
     <details class="accordion">
       <summary><span class="ms" style="color:var(--blue)">query_stats</span>메뉴 5 · 대화 결과 확인 &amp; 분석<span class="ms chev">expand_more</span></summary>
       <div class="body"><ul class="gd-list">
-        <li>학급 · 모둠 · 탐구 주제를 고르고 <b>대화 불러오기 및 분석 실행</b>을 눌러요. 목록이 비어 있으면 먼저 <b>학급/모둠/주제 목록 불러오기</b>를 눌러요.</li>
+        <li><b>학급 → 탐구 주제 → 모둠</b> 순서로 단추를 눌러 골라요. 앞 단계를 고르기 전에는 뒤 단계 단추가 꺼져 있고, 대화 기록이 없는 학급·주제·모둠은 <b>기록 없음</b>으로 표시돼 누를 수 없어요. 세 단계를 모두 고르면 <b>대화 불러오기 및 분석 실행</b> 버튼이 켜져요.</li>
+        <li>이 메뉴에 들어올 때마다 목록과 기록을 새로 읽어요. 수업 중에 새 대화가 생겼다면 <b>목록·기록 새로고침</b>을 눌러 주세요. 탐구 도우미 대화처럼 평가하지 않는 대화만 있는 곳은 <b>평가 제외</b>로 표시돼요.</li>
         <li>결과에는 <b>종합 논증 수준</b>, 대화에 나타난 논증 요소, <b>대화 흐름 차트</b>(점을 누르면 그때의 발언과 판정), 담화 맥락별 평가, <b>AI 총평 · 교사용 피드백</b>, 발언별 판정 표(판정 칩으로 걸러 보기)가 나와요. <b>HTML 보고서 · 인쇄 · CSV</b>로 내보낼 수 있어요.</li>
         <li>논증 수준은 <b>논증의 구조</b>를 보는 값이라 과학적으로 맞는지는 판단하지 않아요. 탐구 자료를 반영해도 코멘트에만 쓰여요.</li>
         <li>같은 대화를 다시 분석하면 판정이 조금 달라질 수 있어요(AI의 특성). 결과는 수업 참고 자료로 봐 주세요.</li>
@@ -651,6 +663,7 @@
 <script src="js/qrcode.js"></script>
 <script src="js/gasClient.js"></script>
 <script src="js/argu-shared.js"></script>
+<script src="js/pick-logic.js"></script>
 <script src="js/credit-footer.js"></script>
 <script>
   const $ = (id) => document.getElementById(id);
@@ -695,6 +708,7 @@
     window.scrollTo({ top: 0 });
     if (name === 'settings') renderPreview();
     if (name === 'link') updateStudentLink();
+    if (name === 'analyze') refreshPicker(false); // 들어올 때마다 목록·기록을 새로 읽는다(수업 중에 대화가 쌓이므로)
   }
   function setDone(step, done) {
     const el = document.querySelector(`.menu-item[data-step="${step}"]`);
@@ -756,7 +770,7 @@
 
   // ================= 1. GAS 연동 =================
   // 콘솔이 요구하는 GAS 코드 버전 (gas-source/Code.js 의 API_VERSION_ 과 함께 올린다). 응답에 version 이 없으면 옛 코드(1)다.
-  const REQUIRED_API_VERSION = 2;
+  const REQUIRED_API_VERSION = 3;
   async function testConnection(url, quiet) {
     if (!GasClient.isValidGasUrl(url)) throw new Error('구글 Apps Script 웹 앱 주소(https://script.google.com/…/exec)만 연결할 수 있어요.');
     const prev = GasClient.getGasUrl();
@@ -1966,27 +1980,117 @@
   // ================= 5. 결과 분석 =================
   let lastResult = null, lastFilters = null, activeTag = '전체';
 
-  function populateSelect(el, list) {
-    el.innerHTML = '';
-    (list || []).forEach((v) => { const o = document.createElement('option'); o.value = v; o.textContent = v; el.appendChild(o); });
+  // ---- 학급 → 탐구 주제 → 모둠 단추 ----
+  // 무엇을 누를 수 있는지·"기록 없음"인지의 규칙은 js/pick-logic.js(ArguPick)에 있고, 여기서는 그 결과를 그리기만 한다.
+  // 학급·주제·모둠 이름은 시트에서 온 글이라 innerHTML 이 아니라 textContent 로만 넣는다.
+  const parseList = (v) => String(v || '').split(',').map((t) => t.trim()).filter(Boolean);
+  let pickIdx = null, pickLoadSeq = 0, analyzing = false;
+  let pick = { cls: '', topic: '', group: '' };
+  const PICK_LEVELS = {
+    class: { box: 'pickClass', none: '학급 목록이 비어 있어요. 기본 설정의 "학급 · 모둠 · 금지어"에서 학급을 입력해 주세요.' },
+    topic: { box: 'pickTopic', none: '탐구 주제 목록이 비어 있어요. 주제 설정에서 주제를 입력해 주세요.' },
+    group: { box: 'pickGroup', none: '모둠 목록이 비어 있어요. 기본 설정의 "학급 · 모둠 · 금지어"에서 모둠을 입력해 주세요.' },
+  };
+  const lockedOptions = (list) => list.map((value) => ({ value, state: 'locked', offList: false }));
+
+  function pickSubText(level, o) {
+    if (o.state === 'locked' || o.state === 'unknown') return o.offList ? '목록에 없음' : '';
+    if (o.state === 'empty') return '기록 없음';
+    if (o.state === 'excluded') return `평가 제외 ${o.total}건`;
+    const base = level === 'group' ? `${o.analyzable}건` : `기록 ${o.groups}모둠`;
+    return o.offList ? `${base} · 목록에 없음` : base;
   }
-  $('btnLoadOptions').addEventListener('click', async () => {
-    $('btnLoadOptions').disabled = true; setStatus($('step3Status'), 'busy', '목록을 불러오는 중…');
+  function pickTitle(o) {
+    const t = [];
+    if (o.state === 'empty') t.push('이 조합에는 대화 기록이 없어요.');
+    if (o.state === 'excluded') t.push('탐구 도우미처럼 평가하지 않는 설정으로 나눈 대화라 논증 분석을 할 수 없어요.');
+    if (o.offList) t.push('지금 목록에는 없는 이름이에요(예전 기록이거나 이름이 바뀌었어요).');
+    if (o.last) t.push(`마지막 대화 ${o.last}`);
+    return t.join(' ');
+  }
+  function renderPickStep(level, opts, selected, onPick) {
+    const box = $(PICK_LEVELS[level].box);
+    box.replaceChildren();
+    if (!opts.length) { const p = document.createElement('span'); p.className = 'pick-none'; p.textContent = PICK_LEVELS[level].none; box.appendChild(p); return; }
+    opts.forEach((o) => {
+      const on = o.value === selected;
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.value = o.value; b.dataset.level = level;
+      b.className = 'pick-btn' + (on ? ' on' : '') + (['locked', 'empty', 'excluded'].includes(o.state) ? ' ' + o.state : '');
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.disabled = !ArguPick.selectable(o);
+      const name = document.createElement('span'); name.className = 'pick-name'; name.textContent = o.value; b.appendChild(name);
+      const sub = pickSubText(level, o);
+      if (sub) { const s = document.createElement('span'); s.className = 'pick-sub'; s.textContent = sub; b.appendChild(s); }
+      const tip = o.state === 'locked' ? '' : pickTitle(o);
+      if (tip) b.title = tip;
+      if (!b.disabled) b.addEventListener('click', () => onPick(o.value));
+      box.appendChild(b);
+    });
+  }
+  function syncAnalyzeBtn() { $('btnAnalyze').disabled = analyzing || !(pickIdx && ArguPick.canAnalyze(pickIdx, pick)); }
+
+  function renderPicker() {
+    if (!pickIdx) return;
+    const ae = document.activeElement, hadFocus = ae && ae.classList && ae.classList.contains('pick-btn') ? [ae.dataset.level, ae.dataset.value] : null;
+    renderPickStep('class', ArguPick.classOptions(pickIdx), pick.cls, chooseClass);
+    renderPickStep('topic', pick.cls ? ArguPick.topicOptions(pickIdx, pick.cls) : lockedOptions(pickIdx.lists.topics), pick.topic, chooseTopic);
+    renderPickStep('group', pick.cls && pick.topic ? ArguPick.groupOptions(pickIdx, pick.cls, pick.topic) : lockedOptions(pickIdx.lists.groups), pick.group, chooseGroup);
+    $('pickStepTopic').classList.toggle('locked', !pick.cls);
+    $('pickStepGroup').classList.toggle('locked', !(pick.cls && pick.topic));
+    $('pickClassHint').textContent = pick.cls ? '' : '학급을 골라 주세요';
+    $('pickTopicHint').textContent = !pick.cls ? '먼저 학급을 골라 주세요' : pick.topic ? '' : '탐구 주제를 골라 주세요';
+    $('pickGroupHint').textContent = !(pick.cls && pick.topic) ? '먼저 학급과 탐구 주제를 골라 주세요' : pick.group ? '' : '모둠을 골라 주세요 · 기록 없는 모둠은 누를 수 없어요';
+    const ready = ArguPick.canAnalyze(pickIdx, pick), sum = $('pickSummary'), chosen = [pick.cls, pick.topic, pick.group].filter(Boolean).join(' › ');
+    sum.classList.toggle('ready', ready);
+    sum.textContent = ready ? `선택: ${chosen} — 아래 [대화 불러오기 및 분석 실행]을 눌러 주세요.`
+      : pick.cls ? `선택: ${chosen} … 이어서 ${pick.topic ? '모둠을' : '탐구 주제를'} 골라 주세요.` : '학급 → 탐구 주제 → 모둠을 차례로 고르면 분석 버튼이 켜져요.';
+    syncAnalyzeBtn();
+    if (hadFocus) { // 단추를 다시 그리면 포커스가 사라지므로, 같은 단추가 아직 눌릴 수 있으면 포커스를 돌려준다
+      const again = [...$(PICK_LEVELS[hadFocus[0]].box).querySelectorAll('.pick-btn')].find((x) => x.dataset.value === hadFocus[1] && !x.disabled);
+      if (again) again.focus();
+    }
+  }
+  function afterPickChange() { $('rubricNote').innerHTML = ''; renderPicker(); updateQnaNote(); }
+  function chooseClass(v) { pick = { cls: v, topic: '', group: '' }; afterPickChange(); }
+  function chooseTopic(v) { pick = { cls: pick.cls, topic: v, group: '' }; afterPickChange(); }
+  function chooseGroup(v) { pick = { cls: pick.cls, topic: pick.topic, group: v }; afterPickChange(); }
+
+  function setPickNote(kind, title, sub) {
+    const el = $('pickNote');
+    if (kind === 'plain') { el.innerHTML = ''; const p = document.createElement('p'); p.className = 'pick-note'; p.textContent = title; el.appendChild(p); return; }
+    el.innerHTML = title ? banner(kind, title, sub) : '';
+  }
+  // 목록(교사 설정)과 기록 유무(getChatOverview)를 함께 불러와 단추를 다시 그린다. 고른 값이 아직 유효하면 그대로 둔다.
+  async function refreshPicker(manual) {
+    const seq = ++pickLoadSeq, btn = $('btnLoadOptions');
+    btn.disabled = true;
+    if (!pickIdx) setPickNote('busy', '학급·주제·모둠 기록을 불러오는 중…');
     try {
-      const res = await GasClient.callGet('getTeacherSettings'); // 학생 입구(getInitialData)는 수업 입장 코드가 있어야 열리므로, 교사 설정에서 가져온다
-      const parseList = (v) => String(v || '').split(',').map((t) => t.trim()).filter(Boolean);
-      populateSelect($('selClass'), parseList(res.data.classList)); populateSelect($('selGroup'), parseList(res.data.groupList)); populateSelect($('selTopic'), parseList(res.data.topicList));
-      updateQnaNote();
-      setStatus($('step3Status'), 'ok', '목록을 불러왔어요');
-    } catch (err) { setStatus($('step3Status'), 'err', '목록을 불러오지 못했어요', err.message); }
-    finally { $('btnLoadOptions').disabled = false; }
-  });
+      const [settings, ov] = await Promise.all([
+        GasClient.callGet('getTeacherSettings'), // 학생 입구(getInitialData)는 수업 입장 코드가 있어야 열리므로, 목록은 교사 설정에서 가져온다
+        GasClient.callPost('getChatOverview', {}).then((r) => ({ combos: r.data.combos }), (error) => ({ error })),
+      ]);
+      if (seq !== pickLoadSeq) return; // 더 나중에 시작한 새로고침이 있으면 이 결과는 버린다
+      pickIdx = ArguPick.build({ classes: parseList(settings.data.classList), topics: parseList(settings.data.topicList), groups: parseList(settings.data.groupList) }, ov.combos || null);
+      pick = ArguPick.reconcile(pickIdx, pick);
+      renderPicker(); updateQnaNote();
+      if (ov.error) { // 기록 유무만 못 불러온 경우: 단추는 그대로 쓰게 하고 이유를 알린다
+        setPickNote('warn', ov.error.oldBackend ? '이 시트의 GAS가 옛 버전이라 "기록 없음" 표시를 아직 쓸 수 없어요' : '대화 기록이 있는지 확인하지 못했어요',
+          ov.error.oldBackend ? '목록의 모든 단추를 누를 수 있고, 기록이 없는 모둠은 분석할 때 알려 줘요. 최신 GAS 코드를 배포하면 단추에 기록 유무가 표시돼요.' : ov.error.message);
+      } else setPickNote('plain', `기록 확인 ${hhmm(new Date())} · 새 대화가 생겼다면 [목록·기록 새로고침]을 눌러 주세요.`);
+      if (manual) toast('학급·주제·모둠 기록을 새로고침했어요.');
+    } catch (err) {
+      if (seq === pickLoadSeq) setPickNote('err', '목록을 불러오지 못했어요', err.message);
+    } finally { if (seq === pickLoadSeq) btn.disabled = false; }
+  }
+  $('btnLoadOptions').addEventListener('click', () => refreshPicker(true));
+
   // 고른 주제가 지금 탐구 도우미에 연결돼 있으면 안내한다 (도우미 대화는 평가에서 제외된다)
   function updateQnaNote() {
-    const t = profiles && profiles.topics.find((x) => !x.orphan && normTopic(x.topic) === normTopic($('selTopic').value));
+    const t = profiles && profiles.topics.find((x) => !x.orphan && normTopic(x.topic) === normTopic(pick.topic));
     $('qnaNote').classList.toggle('hidden', !(t && t.resolved && t.resolved.templateKey === 'qna'));
   }
-  $('selTopic').addEventListener('change', () => { updateQnaNote(); $('rubricNote').innerHTML = ''; });
 
   // 이 주제에서 다른 루브릭으로 진행된 대화가 있으면, 그 루브릭을 골라 다시 분석할 수 있게 단추로 알려 준다
   function renderRubricNote(data) {
@@ -2010,9 +2114,9 @@
   $('rubricNote').addEventListener('click', (e) => { const b = e.target.closest('[data-rubric]'); if (b) runAnalysis(b.dataset.rubric); });
 
   async function runAnalysis(rubricName) {
-    const f = { classValue: $('selClass').value, groupValue: $('selGroup').value, topicValue: $('selTopic').value };
-    if (!f.classValue || !f.groupValue || !f.topicValue) { setStatus($('step3Status'), 'err', '먼저 [학급/모둠/주제 목록 불러오기]로 목록을 불러온 뒤 선택해 주세요.'); return; }
-    $('btnAnalyze').disabled = true; $('resultCard').classList.add('hidden'); $('rubricNote').innerHTML = '';
+    if (!pickIdx || !ArguPick.canAnalyze(pickIdx, pick)) { setStatus($('step3Status'), 'err', '먼저 학급 → 탐구 주제 → 모둠 순서로 단추를 눌러, 대화 기록이 있는 모둠을 골라 주세요.'); return; }
+    const f = { classValue: pick.cls, groupValue: pick.group, topicValue: pick.topic };
+    analyzing = true; syncAnalyzeBtn(); $('resultCard').classList.add('hidden'); $('rubricNote').innerHTML = '';
     setStatus($('step3Status'), 'busy', 'AI가 대화 내역을 분석하고 있어요', '대화량에 따라 10~30초 걸릴 수 있어요.');
     try {
       const wantMat = $('chkMaterial').checked;
@@ -2023,7 +2127,7 @@
     } catch (err) {
       setStatus($('step3Status'), 'err', '분석하지 못했어요', err.message);
       renderRubricNote(err.data); // 모든 대화가 다른 루브릭이었다면 어떤 루브릭을 골라야 하는지 알려 준다
-    } finally { $('btnAnalyze').disabled = false; }
+    } finally { analyzing = false; syncAnalyzeBtn(); }
   }
   $('btnAnalyze').addEventListener('click', () => runAnalysis(''));
 

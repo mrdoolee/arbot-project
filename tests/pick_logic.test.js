@@ -1,0 +1,139 @@
+// 결과 분석(메뉴 5)의 학급 → 주제 → 모둠 단추 선택 규칙(public/js/pick-logic.js)을 DOM 없이 시험한다.
+//   node tests/pick_logic.test.js
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+let pass = 0, fail = 0;
+const ok = (name, cond, extra) => { (cond ? pass++ : fail++); console.log((cond ? 'PASS ' : 'FAIL ') + name + (cond ? '' : '  → ' + JSON.stringify(extra))); };
+
+const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'pick-logic.js'), 'utf8');
+const win = {}; vm.createContext(win); win.window = win; vm.runInContext(src, win);
+const P = win.ArguPick;
+const plain = (v) => JSON.parse(JSON.stringify(v)); // vm 컨텍스트의 객체를 이쪽 객체로 바꿔 deepEqual 비교를 쉽게
+
+const lists = { classes: ['1반', '2반', '3반'], topics: ['전류와 전압', '온도와 반응 속도', '원자력 발전'], groups: ['A1모둠', 'A2모둠', 'B1모둠'] };
+const combos = [
+  { classValue: '1반', topicValue: '전류와 전압', groupValue: 'A1모둠', total: 5, analyzable: 5, last: '2026-10-15 10:20' },
+  { classValue: '1반', topicValue: '전류와 전압', groupValue: 'A2모둠', total: 2, analyzable: 0, last: '2026-10-15 09:00' }, // 탐구 도우미 대화뿐
+  { classValue: '1반', topicValue: '온도와 반응 속도', groupValue: 'B1모둠', total: 3, analyzable: 3, last: '2026-10-14 15:00' },
+  { classValue: '2반', topicValue: '전류와 전압', groupValue: 'A1모둠', total: 1, analyzable: 1, last: '2026-10-13 11:00' },
+];
+const idx = P.build(lists, combos);
+const st = (opts) => Object.fromEntries(opts.map((o) => [o.value, o.state]));
+
+// ───────── 1) 처음 상태: 학급만 보이고 뒤 단계는 아직 비어 있음 ─────────
+ok('학급 단추는 교사가 정한 학급 목록 순서대로 만들어짐', P.classOptions(idx).map((o) => o.value).join() === '1반,2반,3반', P.classOptions(idx).map((o) => o.value));
+ok('학급을 고르기 전에는 주제 단추가 없음(활성화될 대상이 없음)', P.topicOptions(idx, '').length === 0 && P.topicOptions(idx, '  ').length === 0, '');
+ok('주제를 고르기 전에는 모둠 단추가 없음', P.groupOptions(idx, '1반', '').length === 0 && P.groupOptions(idx, '', '전류와 전압').length === 0, '');
+ok('아무것도 안 고르면 분석 버튼은 꺼짐', P.canAnalyze(idx, {}) === false && P.canAnalyze(idx, null) === false && P.canAnalyze(idx, undefined) === false, '');
+
+// ───────── 2) 학급 단추: 기록이 있는 학급만 누를 수 있음 ─────────
+{
+  const s = st(P.classOptions(idx));
+  ok('기록이 있는 학급은 ok, 기록이 전혀 없는 학급은 empty(기록 없음)', s['1반'] === 'ok' && s['2반'] === 'ok' && s['3반'] === 'empty', s);
+  const c1 = P.classOptions(idx)[0];
+  ok('학급 단추가 기록 있는 모둠 수·건수·마지막 시각을 알려 줌(1반: 2모둠·평가 대상 8건·10-15 10:20)', c1.groups === 2 && c1.analyzable === 8 && c1.total === 10 && c1.last === '2026-10-15 10:20', plain(c1));
+  ok('기록 없는 학급은 누를 수 없고 기록 있는 학급은 누를 수 있음', P.selectable(P.classOptions(idx)[2]) === false && P.selectable(c1) === true, '');
+}
+
+// ───────── 3) 학급을 고르면 주제 단추가 켜짐 ─────────
+{
+  const s1 = st(P.topicOptions(idx, '1반')), s2 = st(P.topicOptions(idx, '2반')), s3 = st(P.topicOptions(idx, '3반'));
+  ok('1반: 기록 있는 주제 둘은 ok, 기록 없는 주제는 empty', s1['전류와 전압'] === 'ok' && s1['온도와 반응 속도'] === 'ok' && s1['원자력 발전'] === 'empty', s1);
+  ok('2반: 전류와 전압만 ok (학급마다 따로 판단)', s2['전류와 전압'] === 'ok' && s2['온도와 반응 속도'] === 'empty' && s2['원자력 발전'] === 'empty', s2);
+  ok('기록이 없는 학급은 주제가 모두 empty', Object.values(s3).every((v) => v === 'empty') && Object.keys(s3).length === 3, s3);
+  ok('주제 단추는 주제 목록 순서대로', P.topicOptions(idx, '1반').map((o) => o.value).join() === lists.topics.join(), '');
+}
+
+// ───────── 4) 주제를 고르면 모둠 단추가 켜지고, 기록 없는 모둠은 "기록 없음" ─────────
+{
+  const g = P.groupOptions(idx, '1반', '전류와 전압'), s = st(g), by = Object.fromEntries(g.map((o) => [o.value, o]));
+  ok('A1모둠은 ok(5건), A2모둠은 평가 제외, B1모둠은 기록 없음', s['A1모둠'] === 'ok' && s['A2모둠'] === 'excluded' && s['B1모둠'] === 'empty', s);
+  ok('ok 모둠은 평가 대상 건수와 마지막 대화 시각을 가짐', by['A1모둠'].analyzable === 5 && by['A1모둠'].last === '2026-10-15 10:20', plain(by['A1모둠']));
+  ok('평가 제외 모둠은 기록 건수(2)는 알려 주되 누를 수 없음', by['A2모둠'].total === 2 && by['A2모둠'].analyzable === 0 && P.selectable(by['A2모둠']) === false, plain(by['A2모둠']));
+  ok('기록 없음 모둠은 누를 수 없음', P.selectable(by['B1모둠']) === false && by['B1모둠'].total === 0, plain(by['B1모둠']));
+  const other = st(P.groupOptions(idx, '1반', '온도와 반응 속도'));
+  ok('같은 학급이라도 주제가 다르면 모둠 상태가 따로임(온도 주제는 B1모둠만 ok)', other['B1모둠'] === 'ok' && other['A1모둠'] === 'empty' && other['A2모둠'] === 'empty', other);
+  const noData = st(P.groupOptions(idx, '2반', '온도와 반응 속도'));
+  ok('기록이 없는 학급·주제 조합은 모둠이 모두 기록 없음', Object.values(noData).every((v) => v === 'empty'), noData);
+}
+
+// ───────── 5) 순서대로 눌러 가는 흐름과 분석 버튼 ─────────
+{
+  let sel = { cls: '', topic: '', group: '' };
+  ok('① 처음: 분석 버튼 꺼짐', !P.canAnalyze(idx, sel), '');
+  sel = { cls: '1반', topic: '', group: '' };
+  ok('② 학급만 고르면 분석 버튼은 아직 꺼져 있고 주제 단추가 켜짐', !P.canAnalyze(idx, sel) && P.topicOptions(idx, sel.cls).some(P.selectable), '');
+  sel = { cls: '1반', topic: '전류와 전압', group: '' };
+  ok('③ 주제까지 고르면 분석 버튼은 아직 꺼져 있고 모둠 단추가 켜짐', !P.canAnalyze(idx, sel) && P.groupOptions(idx, sel.cls, sel.topic).some(P.selectable), '');
+  sel = { cls: '1반', topic: '전류와 전압', group: 'A1모둠' };
+  ok('④ 기록 있는 모둠까지 고르면 분석 버튼이 켜짐', P.canAnalyze(idx, sel), '');
+  ok('기록 없는 모둠(B1모둠)을 골랐다고 해도 분석 버튼은 켜지지 않음', !P.canAnalyze(idx, { cls: '1반', topic: '전류와 전압', group: 'B1모둠' }), '');
+  ok('평가 제외 모둠(A2모둠)도 분석 버튼이 켜지지 않음', !P.canAnalyze(idx, { cls: '1반', topic: '전류와 전압', group: 'A2모둠' }), '');
+  ok('기록 없는 학급·주제를 억지로 넣어도 분석 버튼은 꺼짐', !P.canAnalyze(idx, { cls: '3반', topic: '전류와 전압', group: 'A1모둠' }) && !P.canAnalyze(idx, { cls: '1반', topic: '원자력 발전', group: 'A1모둠' }), '');
+  ok('목록·기록에 없는 이름은 분석 버튼이 켜지지 않음', !P.canAnalyze(idx, { cls: '9반', topic: '전류와 전압', group: 'A1모둠' }), '');
+}
+
+// ───────── 6) 기록이 바뀐 뒤(새로고침) 고른 값이 어긋나면 그 단계부터 비움 ─────────
+{
+  const sel = { cls: '1반', topic: '전류와 전압', group: 'A1모둠' };
+  ok('그대로면 선택이 유지됨', JSON.stringify(plain(P.reconcile(idx, sel))) === JSON.stringify(sel), plain(P.reconcile(idx, sel)));
+  // 1반의 A1모둠 기록만 사라지고, 같은 주제에 다른 모둠(B1모둠)의 기록이 남아 있는 경우
+  const noGroup = P.build(lists, combos.filter((c) => c.groupValue !== 'A1모둠' || c.classValue !== '1반').concat([{ classValue: '1반', topicValue: '전류와 전압', groupValue: 'B1모둠', total: 1, analyzable: 1, last: '' }]));
+  ok('고른 모둠의 기록이 사라지면 모둠만 비워지고 학급·주제는 유지', JSON.stringify(plain(P.reconcile(noGroup, sel))) === JSON.stringify({ cls: '1반', topic: '전류와 전압', group: '' }), plain(P.reconcile(noGroup, sel)));
+  const onlyExcluded = P.build(lists, combos.filter((c) => !(c.classValue === '1반' && c.topicValue === '전류와 전압' && c.groupValue === 'A1모둠')));
+  ok('주제에 평가 제외 모둠만 남으면 그 주제도 평가 제외가 되어 선택이 주제부터 비워짐', JSON.stringify(plain(P.reconcile(onlyExcluded, sel))) === JSON.stringify({ cls: '1반', topic: '', group: '' }) && P.topicOptions(onlyExcluded, '1반').find((o) => o.value === '전류와 전압').state === 'excluded', plain(P.topicOptions(onlyExcluded, '1반')));
+  const noTopic = P.build(lists, combos.filter((c) => !(c.classValue === '1반' && c.topicValue === '전류와 전압')));
+  ok('고른 주제의 기록이 사라지면 주제·모둠이 비워지고 학급은 유지', JSON.stringify(plain(P.reconcile(noTopic, sel))) === JSON.stringify({ cls: '1반', topic: '', group: '' }), plain(P.reconcile(noTopic, sel)));
+  const noClass = P.build(lists, combos.filter((c) => c.classValue !== '1반'));
+  ok('고른 학급의 기록이 사라지면 전부 비워짐', JSON.stringify(plain(P.reconcile(noClass, sel))) === JSON.stringify({ cls: '', topic: '', group: '' }), plain(P.reconcile(noClass, sel)));
+}
+
+// ───────── 7) 목록에는 없지만 기록은 있는 이름도 누를 수 있음(옛 목록·이름 변경) ─────────
+{
+  const extra = combos.concat([
+    { classValue: '4반', topicValue: '옛 주제', groupValue: '옛모둠', total: 2, analyzable: 2, last: '2026-09-01 10:00' },
+    { classValue: '1반', topicValue: '전류와 전압', groupValue: '새모둠', total: 1, analyzable: 1, last: '2026-10-15 11:00' },
+  ]);
+  const i2 = P.build(lists, extra);
+  const cl = P.classOptions(i2), gr = P.groupOptions(i2, '1반', '전류와 전압');
+  ok('목록에 없는 학급 기록도 학급 단추로 뒤에 붙음(offList)', cl.map((o) => o.value).join() === '1반,2반,3반,4반' && cl[3].offList === true && cl[3].state === 'ok' && cl[0].offList === false, plain(cl));
+  ok('목록에 없는 모둠 기록도 모둠 단추로 뒤에 붙음', gr.map((o) => o.value).join() === 'A1모둠,A2모둠,B1모둠,새모둠' && gr[3].offList === true && gr[3].state === 'ok', plain(gr));
+  ok('그 단추로도 분석 버튼을 켤 수 있음', P.canAnalyze(i2, { cls: '4반', topic: '옛 주제', group: '옛모둠' }), '');
+}
+
+// ───────── 8) 이름 비교는 분석과 같은 규칙: 앞뒤 공백만 무시한 정확 일치 ─────────
+{
+  const i3 = P.build({ classes: [' 1반 ', '1반'], topics: ['전류와 전압'], groups: ['A1모둠'] }, [{ classValue: ' 1반', topicValue: '전류와 전압 ', groupValue: ' A1모둠 ', total: 1, analyzable: 1, last: '' }]);
+  ok('앞뒤 공백은 무시하고 목록의 중복은 합쳐짐', P.classOptions(i3).length === 1 && P.classOptions(i3)[0].state === 'ok' && P.groupOptions(i3, '1반', '전류와 전압')[0].state === 'ok', plain(P.classOptions(i3)));
+  const i4 = P.build({ classes: ['1반'], topics: ['전류와 전압'], groups: ['A1모둠'] }, [{ classValue: '1반', topicValue: '전류와  전압', groupValue: 'A1모둠', total: 1, analyzable: 1, last: '' }]);
+  const t4 = P.topicOptions(i4, '1반');
+  ok('안쪽 공백이 다른 이름은 다른 주제(분석도 정확 일치라 서로 다른 기록)', t4.length === 2 && t4[0].state === 'empty' && t4[1].state === 'ok' && t4[1].offList === true, plain(t4));
+  const i5 = P.build({ classes: ['1반'], topics: ['Topic'], groups: ['A'] }, [{ classValue: '1반', topicValue: 'topic', groupValue: 'A', total: 1, analyzable: 1, last: '' }]);
+  ok('영문 대소문자도 정확 일치(분석과 같음)', P.topicOptions(i5, '1반').find((o) => o.value === 'Topic').state === 'empty', plain(P.topicOptions(i5, '1반')));
+}
+
+// ───────── 9) 기록 유무를 모를 때(옛 GAS·오류): 막지 않고 목록만 보여 줌 ─────────
+{
+  const u = P.build(lists, null);
+  ok('combos 가 null 이면 모든 단추가 unknown(누를 수 있음)', P.classOptions(u).every((o) => o.state === 'unknown' && P.selectable(o)) && P.topicOptions(u, '1반').every((o) => o.state === 'unknown') && P.groupOptions(u, '1반', '전류와 전압').every((o) => o.state === 'unknown'), '');
+  ok('기록 유무를 모를 때도 세 단계를 고르면 분석 버튼이 켜짐(예전처럼 서버가 판단)', P.canAnalyze(u, { cls: '2반', topic: '원자력 발전', group: 'B1모둠' }), '');
+  ok('모를 때도 단계 순서는 지킴(학급 없이는 주제 단추 없음)', P.topicOptions(u, '').length === 0 && !P.canAnalyze(u, { cls: '', topic: '원자력 발전', group: 'B1모둠' }), '');
+  ok('빈 배열은 "기록이 하나도 없음"(모름과 다름): 모두 empty', P.classOptions(P.build(lists, [])).every((o) => o.state === 'empty'), '');
+}
+
+// ───────── 10) 엉터리 입력에도 멈추지 않음 ─────────
+{
+  let err = null, res;
+  try {
+    const bad = P.build({ classes: null, topics: 'x', groups: [null, undefined, '', 3] }, [null, undefined, {}, { classValue: '1반' }, { classValue: '1반', topicValue: 't', groupValue: 'g', total: -4, analyzable: 'abc' }, { classValue: '1반', topicValue: 't', groupValue: 'g', total: '3', analyzable: '2.9', last: 7 }]);
+    res = { c: plain(P.classOptions(bad)), g: plain(P.groupOptions(bad, '1반', 't')) };
+  } catch (e) { err = e.message; }
+  ok('null·빈 객체·음수·문자열 숫자가 섞여도 예외 없이 처리됨', err === null && res.c.length === 1 && res.g.length === 2, [err, res]);
+  ok('문자열 숫자는 정수로 읽고(3건·평가 2건) 음수·잘못된 값은 0 으로 봄', res && res.g.find((o) => o.value === 'g').total === 3 && res.g.find((o) => o.value === 'g').analyzable === 2, res && res.g);
+  ok('lists 가 없어도 기록만으로 단추가 만들어짐', P.classOptions(P.build(undefined, combos)).map((o) => o.value).join() === '1반,2반', '');
+  ok('build 가 입력 배열을 바꾸지 않음', (() => { const c = JSON.stringify(combos), l = JSON.stringify(lists); P.build(lists, combos); return c === JSON.stringify(combos) && l === JSON.stringify(lists); })(), '');
+}
+
+console.log(`\n${pass} passed, ${fail} failed`);
+process.exit(fail ? 1 : 0);

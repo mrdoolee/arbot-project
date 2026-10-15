@@ -12,7 +12,7 @@
   const TIMEOUT_MS = 90000;
 
   // 교사 콘솔만 쓰는 요청. 서버가 비밀번호를 확인하고, 주소창에 비밀번호가 남지 않도록 POST로 보낸다.
-  const TEACHER_ACTIONS = ['testConnection', 'teacherAnalyze', 'listGeminiModels', 'testGeminiModel', 'getTeacherSettings',
+  const TEACHER_ACTIONS = ['testConnection', 'teacherAnalyze', 'getChatOverview', 'listGeminiModels', 'testGeminiModel', 'getTeacherSettings',
     'getTopicMaterials', 'saveTopicMaterial', 'saveTeacherSettings', 'setTeacherPin', 'getApiKeys', 'saveApiKeys', 'resetApiKeyStatus',
     'getProfiles', 'saveProfile', 'deleteProfile', 'saveTopicSetting', 'getAccessCode', 'setAccessCode'];
 
