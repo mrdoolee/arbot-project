@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"tertiary-container":"#00362c","on-background":"#181c1e","on-error":"#ffffff","inverse-surface":"#2d3133","primary":"#001b35","on-primary-fixed":"#001c37","on-surface-variant":"#43474e","on-secondary-fixed-variant":"#00468c","error":"#ba1a1a","on-secondary":"#ffffff","inverse-on-surface":"#eef1f4","tertiary":"#001f18","surface-variant":"#e0e3e6","surface-bright":"#f7fafd","surface-container-low":"#f1f4f7","surface-container-highest":"#e0e3e6","primary-container":"#12304f","secondary-fixed":"#d6e3ff","on-tertiary-fixed":"#002019","surface-dim":"#d7dadd","secondary-container":"#64a1fe","inverse-primary":"#adc9ef","surface-container-high":"#e5e8eb","on-primary-fixed-variant":"#2d4869","surface-tint":"#456082","secondary":"#005db6","primary-fixed-dim":"#adc9ef","primary-fixed":"#d2e4ff","on-tertiary-fixed-variant":"#005142","outline-variant":"#c3c6ce","on-primary-container":"#7d98bd","on-surface":"#181c1e","secondary-fixed-dim":"#a9c7ff","outline":"#74777e","surface-container-lowest":"#ffffff","tertiary-fixed-dim":"#4cddbd","surface":"#f7fafd","on-secondary-fixed":"#001b3d","on-error-container":"#93000a","error-container":"#ffdad6","on-tertiary-container":"#00aa8e","on-tertiary":"#ffffff","background":"#f7fafd","surface-container":"#ebeef1","on-secondary-container":"#00366f","tertiary-fixed":"#6ef9d9","on-primary":"#ffffff"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-md":"1rem","gutter-mobile":"1rem","margin-mobile":"1rem","space-xl":"2rem","space-lg":"1.5rem","margin":"2rem","space-xs":"0.25rem","gutter":"1.5rem","space-sm":"0.5rem"},fontFamily:{"code-argument":["Noto Sans"],"label-sm":["Noto Sans"],"body-teacher":["Noto Sans"],"headline-md":["Noto Sans"],"headline-xl-mobile":["Noto Sans"],"body-student-lg":["Noto Sans"],"headline-sm":["Noto Sans"],"headline-xl":["Noto Sans"],"headline-lg":["Noto Sans"],"label-md":["Noto Sans"],"body-student":["Noto Sans"]},fontSize:{"code-argument":["13px",{lineHeight:"18px",fontWeight:"600"}],"label-sm":["12px",{lineHeight:"16px",fontWeight:"500"}],"body-teacher":["14px",{lineHeight:"22px",fontWeight:"400"}],"headline-md":["20px",{lineHeight:"28px",fontWeight:"600"}],"headline-xl-mobile":["26px",{lineHeight:"36px",fontWeight:"700"}],"body-student-lg":["18px",{lineHeight:"30px",fontWeight:"400"}],"headline-sm":["18px",{lineHeight:"26px",fontWeight:"600"}],"headline-xl":["32px",{lineHeight:"44px",fontWeight:"700"}],"headline-lg":["24px",{lineHeight:"34px",fontWeight:"600"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"body-student":["16px",{lineHeight:"26px",fontWeight:"400"}]}}}}</script></head><body class="bg-surface font-body-teacher text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-[260px] bg-primary-container text-on-primary z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="px-space-lg py-space-lg flex items-center gap-space-sm"><div class="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-on-secondary shadow-sm"><span class="material-symbols-outlined text-[22px]">science</span></div><div class="flex flex-col leading-tight"><span class="font-headline-sm text-headline-sm text-on-primary font-bold tracking-tight">과학탐구 논증 AI</span><span class="font-label-sm text-label-sm text-on-primary-container">교사용 콘솔</span></div></div><nav class="flex flex-col gap-space-xs px-space-md mt-space-sm" data-active-classes="bg-secondary text-on-secondary font-semibold shadow-sm"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg transition-colors bg-secondary text-on-secondary font-semibold shadow-sm" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="font-label-md text-label-md">수업 대시보드</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-primary-container hover:bg-primary hover:text-on-primary transition-colors" data-path="tutor-config" href="#"><span class="material-symbols-outlined text-[20px]">smart_toy</span><span class="font-label-md text-label-md">AI 튜터 페르소나 설정</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-primary-container hover:bg-primary hover:text-on-primary transition-colors" data-path="inquiry-topics" href="#"><span class="material-symbols-outlined text-[20px]">psychology_alt</span><span class="font-label-md text-label-md">탐구 주제 &amp; 발문 관리</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-primary-container hover:bg-primary hover:text-on-primary transition-colors" data-path="live-analytics" href="#"><span class="material-symbols-outlined text-[20px]">forum</span><span class="font-label-md text-label-md">실시간 모둠 대화 분석</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-primary-container hover:bg-primary hover:text-on-primary transition-colors" data-path="argument-reports" href="#"><span class="material-symbols-outlined text-[20px]">account_tree</span><span class="font-label-md text-label-md">툴민 논증 리포트</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-primary-container hover:bg-primary hover:text-on-primary transition-colors" data-path="session-qr" href="#"><span class="material-symbols-outlined text-[20px]">qr_code_scanner</span><span class="font-label-md text-label-md">학생 QR코드 &amp; 세션 배포</span></a></nav></div><div class="p-space-md flex flex-col gap-space-sm"><div class="bg-primary rounded-lg p-space-sm flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="w-2.5 h-2.5 rounded-full bg-tertiary-fixed animate-pulse"></span><span class="font-label-sm text-label-sm text-on-primary">수업 진행 중 (2학년 4반)</span></div><span class="material-symbols-outlined text-[16px] text-tertiary-fixed">cast_connected</span></div><div class="flex items-center gap-space-sm p-space-xs rounded-lg bg-primary-container"><div class="w-10 h-10 rounded-full overflow-hidden bg-primary flex items-center justify-center text-on-primary shrink-0"><span class="material-symbols-outlined text-[24px]">person</span></div><div class="flex flex-col min-w-0 flex-1"><span class="font-label-md text-label-md font-semibold text-on-primary truncate">박소라 교사</span><span class="font-label-sm text-label-sm text-on-primary-container truncate">중등 과학 3학년</span></div><button class="text-on-primary-container hover:text-on-primary transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">settings</span></button></div></div></aside><div class="pl-[260px]"><header class="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-low text-on-surface"><span class="material-symbols-outlined text-[18px] text-secondary">menu_book</span><span class="font-label-md text-label-md font-medium">2025학년도 1학기 - 중3 과학 [기체의 성질과 압력]</span><span class="material-symbols-outlined text-[18px] text-on-surface-variant">arrow_drop_down</span></div><div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm bg-surface-container-high px-space-sm py-space-xs rounded-full"><span class="w-2 h-2 rounded-full bg-tertiary-container"></span><span>실시간 접속: <strong class="text-secondary font-semibold">28명</strong></span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><button class="px-space-md py-space-xs rounded-lg bg-secondary text-on-secondary font-label-md text-label-md flex items-center gap-space-xs hover:bg-on-secondary-fixed-variant transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">play_arrow</span><span>새 모둠 토론 시작</span></button><button class="px-space-md py-space-xs rounded-lg bg-error-container text-on-error-container font-label-md text-label-md flex items-center gap-space-xs hover:bg-error hover:text-on-error transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">stop</span><span>수업 종료</span></button></div><div class="h-6 w-px bg-surface-container-highest"></div><button class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors relative" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1WOu6edQQfnnFcV_t0hFgHw63zGVqbIvE4RbzFEas0NV387QAGui9xaqC76SIIckMgeKonhfz-MDLVH7eA_P3RNlqAZEVPLPkvnOud3y1siNqJobMHPZzDA5J2K0f5vc-5bRouRXG6ofigaLZKha1EjBNQtm5Goj97ltr-6jNRUbFNTyCM-AgeFATVaxDNtRZqpI_0gjnIIVmkrFXr3AIVSVfPHbe5ohRGwZEgl4vcF"/></div></header><main class="relative pt-16 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- Content Area Wrapper -->
+<div class="px-space-xl py-space-lg flex flex-col gap-space-lg">
+<!-- Top Welcome & Session Brief Banner -->
+<div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary-container via-primary to-primary-container text-on-primary p-space-lg shadow-md">
+<div class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-secondary/20 blur-3xl pointer-events-none"></div>
+<div class="absolute right-40 -bottom-20 w-60 h-60 rounded-full bg-tertiary-fixed/15 blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-tertiary-fixed/20 text-tertiary-fixed font-code-argument text-code-argument">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed animate-ping"></span>
+              LIVE LESSON RUNNING
+            </span>
+<span class="text-on-primary-container font-label-sm text-label-sm">세션 ID: #SCI-2025-04B</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg font-bold tracking-tight text-on-primary">
+            2학년 4반 과학탐구 [기체의 온도와 부피 관계 (샤를 법칙)] 실시간 논증 현황
+          </h1>
+<p class="font-body-teacher text-body-teacher text-on-primary-container max-w-3xl">
+            소크라테스식 AI 튜터가 툴민(Toulmin) 논증 모델 구조에 따라 학생들의 비판적 사고를 지원하고 있습니다. 모둠별 탐구 정체 구간을 즉각 파악하고 피드백하세요.
+          </p>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="px-space-md py-2.5 rounded-lg bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 backdrop-blur-md text-on-primary font-label-md text-label-md flex items-center gap-space-xs transition-colors" onclick="document.getElementById('notice-modal').classList.toggle('hidden')" type="button">
+<span class="material-symbols-outlined text-[18px]">campaign</span>
+<span>전체 발문 방송</span>
+</button>
+<button class="px-space-md py-2.5 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md shadow-sm hover:bg-on-secondary-fixed-variant flex items-center gap-space-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">present_to_all</span>
+<span>칠판 공유 뷰 열기</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 4 Core Metric Indicators (Rounded-14 Soft Institutional Cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+<!-- Metric 1: Participation -->
+<div class="rounded-xl bg-surface-container-lowest p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">실시간 학생 참여율</span>
+<div class="w-8 h-8 rounded-lg bg-secondary-fixed/50 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">28</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-normal">/ 28명</span>
+<span class="ml-auto font-label-sm text-label-sm text-tertiary-fixed-dim bg-tertiary-container px-2 py-0.5 rounded-full font-semibold">100% 접속</span>
+</div>
+<div class="mt-space-sm w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 100%;"></div>
+</div>
+<span class="mt-space-xs font-label-sm text-label-sm text-on-surface-variant">모든 모둠 활성 디바이스 정상 동기화</span>
+</div>
+<!-- Metric 2: Toulmin Progress -->
+<div class="rounded-xl bg-surface-container-lowest p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">평균 논증 구축 단계</span>
+<div class="w-8 h-8 rounded-lg bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+</div>
+</div>
+<div class="mt-space-xs flex flex-col gap-1.5">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-secondary font-semibold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>주장 (Claim)
+            </span>
+<span class="font-code-argument text-code-argument text-on-surface">96%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 96%;"></div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-on-tertiary-container font-semibold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>근거 (Evidence)
+            </span>
+<span class="font-code-argument text-code-argument text-on-surface">82%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full rounded-full" style="width: 82%;"></div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-secondary-container font-semibold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>정당화 (Reasoning)
+            </span>
+<span class="font-code-argument text-code-argument text-on-surface">64%</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full rounded-full" style="width: 64%;"></div>
+</div>
+</div>
+</div>
+<!-- Metric 3: AI Socratic Prompts -->
+<div class="rounded-xl bg-surface-container-lowest p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">AI 소크라테스식 발문 누적</span>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">142</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-normal">회</span>
+<span class="ml-auto font-label-sm text-label-sm text-secondary bg-secondary-fixed/50 px-2 py-0.5 rounded-full font-semibold">+18회 (최근 5분)</span>
+</div>
+<!-- Mini Sparkline visualization -->
+<div class="mt-space-xs flex items-end gap-1 h-6">
+<span class="flex-1 bg-surface-container rounded-t h-2"></span>
+<span class="flex-1 bg-surface-container rounded-t h-3"></span>
+<span class="flex-1 bg-surface-container rounded-t h-4"></span>
+<span class="flex-1 bg-secondary-container rounded-t h-5"></span>
+<span class="flex-1 bg-secondary rounded-t h-6"></span>
+</div>
+<span class="mt-space-xs font-label-sm text-label-sm text-on-surface-variant">직접 답 제시 없이 반례·원리 유도 중</span>
+</div>
+<!-- Metric 4: Teacher Intervention Alerts -->
+<div class="rounded-xl bg-surface-container-lowest p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between relative overflow-hidden">
+<div class="absolute right-0 top-0 w-24 h-24 bg-error-container/30 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">교사 개입 권장 모둠</span>
+<div class="w-8 h-8 rounded-lg bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">notification_important</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-error font-bold tracking-tight">2</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-normal">모둠</span>
+<span class="ml-auto font-label-sm text-label-sm text-on-error-container bg-error-container px-2 py-0.5 rounded-full font-semibold">정체 감지</span>
+</div>
+<div class="mt-space-sm bg-surface-container p-2 rounded-lg flex items-center justify-between text-on-surface">
+<span class="font-label-sm text-label-sm font-semibold truncate">2모둠(보일), 5모둠</span>
+<span class="material-symbols-outlined text-[16px] text-error">arrow_forward</span>
+</div>
+<span class="mt-space-xs font-label-sm text-label-sm text-on-surface-variant">근거 ↔ 정당화 비약 3분 이상 지속</span>
+</div>
+</div>
+<!-- Main Workspace Split: Left Active Groups Table & Cards (8 cols), Right Toulmin & Guidance Sidecar (4 cols) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Left Column: Active Group Monitoring Board (8 Columns) -->
+<div class="lg:col-span-8 flex flex-col gap-space-lg">
+<!-- Section Header with Group Filters -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">모둠별 실시간 논증 및 대화 모니터링</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">총 6개 모둠 (학생 28명) • AI 발문 피드백 순환 진행 중</p>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low p-1 rounded-lg">
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest shadow-sm font-label-sm text-label-sm text-on-surface font-semibold" type="button">전체 모둠</button>
+<button class="px-space-sm py-1 rounded hover:bg-surface-container font-label-sm text-label-sm text-on-surface-variant" type="button">개입 필요 (1)</button>
+<button class="px-space-sm py-1 rounded hover:bg-surface-container font-label-sm text-label-sm text-on-surface-variant" type="button">정당화 수립 중 (3)</button>
+</div>
+</div>
+<!-- Group Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Card: 1모둠 (샤를 탐구팀 - 안정) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-7 h-7 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-code-argument text-code-argument font-bold">1</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">샤를 탐구팀</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(김민준 외 4명)</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span>안정
+                </span>
+</div>
+<!-- Toulmin Micro Status -->
+<div class="grid grid-cols-3 gap-1.5 mt-space-sm">
+<div class="bg-secondary/10 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary font-bold block">주장 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">온도↑ 부피↑</span>
+</div>
+<div class="bg-tertiary-fixed/15 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-bold block">근거 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">실험 3회치</span>
+</div>
+<div class="bg-surface-container px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary-container font-bold block">정당화 진행</span>
+<span class="font-code-argument text-code-argument text-on-surface">분자 충돌 모델</span>
+</div>
+</div>
+<!-- Real-time Dialogue Snip -->
+<div class="mt-space-sm bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-secondary font-semibold">
+<span class="material-symbols-outlined text-[16px]">smart_toy</span>
+<span>AI 튜터 최신 발문:</span>
+</div>
+<p class="font-body-teacher text-body-teacher text-on-surface text-xs leading-relaxed italic">
+                  "온도가 25℃에서 50℃로 높아졌을 때 실린더 안 기체 분자의 속도는 어떻게 변했을까요?"
+                </p>
+<p class="font-body-teacher text-body-teacher text-on-surface-variant text-xs mt-1">
+                  학생 답변: "분자 운동이 활발해져서 피스톤을 더 세게 밉니다."
+                </p>
+</div>
+</div>
+<!-- Footer Action & Progress -->
+<div class="mt-space-md pt-space-xs flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-16 bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 85%;"></div>
+</div>
+<span class="font-code-argument text-code-argument text-on-surface-variant">85% 완료</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>참관
+                </button>
+<button class="px-2.5 py-1 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm" type="button">
+                  피드백 전송
+                </button>
+</div>
+</div>
+</div>
+<!-- Card: 2모둠 (보일 탐구팀 - 교사 도움 필요 / Warning Amber) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden ring-2 ring-error/20">
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-error/10 via-transparent to-transparent pointer-events-none"></div>
+<div>
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-7 h-7 rounded-lg bg-error-container text-on-error-container flex items-center justify-center font-code-argument text-code-argument font-bold">2</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">보일 탐구팀</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(이서연 외 4명)</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold animate-pulse">
+<span class="material-symbols-outlined text-[14px]">priority_high</span>도움 권장
+                </span>
+</div>
+<!-- Toulmin Micro Status -->
+<div class="grid grid-cols-3 gap-1.5 mt-space-sm">
+<div class="bg-secondary/10 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary font-bold block">주장 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">부피 변화 관찰</span>
+</div>
+<div class="bg-error-container/40 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-error font-bold block">근거 불충분</span>
+<span class="font-code-argument text-code-argument text-on-surface">온도 조건 누락</span>
+</div>
+<div class="bg-surface-container px-2 py-1 rounded text-center opacity-60">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold block">정당화 정체</span>
+<span class="font-code-argument text-code-argument text-on-surface">미진입 (4분 경과)</span>
+</div>
+</div>
+<!-- Real-time Dialogue Snip -->
+<div class="mt-space-sm bg-error-container/10 p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-error font-semibold">
+<span class="material-symbols-outlined text-[16px]">help_center</span>
+<span>AI 튜터 소크라테스 발문 유도 중:</span>
+</div>
+<p class="font-body-teacher text-body-teacher text-on-surface text-xs leading-relaxed italic">
+                  "온도가 올라갈 때 피스톤 내부 기체 분자의 충돌 횟수와 벽면을 미는 힘은 어떻게 달라질까요?"
+                </p>
+<div class="mt-1 flex items-center gap-1.5 text-error font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+<span>학생들이 압력 일정 조건을 혼동하여 답변이 지연되고 있습니다.</span>
+</div>
+</div>
+</div>
+<!-- Footer Action & Progress -->
+<div class="mt-space-md pt-space-xs flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-16 bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-error h-full rounded-full" style="width: 42%;"></div>
+</div>
+<span class="font-code-argument text-code-argument text-error font-semibold">42% 정체</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>참관
+                </button>
+<button class="px-3 py-1 rounded-lg bg-error text-on-error font-label-sm text-label-sm shadow-sm hover:bg-on-error-container" type="button">
+                  즉시 힌트 개입
+                </button>
+</div>
+</div>
+</div>
+<!-- Card: 3모둠 (아보가드로 탐구팀 - 안정) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-7 h-7 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-code-argument text-code-argument font-bold">3</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">아보가드로팀</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(박도현 외 4명)</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span>안정
+                </span>
+</div>
+<!-- Toulmin Micro Status -->
+<div class="grid grid-cols-3 gap-1.5 mt-space-sm">
+<div class="bg-secondary/10 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary font-bold block">주장 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">선형 비례 예측</span>
+</div>
+<div class="bg-tertiary-fixed/15 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-bold block">근거 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">그래프 추세선</span>
+</div>
+<div class="bg-surface-container px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary-container font-bold block">정당화 검증</span>
+<span class="font-code-argument text-code-argument text-on-surface">절대온도 개념 연결</span>
+</div>
+</div>
+<div class="mt-space-sm bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-secondary font-semibold">
+<span class="material-symbols-outlined text-[16px]">smart_toy</span>
+<span>AI 튜터 피드백:</span>
+</div>
+<p class="font-body-teacher text-body-teacher text-on-surface text-xs leading-relaxed italic">
+                  "훌륭한 추론입니다! 0℃에서도 기체 부피가 0이 되지 않는 이유는 어떻게 설명할 수 있나요?"
+                </p>
+<p class="font-body-teacher text-body-teacher text-on-surface-variant text-xs mt-1">
+                  학생 답변: "절대온도 0K (-273℃)에서 분자 운동이 정지하기 때문입니다."
+                </p>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-16 bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 90%;"></div>
+</div>
+<span class="font-code-argument text-code-argument text-on-surface-variant">90% 완료</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>참관
+                </button>
+<button class="px-2.5 py-1 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm" type="button">
+                  피드백 전송
+                </button>
+</div>
+</div>
+</div>
+<!-- Card: 4모둠 (돌턴 탐구팀 - 심화 토론 중) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-7 h-7 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-code-argument text-code-argument font-bold">4</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">돌턴 탐구팀</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(최유진 외 3명)</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>심화 토론
+                </span>
+</div>
+<div class="grid grid-cols-3 gap-1.5 mt-space-sm">
+<div class="bg-secondary/10 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary font-bold block">주장 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">샤를 법칙 일치</span>
+</div>
+<div class="bg-tertiary-fixed/15 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-bold block">근거 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">시뮬레이션 비교</span>
+</div>
+<div class="bg-surface-container px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary-container font-bold block">반론 검토</span>
+<span class="font-code-argument text-code-argument text-on-surface">실제 기체 오차</span>
+</div>
+</div>
+<div class="mt-space-sm bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-secondary font-semibold">
+<span class="material-symbols-outlined text-[16px]">smart_toy</span>
+<span>AI 튜터 반례 제시:</span>
+</div>
+<p class="font-body-teacher text-body-teacher text-on-surface text-xs leading-relaxed italic">
+                  "만약 기체 종류가 헬륨이 아니라 무거운 이산화 탄소라면 그래프 기울기가 달라질까요?"
+                </p>
+<p class="font-body-teacher text-body-teacher text-on-surface-variant text-xs mt-1">
+                  학생 답변: "이상 기체 상태에서는 기체 종류와 무관하게 1/273씩 증가합니다."
+                </p>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-16 bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 78%;"></div>
+</div>
+<span class="font-code-argument text-code-argument text-on-surface-variant">78% 완료</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>참관
+                </button>
+<button class="px-2.5 py-1 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm" type="button">
+                  피드백 전송
+                </button>
+</div>
+</div>
+</div>
+<!-- Card: 5모둠 (패러데이 탐구팀 - 정당화 점검 필요) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-7 h-7 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-code-argument text-code-argument font-bold">5</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">패러데이팀</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(송지호 외 4명)</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-fixed-dim/40 text-on-secondary-fixed-variant font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span>논증 수정 중
+                </span>
+</div>
+<div class="grid grid-cols-3 gap-1.5 mt-space-sm">
+<div class="bg-secondary/10 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary font-bold block">주장 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">부피 팽창 기술</span>
+</div>
+<div class="bg-tertiary-fixed/15 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-bold block">근거 수정</span>
+<span class="font-code-argument text-code-argument text-on-surface">오차 원인 분석</span>
+</div>
+<div class="bg-surface-container px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold block">정당화 대기</span>
+<span class="font-code-argument text-code-argument text-on-surface">근거 보완 후</span>
+</div>
+</div>
+<div class="mt-space-sm bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-secondary font-semibold">
+<span class="material-symbols-outlined text-[16px]">smart_toy</span>
+<span>AI 튜터 유도 발문:</span>
+</div>
+<p class="font-body-teacher text-body-teacher text-on-surface text-xs leading-relaxed italic">
+                  "실험 2차에서 부피가 예상보다 적게 증가한 이유를 고무마개의 기밀성과 연결해볼까요?"
+                </p>
+<p class="font-body-teacher text-body-teacher text-on-surface-variant text-xs mt-1">
+                  학생 답변: "공기가 약간 샜던 것 같습니다. 재측정 수치 반영합니다."
+                </p>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-16 bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 61%;"></div>
+</div>
+<span class="font-code-argument text-code-argument text-on-surface-variant">61% 진행</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>참관
+                </button>
+<button class="px-2.5 py-1 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm" type="button">
+                  피드백 전송
+                </button>
+</div>
+</div>
+</div>
+<!-- Card: 6모둠 (라부아지에 탐구팀 - 안정) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-7 h-7 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-code-argument text-code-argument font-bold">6</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">라부아지에팀</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(한예린 외 4명)</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-tertiary-container text-tertiary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span>안정
+                </span>
+</div>
+<div class="grid grid-cols-3 gap-1.5 mt-space-sm">
+<div class="bg-secondary/10 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary font-bold block">주장 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">온도-부피 정비례</span>
+</div>
+<div class="bg-tertiary-fixed/15 px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-bold block">근거 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">눈금 실린더 실측</span>
+</div>
+<div class="bg-surface-container px-2 py-1 rounded text-center">
+<span class="font-label-sm text-label-sm text-secondary-container font-bold block">정당화 완료</span>
+<span class="font-code-argument text-code-argument text-on-surface">충돌 압력 균형</span>
+</div>
+</div>
+<div class="mt-space-sm bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-secondary font-semibold">
+<span class="material-symbols-outlined text-[16px]">smart_toy</span>
+<span>AI 튜터 평가 피드백:</span>
+</div>
+<p class="font-body-teacher text-body-teacher text-on-surface text-xs leading-relaxed italic">
+                  "모든 논증 구성요소가 논리적으로 완결되었습니다! 이제 모둠 보고서 최종 작성 단계로 이동하세요."
+                </p>
+<p class="font-body-teacher text-body-teacher text-on-surface-variant text-xs mt-1">
+                  학생 상태: 최종 결론 정리 및 발표 슬라이드 요약 중
+                </p>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-16 bg-surface-container h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full rounded-full" style="width: 95%;"></div>
+</div>
+<span class="font-code-argument text-code-argument text-on-tertiary-container font-semibold">95% 완료</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">visibility</span>참관
+                </button>
+<button class="px-2.5 py-1 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm" type="button">
+                  피드백 전송
+                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Integrated Classroom Argument Matrix Table -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">전체 모둠 툴민(Toulmin) 논증 구성요소 달성표</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">학습 지도 및 학생 개별 성취도 평가 근거 자료</p>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span>CSV 다운로드</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">
+<th class="py-2.5 px-3 rounded-l-lg">모둠</th>
+<th class="py-2.5 px-3">주장 (Claim)</th>
+<th class="py-2.5 px-3">데이터/근거 (Data/Evidence)</th>
+<th class="py-2.5 px-3">정당화 (Warrant)</th>
+<th class="py-2.5 px-3">뒷받침 (Backing)</th>
+<th class="py-2.5 px-3 rounded-r-lg text-right">개입 상태</th>
+</tr>
+</thead>
+<tbody class="font-body-teacher text-body-teacher divide-y-0">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-3 px-3 font-semibold text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>1모둠
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-secondary bg-secondary/10 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>적합
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-on-tertiary-container bg-tertiary-fixed/20 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>실험 측정치
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-secondary-container bg-secondary-fixed/40 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">sync</span>분자 충돌 진행 중
+                    </span>
+</td>
+<td class="py-3 px-3 text-on-surface-variant font-code-argument text-code-argument">미착수</td>
+<td class="py-3 px-3 text-right">
+<span class="font-label-sm text-label-sm text-tertiary-fixed-dim bg-tertiary-container px-2 py-0.5 rounded font-medium">안정</span>
+</td>
+</tr>
+<!-- Row 2 (Alert) -->
+<tr class="bg-error-container/10 hover:bg-error-container/20 transition-colors">
+<td class="py-3 px-3 font-semibold text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span>2모둠
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-secondary bg-secondary/10 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>적합
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-error bg-error-container px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">warning</span>측정치 누락
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-error bg-error-container px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">hourglass_empty</span>원리 비약 정체
+                    </span>
+</td>
+<td class="py-3 px-3 text-on-surface-variant font-code-argument text-code-argument">미착수</td>
+<td class="py-3 px-3 text-right">
+<button class="px-2 py-0.5 rounded bg-error text-on-error font-label-sm text-label-sm font-bold shadow-xs" type="button">
+                      즉시 지원
+                    </button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-3 px-3 font-semibold text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>3모둠
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-secondary bg-secondary/10 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>적합
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-on-tertiary-container bg-tertiary-fixed/20 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>비례 그래프
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-on-tertiary-container bg-tertiary-fixed/20 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>분자 운동 정합
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-secondary-container bg-secondary-fixed/40 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">sync</span>절대온도 0K
+                    </span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="font-label-sm text-label-sm text-tertiary-fixed-dim bg-tertiary-container px-2 py-0.5 rounded font-medium">안정</span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-3 px-3 font-semibold text-on-surface flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>4모둠
+                  </td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-secondary bg-secondary/10 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>적합
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-on-tertiary-container bg-tertiary-fixed/20 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>시뮬레이션
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-on-tertiary-container bg-tertiary-fixed/20 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>충돌 횟수 도출
+                    </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-secondary-container bg-secondary-fixed/40 px-2 py-0.5 rounded font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">sync</span>반론(이상기체)
+                    </span>
+</td>
+<td class="py-3 px-3 text-right">
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-fixed/50 px-2 py-0.5 rounded font-medium">심화</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column: Toulmin Architecture & Teacher Command Wing (4 Columns) -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Toulmin Architecture Summary Visualizer Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between pb-space-xs">
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">툴민 논증 구조 분석 기준</h3>
+<span class="font-label-sm text-label-sm text-secondary font-medium">중3 샤를 법칙 기준</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">본 단원의 성취 기준에 따른 3대 핵심 논증 블록</p>
+<!-- Toulmin Schematic Flow -->
+<div class="mt-space-md flex flex-col gap-space-sm relative">
+<!-- Toulmin Node 1: Claim -->
+<div class="p-space-sm rounded-lg bg-surface-container-low transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="px-2 py-0.5 rounded font-code-argument text-code-argument text-secondary bg-secondary/10">
+                  주장 (Claim)
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">학급 수립률 96%</span>
+</div>
+<p class="font-body-teacher text-body-teacher font-semibold text-on-surface">
+                "온도가 올라가면 기체의 부피는 일정 비율로 증가한다."
+              </p>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1 block">모든 모둠이 기본 현상 명제 수립 완료</span>
+</div>
+<!-- Direction Indicator SVG -->
+<div class="flex justify-center -my-1 text-outline">
+<span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+</div>
+<!-- Toulmin Node 2: Evidence -->
+<div class="p-space-sm rounded-lg bg-surface-container-low transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="px-2 py-0.5 rounded font-code-argument text-code-argument text-on-tertiary-container bg-tertiary-fixed/20">
+                  근거 (Evidence / Data)
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">학급 수립률 82%</span>
+</div>
+<p class="font-body-teacher text-body-teacher font-semibold text-on-surface">
+                "온도계와 피스톤 눈금 측정 데이터 (10℃ → 25℃ → 50℃)"
+              </p>
+<div class="mt-2 p-2 rounded bg-surface-container-lowest text-xs text-on-surface flex items-center justify-between font-code-argument">
+<span>10℃ : 20.0 mL</span>
+<span>25℃ : 21.1 mL</span>
+<span>50℃ : 22.8 mL</span>
+</div>
+</div>
+<!-- Direction Indicator SVG -->
+<div class="flex justify-center -my-1 text-outline">
+<span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+</div>
+<!-- Toulmin Node 3: Reasoning / Warrant -->
+<div class="p-space-sm rounded-lg bg-surface-container-low transition-colors">
+<div class="flex items-center justify-between mb-1">
+<span class="px-2 py-0.5 rounded font-code-argument text-code-argument text-secondary-container bg-secondary-fixed/30">
+                  정당화 (Reasoning / Warrant)
+                </span>
+<span class="font-label-sm text-label-sm text-error font-semibold">학급 수립률 64% (집중 지도)</span>
+</div>
+<p class="font-body-teacher text-body-teacher font-semibold text-on-surface">
+                "온도 상승 → 분자 평균 운동에너지 증가 → 용기 벽면 충돌 빈도 및 세기 증가 → 내부 압력 유지 위해 부피 팽창"
+              </p>
+<div class="mt-2 text-xs text-on-surface-variant bg-surface-container-lowest p-2 rounded">
+<strong class="text-secondary">교사 지도 포인트:</strong> 학생들이 '충돌 횟수 증가'와 '외부 기압과의 평형을 맞추기 위한 부피 팽창' 인과관계를 매끄럽게 연결하도록 지원.
+              </div>
+</div>
+</div>
+</div>
+<!-- AI Socratic Pattern & Teacher Tip Widget -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm relative overflow-hidden">
+<div class="flex items-center gap-space-xs mb-space-sm">
+<div class="w-8 h-8 rounded-lg bg-secondary/15 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">psychology_alt</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm font-bold text-on-surface">AI 튜터 소크라테스 발문 패턴</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">자율 탐구 유도 엔진 실시간 분석</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-2">
+<div class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-tertiary-fixed-dim shrink-0 mt-0.5">tips_and_updates</span>
+<p class="font-body-teacher text-body-teacher text-on-surface text-xs leading-relaxed font-medium">
+                "현재 정답을 직접 제공하지 않고, <span class="text-secondary font-bold">반례 데이터 제시</span>를 유도하는 질문이 효과적으로 작동 중입니다."
+              </p>
+</div>
+<div class="text-xs text-on-surface-variant pl-6">
+              학생들이 섣부른 결론을 내릴 때, AI가 "압력이 2배가 되면 어떨까?"와 같은 변인 통제 질문을 역제시하여 오개념을 자가 수정하고 있습니다.
+            </div>
+</div>
+<!-- Question Type Distribution Bar -->
+<div class="mt-space-sm flex flex-col gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface font-medium">실시간 AI 발문 성격 분포</span>
+<div class="h-2 w-full rounded-full bg-surface-container flex overflow-hidden">
+<div class="bg-secondary h-full" style="width: 52%;" title="반례 및 변인 통제 발문 (52%)"></div>
+<div class="bg-tertiary-fixed-dim h-full" style="width: 30%;" title="미시적 분자 모델 유도 (30%)"></div>
+<div class="bg-secondary-container h-full" style="width: 18%;" title="일상 현상 연결 (18%)"></div>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant text-[11px]">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary"></span>반례/변인 52%</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>분자모델 30%</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary-container"></span>일상연결 18%</span>
+</div>
+</div>
+</div>
+<!-- Quick Classroom Control Panel (Right Quick Actions) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm">
+<h4 class="font-headline-sm text-headline-sm font-bold text-on-surface">빠른 수업 제어 도구</h4>
+<button class="w-full py-2.5 px-space-md rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-between transition-colors" onclick="document.getElementById('qr-modal').classList.toggle('hidden')" type="button">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-secondary">qr_code_2</span>
+<span>학생 참여 QR코드 팝업</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">open_in_new</span>
+</button>
+<button class="w-full py-2.5 px-space-md rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-between transition-colors" onclick="document.getElementById('notice-modal').classList.toggle('hidden')" type="button">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-secondary">broadcast_on_personal</span>
+<span>전체 모둠 즉시 공지 전송</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">send</span>
+</button>
+<button class="w-full py-2.5 px-space-md rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-between transition-colors" type="button">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-error">timer</span>
+<span>남은 탐구 시간 (14:32) 연장</span>
+</div>
+<span class="font-code-argument text-code-argument text-secondary">+5분</span>
+</button>
+<button class="w-full py-2.5 px-space-md rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-between transition-colors" type="button">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-on-tertiary-container">lock_clock</span>
+<span>AI 튜터 응답 일시 정지</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">교사 집중 발언 시</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- QR Code Modal (Hidden by default, triggered via Quick Panel) -->
+<div class="fixed inset-0 z-50 bg-primary/60 backdrop-blur-sm hidden flex items-center justify-center p-space-md" id="qr-modal">
+<div class="bg-surface-container-lowest rounded-xl max-w-sm w-full p-space-lg shadow-xl flex flex-col items-center text-center gap-space-md">
+<div class="flex items-center justify-between w-full">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">학생 접속용 QR 코드</span>
+<button class="text-on-surface-variant hover:text-on-surface" onclick="document.getElementById('qr-modal').classList.add('hidden')" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Visual QR Placeholder Element -->
+<div class="w-56 h-56 bg-surface-container p-4 rounded-xl flex items-center justify-center shadow-inner">
+<svg class="w-48 h-48 text-primary" fill="currentColor" viewbox="0 0 100 100">
+<rect fill="none" height="25" rx="3" stroke="currentColor" stroke-width="4" width="25" x="10" y="10"></rect>
+<rect fill="currentColor" height="11" width="11" x="17" y="17"></rect>
+<rect fill="none" height="25" rx="3" stroke="currentColor" stroke-width="4" width="25" x="65" y="10"></rect>
+<rect fill="currentColor" height="11" width="11" x="72" y="17"></rect>
+<rect fill="none" height="25" rx="3" stroke="currentColor" stroke-width="4" width="25" x="10" y="65"></rect>
+<rect fill="currentColor" height="11" width="11" x="17" y="72"></rect>
+<rect fill="currentColor" height="10" width="10" x="45" y="15"></rect>
+<rect fill="currentColor" height="12" width="12" x="45" y="45"></rect>
+<rect fill="currentColor" height="10" width="10" x="25" y="45"></rect>
+<rect fill="currentColor" height="10" width="10" x="65" y="45"></rect>
+<rect fill="currentColor" height="12" width="12" x="45" y="75"></rect>
+<rect fill="currentColor" height="12" width="12" x="65" y="70"></rect>
+<rect fill="currentColor" height="8" width="8" x="80" y="80"></rect>
+</svg>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-code-argument text-code-argument text-secondary">PIN: 849-204</span>
+<span class="font-body-teacher text-body-teacher text-on-surface font-semibold">https://sci-inquiry.edu/join</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">태블릿 카메라로 비추면 바로 4반 세션으로 참가합니다.</span>
+</div>
+<button class="w-full py-2.5 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md" onclick="document.getElementById('qr-modal').classList.add('hidden')" type="button">
+        닫기
+      </button>
+</div>
+</div>
+<!-- Classroom Announcement Broadcast Modal (Hidden by default) -->
+<div class="fixed inset-0 z-50 bg-primary/60 backdrop-blur-sm hidden flex items-center justify-center p-space-md" id="notice-modal">
+<div class="bg-surface-container-lowest rounded-xl max-w-lg w-full p-space-lg shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[24px]">campaign</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">전체 모둠 즉시 공지 전송</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface" onclick="document.getElementById('notice-modal').classList.add('hidden')" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-medium">공지 메시지 입력 (모든 학생 화면 상단에 팝업)</label>
+<textarea class="w-full rounded-lg bg-surface-container-low p-space-sm font-body-teacher text-body-teacher text-on-surface outline-none focus:ring-2 focus:ring-secondary/40 resize-none" placeholder="예: '모둠별로 온도 상승 시 피스톤 안팎의 압력 평형 상태에 주목해 보세요!'" rows="3"></textarea>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high font-label-sm text-label-sm text-on-surface" type="button">
+          💡 피스톤 압력 힌트
+        </button>
+<button class="px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high font-label-sm text-label-sm text-on-surface" type="button">
+          ⏱ 5분 후 모둠 발표 시작
+        </button>
+<button class="px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high font-label-sm text-label-sm text-on-surface" type="button">
+          🔬 실험 오차 검토 안내
+        </button>
+</div>
+<div class="flex justify-end gap-space-xs mt-space-sm">
+<button class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md" onclick="document.getElementById('notice-modal').classList.add('hidden')" type="button">
+          취소
+        </button>
+<button class="px-space-md py-2 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md shadow-sm" onclick="alert('전체 학생에게 공지가 브로드캐스트되었습니다.'); document.getElementById('notice-modal').classList.add('hidden')" type="button">
+          즉시 전송
+        </button>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

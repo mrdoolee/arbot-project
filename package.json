@@ -1,0 +1,15 @@
+{
+  "name": "argumentation-chatbot",
+  "version": "2.0.0",
+  "description": "아르봇(ARBOT) 챗봇 - 정적 프론트엔드 (백엔드는 각 교사의 GAS 웹 앱)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --check gas-source/Code.js && node --check gas-source/Templates.js && node tests/gas_logic.test.js && node tests/gas_profiles.test.js && node tests/gas_reset.test.js && node tests/gas_security.test.js && node tests/gas_structure.test.js && node tests/gas_guide.test.js && node tests/frontend_static.test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>아르봇(ARBOT)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300..600,0..1,0&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/student.css">
+<script>try { document.documentElement.setAttribute('data-theme', localStorage.getItem('argu_student_theme') || 'light'); } catch (e) {}</script>
+</head>
+<body class="student">
+
+<div id="loading" class="loading"><div class="spin"></div><div>수업 환경을 불러오는 중…</div></div>
+
+<!-- ===== 연결 정보 없음 ===== -->
+<div id="screenNoConn" class="screen">
+  <div class="entry">
+    <div class="entry-bar"><div class="brand-s"><span class="logo"><span class="ms">biotech</span></span>아르봇(ARBOT)</div><button class="icon-btn" data-theme-toggle type="button" aria-label="화면 테마 전환"><span class="ms">dark_mode</span></button></div>
+    <div class="card-s">
+      <h2 style="margin:0 0 6px;font-size:20px">🔌 연결 정보가 없어요</h2>
+      <p style="margin:0 0 16px;color:var(--s-ink-2)">선생님께 받은 접속 링크(또는 QR코드)로 다시 들어와 주세요. 링크가 없다면 아래에 주소를 직접 입력할 수도 있어요.</p>
+      <div class="field-s"><label for="manualGasUrl">웹 앱 주소 (선생님께 문의)</label><input id="manualGasUrl" class="select-s" style="background-image:none" placeholder="https://script.google.com/macros/s/.../exec"></div>
+      <button id="btnManualConnect" class="cta" style="margin-top:16px" type="button">연결하기</button>
+      <div id="noConnMsg" style="margin-top:12px"></div>
+    </div>
+    <div data-credit-footer></div>
+  </div>
+</div>
+
+<!-- ===== 수업 입장 코드 ===== -->
+<div id="screenCode" class="screen">
+  <div class="entry">
+    <div class="entry-bar"><div class="brand-s"><span class="logo"><span class="ms">biotech</span></span>아르봇(ARBOT)</div><button class="icon-btn" data-theme-toggle type="button" aria-label="화면 테마 전환"><span class="ms">dark_mode</span></button></div>
+    <div class="card-s">
+      <h2 style="margin:0 0 6px;font-size:20px">🔑 수업 입장 코드</h2>
+      <p style="margin:0 0 16px;color:var(--s-ink-2)">선생님이 알려 준 코드를 입력해 주세요.</p>
+      <div class="field-s"><label for="accessCode">입장 코드</label><input id="accessCode" class="select-s code-input" style="background-image:none" maxlength="14" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="예: K7M2QX"></div>
+      <button id="btnCode" class="cta" style="margin-top:16px" type="button">확인 <span class="ms">arrow_forward</span></button>
+      <div id="codeMsg" style="margin-top:12px" role="status"></div>
+    </div>
+    <div data-credit-footer></div>
+  </div>
+</div>
+
+<!-- ===== 입장(학급·모둠·주제 선택) ===== -->
+<div id="screenSelect" class="screen">
+  <div class="entry">
+    <div class="entry-bar"><div class="brand-s"><span class="logo"><span class="ms">biotech</span></span>아르봇(ARBOT)</div><button class="icon-btn" data-theme-toggle type="button" aria-label="화면 테마 전환"><span class="ms">dark_mode</span></button></div>
+
+    <section class="hero">
+      <div id="heroAvatar"></div>
+      <div><small>학생 입장</small><h1>반가워요, 미래 과학자님!</h1><p>오늘의 탐구에서 나만의 가설을 세우고, 근거로 단단하게 만들어 볼까요?</p></div>
+    </section>
+
+    <p class="privacy-note"><span class="ms">shield</span><span>이름·전화번호·주소 같은 <b>개인정보는 쓰지 말아요.</b> 대화 내용은 선생님이 확인할 수 있고, 질문에 답하기 위해 AI 서비스(구글 Gemini)로 전달돼요.</span></p>
+
+    <section class="card-s">
+      <div class="field-s"><label for="selectClass"><i>1</i>우리 학급</label><select id="selectClass" class="select-s"></select></div>
+      <div class="field-s"><label for="selectGroup"><i>2</i>우리 모둠</label><select id="selectGroup" class="select-s"></select></div>
+      <div class="field-s"><label for="selectTopic"><i>3</i>탐구 주제</label><select id="selectTopic" class="select-s"></select></div>
+    </section>
+
+    <section class="card-s topic-card">
+      <h3><span class="ms" style="font-size:18px">science</span>오늘의 탐구 과제</h3>
+      <div class="tt" id="topicTitle">탐구 주제</div>
+      <p id="topicHint"></p>
+      <div class="tutor-strip">
+        <div id="tutorAvatar"></div>
+        <div><b id="tutorName">AI 튜터</b><span id="tutorDesc">정답을 알려주는 대신, 질문으로 내 생각을 함께 키워 줘요.</span></div>
+      </div>
+    </section>
+
+    <div class="err-box hidden" id="notReadyMsg" style="margin-top:16px"><b>아직 준비 중이에요</b><br>선생님이 탐구 자료를 입력하면 질문할 수 있어요. 선생님께 알려 주세요.</div>
+    <div style="margin-top:18px"><button id="btnStart" class="cta" type="button">탐구 대화방 입장하기 <span class="ms">arrow_forward</span></button></div>
+    <div data-credit-footer></div>
+  </div>
+</div>
+
+<!-- ===== 캐릭터와 대화 ===== -->
+<div id="screenChat" class="screen">
+  <div class="chat-shell">
+    <header class="s-top">
+      <div class="who"><div class="g" id="whoGroup">-</div><div class="t" id="whoTopic">-</div></div>
+      <span class="warn-badge hidden" id="warnBadge"><span class="ms" style="font-size:18px">warning</span><span id="warnBadgeText">경고 1/3</span></span>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="화면 테마 전환"><span class="ms">dark_mode</span></button>
+      <span class="timer-pill" id="timerPill"><span class="ms" style="font-size:20px">timer</span><span id="timerText">00:00</span></span>
+    </header>
+
+    <div class="chat-body">
+      <!-- 캐릭터 + 논증 가이드: 대화가 쌓여도 제자리에 고정 -->
+      <section class="stage-col" id="stageCol">
+        <div class="stage-card" id="stageCard" data-state="asking">
+          <div id="stageAvatar"></div>
+          <div><div class="stage-name" id="stageName">AI 튜터</div><div class="stage-state" id="stageState">질문하는 중</div></div>
+        </div>
+        <div class="guide" id="guide">
+          <h4><span class="ms" style="font-size:18px">route</span><span id="guideTitle">논증 가이드 · 이 순서로 생각을 쌓아 봐요</span></h4>
+          <div class="guide-steps" id="guideSteps"></div>
+        </div>
+      </section>
+
+      <!-- 대화: [AI1] [학생1] [AI2] [학생2] … 순서로 쌓이고, 새 말이 생기면 아래로 스크롤 -->
+      <section class="thread-col">
+        <div class="thread" id="thread" aria-live="polite" aria-label="대화"></div>
+        <div class="composer-wrap" id="composerWrap">
+          <div class="warn-box" id="warnBox"></div>
+          <div class="starters" id="starters"></div>
+          <div class="composer">
+            <textarea id="userQuestion" rows="1" maxlength="1000" placeholder="내 생각을 말해 보세요" aria-label="내 생각 입력"></textarea>
+            <button class="send" id="btnSend" type="button" aria-label="보내기"><span class="ms fill" style="font-size:26px">send</span></button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div data-credit-footer></div>
+  </div>
+  <div class="toast-s" id="toastS" role="status"></div>
+</div>
+
+<script src="js/gasClient.js"></script>
+<script src="js/argu-shared.js"></script>
+<script src="js/credit-footer.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const AS = window.ArguShared;
+
+  // ================= 상태 =================
+  const S = {
+    cfg: { timeLimitMinutes: 20, classList: [], groupList: [], topicList: [], character: {} },
+    code: '', // 수업 입장 코드: 화면 메모리에만 둔다(저장하지 않음). 채팅 요청마다 함께 보낸다.
+    charId: 'socrates', charName: '', greeting: '', templateKey: 'socratic', timeLimit: 20,
+    sess: { classValue: '', groupValue: '', topicValue: '', history: [] },
+    totalSeconds: 0, timer: null, locked: false, warnLevel: 0, turns: 0, lowWarned: false, busy: false,
+  };
+
+  // ================= 공통 =================
+  function esc(t) { const d = document.createElement('div'); d.textContent = t == null ? '' : String(t); return d.innerHTML; }
+  function showScreen(name) {
+    ['NoConn', 'Code', 'Select', 'Chat'].forEach((n) => $('screen' + n).classList.toggle('on', n === name));
+    $('loading').classList.add('hidden');
+  }
+  function toast(msg, ms) {
+    const t = $('toastS'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(toast._h); toast._h = setTimeout(() => t.classList.remove('on'), ms || 3200);
+  }
+  function syncThemeIcons() {
+    const dark = AS.getTheme() === 'dark';
+    document.querySelectorAll('[data-theme-toggle] .ms').forEach((el) => { el.textContent = dark ? 'light_mode' : 'dark_mode'; });
+  }
+  document.querySelectorAll('[data-theme-toggle]').forEach((b) => b.addEventListener('click', () => {
+    AS.setTheme(AS.getTheme() === 'dark' ? 'light' : 'dark'); syncThemeIcons();
+  }));
+  syncThemeIcons();
+
+  // ================= 초기화 =================
+  window.addEventListener('DOMContentLoaded', init);
+  function init() {
+    GasClient.adoptGasUrlFromQuery(); // 접속 링크(?gas=)의 주소는 학생 화면에서만 받아들인다
+    if (!GasClient.getGasUrl()) { showScreen('NoConn'); return; }
+    showScreen('Code'); $('accessCode').focus();
+  }
+  // 캐릭터·인사말·템플릿·제한 시간은 주제마다 다르다. 서버가 주제별 값(topicConfigs)을 주고, 없으면(옛 서버) 기본 설정을 쓴다.
+  function applyTopicConfig(topic) {
+    const tc = ((S.cfg && S.cfg.topicConfigs) || {})[topic] || {};
+    const c = tc.character || (S.cfg && S.cfg.character) || {};
+    S.charId = AS.getCharacter(c.id).id;
+    S.charName = c.name || AS.getCharacter(S.charId).name;
+    S.templateKey = AS.STEPS[c.templateKey] ? c.templateKey : 'socratic';
+    // 교사가 인사말을 직접 고치지 않았다면(비어 있거나 예전 기본 문구) 이 대화 방식의 기본 인사말을 쓴다
+    S.greeting = AS.isDefaultGreeting(c.greeting) ? AS.greetingFor(S.templateKey) : c.greeting;
+    S.timeLimit = tc.timeLimitMinutes || (S.cfg && S.cfg.timeLimitMinutes) || 20;
+  }
+  // 수업 입장 코드를 서버가 확인하고, 맞아야만 학급·모둠·주제 목록과 설정을 내려준다. (코드는 주소창이 아니라 POST 본문으로 보낸다)
+  function setCodeMsg(text, kind) {
+    $('codeMsg').innerHTML = text ? '<div class="' + (kind === 'info' ? 'info-box' : 'err-box') + '">' + esc(text) + '</div>' : '';
+  }
+  async function submitCode() {
+    const code = $('accessCode').value.trim();
+    if (!code) { setCodeMsg('선생님이 알려 준 코드를 입력해 주세요.'); $('accessCode').focus(); return; }
+    $('btnCode').disabled = true; setCodeMsg('확인하는 중…', 'info');
+    try {
+      const res = await GasClient.callPost('getInitialData', { accessCode: code });
+      S.code = code; S.cfg = res.data;
+      applyTopicConfig((S.cfg.topicList || [])[0] || '');
+      setupSelectScreen();
+      setCodeMsg('');
+      showScreen('Select');
+    } catch (err) {
+      setCodeMsg(err.message || '연결에 문제가 있어요. 잠시 뒤 다시 시도해 주세요.');
+      if (err.needCode) $('accessCode').select();
+    } finally { $('btnCode').disabled = false; }
+  }
+  $('btnCode').addEventListener('click', submitCode);
+  $('accessCode').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); submitCode(); } });
+  $('btnManualConnect').addEventListener('click', () => {
+    const url = $('manualGasUrl').value.trim(); if (!url) return;
+    // 구글 Apps Script 웹 앱 주소(.../exec)만 받아들인다
+    if (!GasClient.setGasUrl(url)) { $('noConnMsg').innerHTML = '<div class="err-box">주소 형식이 올바르지 않아요. <b>https://script.google.com/…/exec</b> 로 끝나는 주소만 쓸 수 있어요.</div>'; return; }
+    $('noConnMsg').innerHTML = '';
+    showScreen('Code'); $('accessCode').focus();
+  });
+
+  // ================= 입장 화면 =================
+  function fillSelect(el, list) { el.innerHTML = ''; (list || []).forEach((v) => { const o = document.createElement('option'); o.value = v; o.textContent = v; el.appendChild(o); }); }
+  function setupSelectScreen() {
+    fillSelect($('selectClass'), S.cfg.classList); fillSelect($('selectGroup'), S.cfg.groupList); fillSelect($('selectTopic'), S.cfg.topicList);
+    markTopicsNotReady();
+    onTopicChange();
+  }
+  // 고른 주제의 캐릭터로 입장 화면을 다시 그린다
+  function renderTutor() {
+    $('heroAvatar').innerHTML = AS.avatarHtml(S.charId, 'praising');
+    $('tutorAvatar').innerHTML = AS.avatarHtml(S.charId, 'asking');
+    $('tutorName').textContent = S.charName + AS.josa(S.charName, '이', '가') + ' 함께해요';
+  }
+  function onTopicChange() { applyTopicConfig($('selectTopic').value); renderTutor(); updateTopicCard(); }
+  // 탐구 도우미: 선생님이 아직 탐구 자료를 입력하지 않은 주제는 고를 수 없게 하고 '준비 중'으로 보여 준다
+  function markTopicsNotReady() {
+    const missing = new Set(((S.cfg && S.cfg.missingMaterialTopics) || []).map((t) => String(t).trim()));
+    const sel = $('selectTopic'); let firstReady = null;
+    [...sel.options].forEach((o) => {
+      if (missing.has(o.value.trim())) { o.disabled = true; o.textContent = o.value + ' (준비 중)'; }
+      else if (!firstReady) firstReady = o;
+    });
+    if (firstReady) sel.value = firstReady.value;
+    S.noTopicReady = missing.size > 0 && !firstReady;
+    $('btnStart').disabled = !!S.noTopicReady;
+    $('notReadyMsg').classList.toggle('hidden', !S.noTopicReady);
+  }
+  function updateTopicCard() {
+    const topic = $('selectTopic').value || '탐구 주제';
+    const steps = AS.STEPS[S.templateKey].map((s) => s[0]).join(' → ');
+    const mode = AS.MODE_TEXT[S.templateKey]; // 탐구 도우미처럼 논증이 아닌 모드는 전용 문구를 쓴다
+    $('topicTitle').textContent = topic;
+    $('topicHint').textContent = mode ? mode.topicHint(topic) : `'${topic}'에 대해 ${steps}의 순서로 내 생각을 논증해 보세요.`;
+    $('tutorDesc').textContent = mode ? '실험하다가 궁금한 건 편하게 물어보세요. 방법과 이유를 알려 줘요.' : '정답을 알려주는 대신, 질문으로 내 생각을 함께 키워 줘요.';
+  }
+  $('selectTopic').addEventListener('change', onTopicChange);
+  $('btnStart').addEventListener('click', () => {
+    if (!$('selectClass').value || !$('selectGroup').value || !$('selectTopic').value) { toast('학급, 모둠, 탐구 주제를 모두 골라 주세요.'); return; }
+    startSession();
+  });
+
+  // ================= 대화 시작 =================
+  function startSession() {
+    applyTopicConfig($('selectTopic').value); // 입장하는 순간의 주제 설정으로 고정
+    S.sess = { classValue: $('selectClass').value, groupValue: $('selectGroup').value, topicValue: $('selectTopic').value, history: [] };
+    thread.innerHTML = '';
+    $('whoGroup').textContent = `${S.sess.classValue} ${S.sess.groupValue}`;
+    $('whoTopic').textContent = `주제: ${S.sess.topicValue}`;
+    $('stageAvatar').innerHTML = AS.avatarHtml(S.charId, 'asking');
+    $('stageName').textContent = S.charName;
+    renderGuide(); renderStarters();
+    const modeText = AS.MODE_TEXT[S.templateKey];
+    $('guideTitle').textContent = modeText ? modeText.guideTitle : '논증 가이드 · 이 순서로 생각을 쌓아 봐요';
+    $('userQuestion').placeholder = modeText ? modeText.placeholder : '내 생각을 말해 보세요';
+    showScreen('Chat');
+
+    S.totalSeconds = S.timeLimit * 60;
+    S.endAt = Date.now() + S.totalSeconds * 1000; S.lowWarned = false;
+    updateTimer(); S.timer = setInterval(tick, 1000);
+
+    const hello = AS.applyGreeting(S.greeting, S.sess.topicValue);
+    addMsg('ai', hello); S.sess.history.push({ role: 'ai', text: hello });
+    setState('asking');
+    $('userQuestion').focus();
+  }
+
+  function setState(state) {
+    $('stageCard').dataset.state = state;
+    const av = $('stageAvatar').querySelector('.avatar'); if (av) av.dataset.state = state;
+    const labels = S.templateKey === 'qna'
+      ? { asking: '궁금한 걸 기다리는 중', thinking: '찾아보는 중…', praising: '응원하는 중' }
+      : { asking: '질문하는 중', thinking: '생각하는 중…', praising: '칭찬하는 중' };
+    $('stageState').textContent = labels[state];
+  }
+
+  function renderGuide() {
+    $('guideSteps').innerHTML = AS.STEPS[S.templateKey].map((s) => `<div class="gstep ${s[1]}"><b>${esc(s[0])}</b><span>${esc(s[2])}</span></div>`).join('');
+  }
+  const STARTERS = { '측정 방법': '이건 어떻게 측정해요? ', '준비물·과정': '이 준비물은 왜 필요해요? ', '안전': '조심할 점이 뭐예요? ', '입장': '내 입장은 ', '재반박': '그 반론에 대해서는 ', '결론': '정리하면, 이런 조건에서는 ', '주장': '내 주장은 ', '근거': '근거는 ', '증거': '내가 관찰한 증거는 ', '정당화': '왜냐하면 ', '추론': '그 이유는 ', '반박': '하지만 예외로 ', '한정어': '다만 이런 조건에서는 ' };
+  function renderStarters() {
+    const box = $('starters'); box.innerHTML = '';
+    AS.STEPS[S.templateKey].forEach((s) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'starter'; b.textContent = STARTERS[s[0]].trim() + (/[?？]$/.test(STARTERS[s[0]].trim()) ? '' : '…'); // 질문 문장은 말줄임표를 붙이지 않는다
+      b.addEventListener('click', () => {
+        const ta = $('userQuestion'); if (ta.disabled) return;
+        ta.value = (ta.value ? ta.value.replace(/\s*$/, ' ') : '') + STARTERS[s[0]]; ta.focus(); autosize();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  // ================= 타이머 =================
+  function updateTimer() {
+    const m = Math.floor(S.totalSeconds / 60), s = S.totalSeconds % 60;
+    $('timerText').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    $('timerPill').classList.toggle('low', S.totalSeconds <= 60 && S.totalSeconds > 0);
+  }
+  function tick() {
+    if (S.locked) return;
+    // 남은 시간은 종료 시각 기준으로 계산한다 (화면이 꺼지거나 탭이 백그라운드여도 시간이 멈추지 않게)
+    S.totalSeconds = Math.max(0, Math.ceil((S.endAt - Date.now()) / 1000)); updateTimer();
+    if (S.totalSeconds <= 60 && !S.lowWarned && S.timeLimit > 1) { S.lowWarned = true; toast('⏳ 1분 남았어요. 지금까지의 생각을 정리해 볼까요?', 4500); }
+    if (S.totalSeconds <= 0) { clearInterval(S.timer); lock('timeout'); }
+  }
+
+  // ================= 대화 스레드 =================
+  const thread = $('thread');
+  // 새 말풍선을 맨 아래에 붙이고 스크롤을 따라 내린다. 말풍선이 화면보다 길면 맨 위부터 읽을 수 있게 맞춘다.
+  function scrollToNode(node) {
+    requestAnimationFrame(() => {
+      if (node && node.offsetHeight > thread.clientHeight * 0.85) thread.scrollTo({ top: node.offsetTop - 8, behavior: 'smooth' });
+      else thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
+    });
+  }
+  function addMsg(role, text) {
+    const d = document.createElement('div'); d.className = 'msg ' + role; d.textContent = text;
+    thread.appendChild(d); scrollToNode(d); return d;
+  }
+  function addTyping() {
+    const d = document.createElement('div'); d.className = 'msg ai';
+    d.innerHTML = '<span class="dots" aria-label="생각하는 중"><i></i><i></i><i></i></span>';
+    thread.appendChild(d); scrollToNode(d); return d;
+  }
+
+  // ================= 입력 =================
+  const ta = $('userQuestion');
+  function autosize() { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; }
+  ta.addEventListener('input', autosize);
+  ta.addEventListener('keydown', (e) => {
+    // 한글 조합 중 Enter는 글자 확정용이므로 전송하지 않는다
+    // keyCode 229 는 일부 브라우저(사파리 등)에서 조합 중 Enter 를 뜻한다
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); send(); }
+  });
+  $('btnSend').addEventListener('click', send);
+
+  function setComposer(enabled) { ta.disabled = !enabled; $('btnSend').disabled = !enabled; }
+
+  async function send() {
+    const text = ta.value.trim();
+    if (!text || S.busy || S.locked) return;
+    S.busy = true; setComposer(false);
+    ta.value = ''; autosize();
+    const node = addMsg('user', text);
+    const typing = addTyping();
+    setState('thinking');
+    // 답이 늦어지면 멈춘 게 아니라는 걸 알려 준다 (AI 응답은 몇 초에서 30초 넘게 걸릴 때도 있다)
+    const slowHint1 = setTimeout(() => showWaitHint(typing, '답변을 만들고 있어요. 조금 걸릴 수 있어요…'), 8000);
+    const slowHint2 = setTimeout(() => showWaitHint(typing, '아직 기다리는 중이에요. 곧 올 거예요. 잠시만 기다려 주세요!'), 22000);
+
+    try {
+      const res = await GasClient.callPost('processChatMessage', {
+        classValue: S.sess.classValue, groupValue: S.sess.groupValue, topicValue: S.sess.topicValue,
+        userQuestion: text, history: S.sess.history.slice(-40), accessCode: S.code,
+      });
+      S.turns++;
+      S.sess.history.push({ role: 'user', text }, { role: 'ai', text: res.aiReply });
+      handleReply(res, typing);
+    } catch (err) {
+      // 실패하면 보낸 글을 되돌려 놓아 다시 보낼 수 있게 한다
+      node.remove(); typing.remove(); ta.value = text; autosize();
+      setState('asking');
+      if (err.needCode) lock('code', err.message); // 수업 중에 선생님이 코드를 바꾼 경우: 새 코드로 다시 입장해야 한다
+      else toast('⚠️ 전송하지 못했어요: ' + err.message, 5000);
+      S.busy = false; if (!S.locked) { setComposer(true); ta.focus(); }
+    } finally {
+      clearTimeout(slowHint1); clearTimeout(slowHint2);
+    }
+  }
+  function showWaitHint(typing, text) {
+    if (!typing.isConnected) return;
+    let h = typing.querySelector('.wait-hint');
+    if (!h) { h = document.createElement('div'); h.className = 'wait-hint'; typing.appendChild(h); }
+    h.textContent = text; scrollToNode(typing);
+  }
+
+  // 서버가 돌려주는 금지어 경고 문구를 알아보고 학생에게 단계별 경고로 보여준다
+  function detectWarning(reply) {
+    if (/^⚠️\s*\[1차 경고\]/.test(reply)) return 1;
+    if (/^🚨\s*\[2차 경고/.test(reply)) return 2;
+    return 0;
+  }
+  const PRAISE = /(멋진|훌륭|잘 |좋은|대단|정확|맞아|멋지)/;
+
+  function handleReply(res, typing) {
+    const reply = res.aiReply || '';
+    typing.remove();
+    addMsg(res.isBlocked ? 'sys' : 'ai', reply);
+    S.busy = false;
+
+    if (res.isBlocked) { lock('blocked', reply); return; }
+    // 응답을 기다리는 사이 시간이 끝났다면, 답은 보여주되 입력창은 다시 열지 않는다
+    if (S.locked) return;
+
+    const lvl = detectWarning(reply);
+    if (lvl) { S.warnLevel = Math.max(S.warnLevel, lvl); showWarning(lvl); setState('asking'); }
+    else { $('warnBox').innerHTML = ''; setState(PRAISE.test(reply.slice(0, 60)) ? 'praising' : 'asking'); }
+
+    setComposer(true); ta.focus();
+  }
+
+  function showWarning(level) {
+    const strong = level >= 2;
+    $('warnBox').innerHTML = `<div class="warn-card ${strong ? 'strong' : ''}" role="alert">
+      <span class="ms fill">${strong ? 'report' : 'warning'}</span>
+      <div><b>${strong ? '2차 경고 (최종)' : '1차 경고'} · 바른 말로 탐구해 주세요</b>
+      ${strong ? '한 번 더 부적절한 말을 쓰면 오늘 대화가 중단되고 선생님께 알려져요.' : '부적절한 말이 감지됐어요. 3번 쌓이면 오늘 대화가 중단돼요.'}
+      <div class="warn-dots">${[1, 2, 3].map((i) => `<i class="${i <= level ? 'on' : ''}"></i>`).join('')}</div></div></div>`;
+    $('warnBadge').classList.remove('hidden'); $('warnBadgeText').textContent = `경고 ${level}/3`;
+  }
+
+  // ================= 종료 / 차단 =================
+  function lock(reason, message) {
+    S.locked = true; S.busy = false; clearInterval(S.timer); setComposer(false);
+    $('warnBox').innerHTML = ''; $('starters').classList.add('hidden');
+    const pill = $('timerPill');
+    if (reason === 'timeout') {
+      pill.classList.remove('low'); pill.classList.add('end'); $('timerText').textContent = '종료됨';
+      ta.placeholder = '대화 시간이 종료되었어요.';
+      addMsg('ai', '수고했어요! 오늘의 탐구 시간이 끝났어요.');
+      setState('praising');
+      thread.insertAdjacentHTML('beforeend', `<div class="end-card">
+        <h3><span class="ms fill" style="color:var(--ok)">task_alt</span>오늘의 탐구 요약</h3>
+        <p>${esc(S.sess.classValue)} ${esc(S.sess.groupValue)} · ${esc(S.sess.topicValue)}</p>
+        <div class="end-stats"><div><b>${S.turns}</b><span>내가 말한 횟수</span></div><div><b>${S.sess.history.filter((m) => m.role === 'ai').length}</b><span>튜터의 질문·조언</span></div></div>
+        <p>지금까지 나눈 기록을 바탕으로 실험보고서를 작성해 주세요. 위로 스크롤하면 내 생각이 어떻게 자랐는지 다시 읽어 볼 수 있어요.</p></div>`);
+    } else if (reason === 'code') {
+      pill.classList.add('end'); $('timerText').textContent = '코드 확인';
+      ta.placeholder = '수업 입장 코드를 다시 확인해 주세요.';
+      setState('asking');
+      thread.insertAdjacentHTML('beforeend', `<div class="end-card blocked">
+        <h3><span class="ms fill">key</span>수업 입장 코드를 다시 확인해 주세요</h3>
+        <p>${esc(message || '수업 입장 코드가 바뀌었을 수 있어요.')}</p>
+        <p style="font-size:14px;opacity:.85">선생님께 새 코드를 물어본 뒤, 처음 화면으로 돌아가 다시 입장해 주세요. 쓰던 대화는 이 화면에 그대로 남아 있어요.</p>
+        <p><button type="button" class="cta" id="btnReenter" style="max-width:260px">처음 화면으로</button></p></div>`);
+      $('btnReenter').addEventListener('click', () => location.reload());
+    } else {
+      pill.classList.add('end'); $('timerText').textContent = '차단됨';
+      ta.placeholder = '지금은 대화할 수 없어요.';
+      setState('asking');
+      thread.insertAdjacentHTML('beforeend', `<div class="end-card blocked">
+        <h3><span class="ms fill">pause_circle</span>오늘은 대화가 잠시 중단되었어요</h3>
+        <p>선생님께 문의해 주세요. 괜찮아요, 다음 수업에서 다시 함께 탐구할 수 있어요.</p>
+        <p style="font-size:14px;opacity:.85">${esc(message || '')}</p></div>`);
+    }
+    $('stageState').textContent = reason === 'timeout' ? '오늘 수고했어요' : '잠시 쉬는 중';
+    thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

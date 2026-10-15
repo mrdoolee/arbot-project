@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "inverse-primary": "#adc9ef", "surface-variant": "#e0e3e6", "on-secondary-fixed-variant": "#00468c", "surface-container-highest": "#e0e3e6", "error-container": "#ffdad6", "surface-bright": "#f7fafd", "on-tertiary-fixed-variant": "#005142", "outline-variant": "#c3c6ce", "tertiary-container": "#00362c", "primary": "#001b35", "surface-tint": "#456082", "on-primary": "#ffffff", "secondary-container": "#64a1fe", "on-error": "#ffffff", "surface-container-high": "#e5e8eb", "surface-container-lowest": "#ffffff", "inverse-on-surface": "#eef1f4", "surface": "#f7fafd", "inverse-surface": "#2d3133", "primary-container": "#12304f", "secondary-fixed": "#d6e3ff", "on-tertiary-fixed": "#002019", "on-secondary": "#ffffff", "background": "#f7fafd", "tertiary-fixed": "#6ef9d9", "tertiary": "#001f18", "secondary-fixed-dim": "#a9c7ff", "on-tertiary": "#ffffff", "on-surface-variant": "#43474e", "outline": "#74777e", "primary-fixed-dim": "#adc9ef", "on-background": "#181c1e", "on-error-container": "#93000a", "on-primary-fixed": "#001c37", "on-secondary-fixed": "#001b3d", "tertiary-fixed-dim": "#4cddbd", "on-tertiary-container": "#00aa8e", "on-surface": "#181c1e", "on-primary-fixed-variant": "#2d4869", "surface-container-low": "#f1f4f7", "surface-container": "#ebeef1", "on-secondary-container": "#00366f", "surface-dim": "#d7dadd", "secondary": "#005db6", "error": "#ba1a1a", "on-primary-container": "#7d98bd", "primary-fixed": "#d2e4ff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin": "2rem", "space-xl": "2rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "margin-mobile": "1rem", "gutter-mobile": "1rem", "space-md": "1rem", "gutter": "1.5rem", "space-lg": "1.5rem" }, "fontFamily": { "body-student-lg": ["Noto Sans"], "headline-md": ["Noto Sans"], "headline-lg": ["Noto Sans"], "headline-xl": ["Noto Sans"], "headline-sm": ["Noto Sans"], "body-teacher": ["Noto Sans"], "headline-xl-mobile": ["Noto Sans"], "label-sm": ["Noto Sans"], "code-argument": ["Noto Sans"], "body-student": ["Noto Sans"], "label-md": ["Noto Sans"] }, "fontSize": { "body-student-lg": ["18px", { "lineHeight": "30px", "fontWeight": "400" }], "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "34px", "fontWeight": "600" }], "headline-xl": ["32px", { "lineHeight": "44px", "fontWeight": "700" }], "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "body-teacher": ["14px", { "lineHeight": "22px", "fontWeight": "400" }], "headline-xl-mobile": ["26px", { "lineHeight": "36px", "fontWeight": "700" }], "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }], "code-argument": ["13px", { "lineHeight": "18px", "fontWeight": "600" }], "body-student": ["16px", { "lineHeight": "26px", "fontWeight": "400" }], "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-student text-body-student text-on-surface flex flex-col min-h-screen pt-safe pb-safe"><main class="flex flex-col relative w-full bg-surface flex-1"><div class="flex flex-col w-full pb-8 px-4 gap-y-4">
+<!-- Status Chip & Session Code Bar -->
+<div class="flex items-center justify-between bg-primary-container text-on-primary rounded-xl px-4 py-3 shadow-md">
+<div class="flex items-center gap-2">
+<span class="inline-block w-2.5 h-2.5 rounded-full bg-tertiary-fixed animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-inverse-primary tracking-wide">실시간 교실 세션 연결됨</span>
+</div>
+<div class="flex items-center gap-1.5 bg-primary px-2.5 py-1 rounded-full">
+<span class="material-symbols-outlined text-tertiary-fixed text-[14px]">pin</span>
+<span class="font-code-argument text-code-argument text-secondary-fixed">코드: 304-772</span>
+</div>
+</div>
+<!-- Hero Welcome Card with Mascot & Ambience -->
+<div class="relative overflow-hidden bg-primary text-on-primary rounded-xl p-5 shadow-lg flex flex-col gap-3">
+<div class="absolute -right-6 -bottom-6 w-32 h-32 bg-secondary/20 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-center gap-3.5 z-10">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-secondary-container text-2xl" style="font-variation-settings: 'FILL' 1;">neurology</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-inverse-primary font-medium tracking-wider">과학탐구 논증 AI · 학생 입장</span>
+<h1 class="font-headline-sm text-headline-sm text-on-primary font-bold truncate">반가워요, 미래 과학자님!</h1>
+</div>
+</div>
+<p class="font-body-student text-body-student text-inverse-on-surface/90 z-10">
+      오늘의 탐구 데이터를 분석하고 <span class="text-tertiary-fixed font-medium">툴민 논증 모델</span>을 활용해 나만의 과학적 가설을 검증해 볼 준비가 되셨나요?
+    </p>
+</div>
+<!-- Step Selection Form Container -->
+<div class="flex flex-col gap-4 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+<!-- Step 1: Classroom Confirmation -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-primary font-semibold flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold flex items-center justify-center">1</span>
+          학급 선택
+        </label>
+<span class="font-label-sm text-label-sm text-tertiary-container font-medium">선생님 개설 완료</span>
+</div>
+<div class="relative w-full">
+<select class="w-full h-12 px-3.5 rounded-lg bg-surface-container-low text-primary font-body-student text-body-student appearance-none focus:outline-none">
+<option selected="">[2학년 4반] 과학탐구 심화과정</option>
+<option>[2학년 1반] 일반과학 탐구</option>
+<option>[방과후] AI 융합 논증 동아리</option>
+</select>
+<span class="material-symbols-outlined absolute right-3.5 top-3 text-outline pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Step 2: Team / Pod Selection (Interactive Radio Style) -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-primary font-semibold flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold flex items-center justify-center">2</span>
+          모둠 선택
+        </label>
+<span class="font-label-sm text-label-sm text-on-surface-variant">소속 모둠을 터치하세요</span>
+</div>
+<!-- Pod Cards -->
+<div class="flex flex-col gap-2" id="pod-selector">
+<!-- Pod 1 -->
+<button class="pod-option text-left w-full p-3 rounded-lg bg-surface-container text-on-surface flex flex-col gap-1.5 transition-all" type="button">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-primary flex items-center gap-1.5 font-semibold">
+<span class="material-symbols-outlined text-secondary text-base">groups</span>
+              1모둠 (물리탐구조)
+            </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-variant font-label-sm text-label-sm text-on-surface-variant">접속 3/4명</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant truncate">참여원: 김민재, 이서연, 박준형, (공석)</p>
+</button>
+<!-- Pod 2 (Selected by default) -->
+<button class="pod-option text-left w-full p-3 rounded-lg bg-primary text-on-primary flex flex-col gap-1.5 shadow-md" type="button">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-primary flex items-center gap-1.5 font-semibold">
+<span class="material-symbols-outlined text-tertiary-fixed text-base" style="font-variation-settings: 'FILL' 1;">verified</span>
+              2모둠 (샤를법칙실험조)
+            </span>
+<span class="px-2 py-0.5 rounded-full bg-primary-container font-label-sm text-label-sm text-tertiary-fixed font-semibold">선택됨 · 2/4명</span>
+</div>
+<p class="font-label-sm text-label-sm text-inverse-on-surface/80 truncate">참여원: 최유진, 정현우, 접속 대기 중</p>
+</button>
+<!-- Pod 3 -->
+<button class="pod-option text-left w-full p-3 rounded-lg bg-surface-container text-on-surface flex flex-col gap-1.5 transition-all" type="button">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-primary flex items-center gap-1.5 font-semibold">
+<span class="material-symbols-outlined text-secondary text-base">groups</span>
+              3모둠 (분자운동모델조)
+            </span>
+<span class="px-2 py-0.5 rounded-full bg-surface-variant font-label-sm text-label-sm text-on-surface-variant">접속 4/4명</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant truncate">참여원: 윤다은, 강찬희, 배성민, 오주원</p>
+</button>
+</div>
+</div>
+<!-- Step 3: Student Identity Input -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md text-primary font-semibold flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[11px] font-bold flex items-center justify-center">3</span>
+        참여 학생 이름 / 번호
+      </label>
+<div class="flex gap-2">
+<input class="w-full h-12 px-3.5 rounded-lg bg-surface-container-low text-primary font-body-student text-body-student focus:outline-none" placeholder="예: 24번 김민서 (대표 학생)" type="text" value="24번 김민서"/>
+<button class="shrink-0 h-12 px-3.5 rounded-lg bg-surface-container-high text-primary font-label-md text-label-md font-semibold flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-base">badge</span>
+          확인
+        </button>
+</div>
+</div>
+</div>
+<!-- Today's Inquiry Topic Card -->
+<div class="flex flex-col gap-3 bg-surface-container-low rounded-xl p-4 shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-xl">science</span>
+<span class="font-label-md text-label-md text-secondary font-bold uppercase tracking-wider">오늘의 과학탐구 과제</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed font-label-sm text-label-sm text-on-secondary-fixed font-medium">탐구 난이도 중급</span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md text-primary font-bold">기체의 온도와 부피 관계 (샤를 법칙)</h2>
+<p class="font-body-student text-body-student text-on-surface-variant">
+        온도가 변할 때 기체 분자들의 충돌 횟수와 부피 변화를 시뮬레이션으로 관찰하고, <strong class="text-primary font-semibold">주장(Claim) - 근거(Data) - 정당화(Warrant)</strong>의 툴민 구조로 입증해 보세요.
+      </p>
+</div>
+<!-- AI Tutor Scaffold Card Inside Topic -->
+<div class="flex items-center gap-3 bg-surface-container-lowest rounded-lg p-3">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary-fixed text-lg">smart_toy</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-primary font-bold">AI 소크라테스 튜터 배치됨</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate">오개념 발견 시 실시간 소크라테스식 발문 제공</span>
+</div>
+</div>
+</div>
+<!-- Primary Entry CTA Button (Sticky-friendly sizing) -->
+<div class="flex flex-col gap-2 pt-1">
+<button class="w-full h-14 rounded-xl bg-secondary text-on-secondary font-headline-sm text-headline-sm font-semibold flex items-center justify-center gap-2 shadow-lg active:scale-[0.99] transition-transform" type="button">
+<span>탐구 대화방 입장하기</span>
+<span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+<!-- Support and Room Switcher -->
+<div class="flex items-center justify-center gap-4 py-2 font-label-sm text-label-sm text-on-surface-variant">
+<button class="flex items-center gap-1 hover:underline" type="button">
+<span class="material-symbols-outlined text-sm">dialpad</span>
+<span>수동 입장코드 입력</span>
+</button>
+<span class="text-outline-variant">·</span>
+<button class="flex items-center gap-1 hover:underline" type="button">
+<span class="material-symbols-outlined text-sm">wifi_tethering</span>
+<span>네트워크 재연결</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+  // Simple micro-interaction for pod card selection
+  const podButtons = document.querySelectorAll('.pod-option');
+  podButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      podButtons.forEach(b => {
+        b.className = 'pod-option text-left w-full p-3 rounded-lg bg-surface-container text-on-surface flex flex-col gap-1.5 transition-all';
+      });
+      button.className = 'pod-option text-left w-full p-3 rounded-lg bg-primary text-on-primary flex flex-col gap-1.5 shadow-md';
+    });
+  });
+</script></main></body></html>

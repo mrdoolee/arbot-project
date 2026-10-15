@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>교사용 콘솔 - 03. 학생 배부 링크 &amp; QR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    body {
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="bg-[#F2F5F8] text-[#1E293B] antialiased min-h-screen flex">
+<!-- ==================== 1. LEFT SIDEBAR (280px Fixed Navy Sidebar) ==================== -->
+<aside class="w-[280px] bg-[#12304F] text-white flex-shrink-0 flex flex-col justify-between fixed top-0 bottom-0 left-0 z-40 shadow-xl border-r border-[#1e3a5f]">
+<!-- Top Area: Logo & Navigation Items -->
+<div class="p-5 flex flex-col gap-6 overflow-y-auto">
+<!-- Brand & Header -->
+<div class="flex flex-col gap-2.5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-[#2563EB] flex items-center justify-center text-white shadow-md">
+<span class="material-symbols-outlined text-[24px]">psychology_alt</span>
+</div>
+<div>
+<h1 class="text-[17px] font-bold text-white tracking-tight leading-snug">과학탐구 논증 AI</h1>
+<p class="text-[12px] text-[#93C5FD] font-medium tracking-wide">교사 관리 콘솔</p>
+</div>
+</div>
+<!-- GAS Status Pill -->
+<div class="mt-1 inline-flex items-center gap-2 bg-[#0C233B] border border-[#1E4068] px-3 py-1.5 rounded-lg w-full">
+<span class="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+<span class="text-[12px] font-semibold text-[#6EE7B7]">GAS 연동됨</span>
+<span class="text-[11px] text-[#94A3B8] ml-auto">실시간 동기화</span>
+</div>
+</div>
+<!-- Navigation Section 1: 기본 설정 메뉴 -->
+<div class="flex flex-col gap-1.5">
+<span class="text-[11px] font-bold text-[#64748B] tracking-wider uppercase px-2 mb-0.5">기본 설정 메뉴</span>
+<!-- Menu 01 -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#94A3B8] hover:bg-[#1A3E66] hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] text-[#60A5FA] group-hover:text-white transition-colors">hub</span>
+<div class="flex flex-col text-left">
+<span class="text-[13px] font-medium">01 GAS 연동 설정</span>
+<span class="text-[11px] text-[#64748B] group-hover:text-[#94A3B8]">스프레드시트 Web App 설정</span>
+</div>
+</a>
+<!-- Menu 02 -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#94A3B8] hover:bg-[#1A3E66] hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] text-[#60A5FA] group-hover:text-white transition-colors">settings_account_box</span>
+<div class="flex flex-col text-left">
+<span class="text-[13px] font-medium">02 교사 환경 설정</span>
+<span class="text-[11px] text-[#64748B] group-hover:text-[#94A3B8]">페르소나 · 캐릭터 · 루브릭</span>
+</div>
+</a>
+<!-- Menu 03 - ACTIVE -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-[#3B7DD8] text-white shadow-md font-medium transition-all" href="#">
+<span class="material-symbols-outlined text-[20px] text-white">qr_code_2</span>
+<div class="flex flex-col text-left">
+<span class="text-[13px] font-bold">03 배부 링크 &amp; QR</span>
+<span class="text-[11px] text-blue-100">접속 링크 생성 및 안내</span>
+</div>
+</a>
+</div>
+<!-- Navigation Section 2: 탐구 결과 확인 메뉴 -->
+<div class="flex flex-col gap-1.5">
+<span class="text-[11px] font-bold text-[#64748B] tracking-wider uppercase px-2 mb-0.5">탐구 결과 확인 메뉴</span>
+<!-- Menu 04 -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[#94A3B8] hover:bg-[#1A3E66] hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] text-[#60A5FA] group-hover:text-white transition-colors">insights</span>
+<div class="flex flex-col text-left">
+<span class="text-[13px] font-medium">04 대화 결과 확인 &amp; 분석</span>
+<span class="text-[11px] text-[#64748B] group-hover:text-[#94A3B8]">학급/모둠별 툴민 분석</span>
+</div>
+</a>
+</div>
+</div>
+<!-- Bottom Action Buttons in Sidebar -->
+<div class="p-4 border-t border-[#1E4068] bg-[#0E2742] flex flex-col gap-2">
+<a class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-[13px] font-semibold transition-all shadow-sm" href="#">
+<span>🎓 학생 화면으로 이동</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+<a class="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[#94A3B8] hover:text-white hover:bg-[#1A3E66] text-[12px] font-medium transition-all" href="#">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span>📖 사용 가이드</span>
+</a>
+<div class="pt-2 border-t border-[#1E4068]/50 flex items-center justify-between text-[11px] text-[#64748B] px-1">
+<span>2025학년도 1학기</span>
+<span class="font-mono text-[#38BDF8]">v2.4.0</span>
+</div>
+</div>
+</aside>
+<!-- ==================== RIGHT MAIN CONTAINER ==================== -->
+<div class="ml-[280px] flex-1 flex flex-col min-w-0">
+<!-- ==================== 2. STICKY TOP HEADER BAR ==================== -->
+<header class="sticky top-0 z-30 h-16 bg-white border-b border-[#E2E8F0] px-8 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#EFF6FF] text-[#2563EB] text-[12px] font-bold border border-[#DBEAFE]">
+          03. 학생 배부
+        </span>
+<h2 class="text-[18px] font-bold text-[#0F172A] tracking-tight">학생 배부 링크 &amp; QR 안내</h2>
+</div>
+<div class="flex items-center gap-4">
+<!-- Live Status Pill -->
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] text-[12px] text-[#475569]">
+<span class="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+<span>최근 저장: <strong class="text-[#0F172A] font-medium">1분 전</strong></span>
+</div>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#CBD5E1] text-[#334155] hover:bg-[#F8FAFC] text-[12px] font-medium transition-colors">
+<span class="material-symbols-outlined text-[16px] text-[#64748B]">refresh</span>
+<span>상태 갱신</span>
+</button>
+<div class="h-5 w-px bg-[#E2E8F0]"></div>
+<!-- User Avatar -->
+<button class="w-8 h-8 rounded-full bg-[#12304F] text-white flex items-center justify-center font-bold text-[13px] shadow-sm hover:ring-2 hover:ring-[#3B7DD8]/30 transition-all">
+<span class="material-symbols-outlined text-[18px]">person</span>
+</button>
+</div>
+</header>
+<!-- ==================== 3. MAIN CONTENT AREA ==================== -->
+<main class="p-8 max-w-[1400px] w-full mx-auto flex flex-col gap-6">
+<!-- Breadcrumb & Classroom Session Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[12px] font-bold text-[#2563EB] bg-[#DBEAFE] px-2 py-0.5 rounded">STUDENT ACCESS</span>
+<span class="text-[12px] text-[#64748B]">실시간 수업 활성화 모드</span>
+</div>
+<h2 class="text-[22px] font-bold text-[#0F172A] tracking-tight">학생 스마트폰 접속 링크 &amp; 수업용 대형 QR 코드</h2>
+<p class="text-[13px] text-[#64748B] mt-0.5">
+            수업 시작 전 빔프로젝터나 전자칠판에 QR을 띄우거나 아래 생성된 주소를 학급 메신저 및 구글 클래스룸에 배부하세요.
+          </p>
+</div>
+<!-- Class Session Picker Card -->
+<div class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-[#E2E8F0] shadow-sm self-start md:self-auto">
+<span class="material-symbols-outlined text-[20px] text-[#2563EB]">class</span>
+<div class="flex flex-col text-left">
+<span class="text-[11px] text-[#64748B]">현재 진행 수업</span>
+<span class="text-[13px] font-bold text-[#0F172A]">[2학년 4반] 기체의 온도와 부피 관계 (샤를 법칙)</span>
+</div>
+<button class="p-1 hover:bg-[#F1F5F9] rounded-lg text-[#64748B] transition-colors ml-1">
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Main Layout Grid (2 Columns: Card 1 and Card 2) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- ==================== CARD 1: Student Access Link & QR Distribution (7 Cols) ==================== -->
+<div class="lg:col-span-7 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-6">
+<!-- Card Header & Room Code -->
+<div class="flex items-center justify-between pb-4 border-b border-[#F1F5F9]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">devices</span>
+</div>
+<div>
+<h3 class="text-[16px] font-bold text-[#0F172A]">학생 접속 링크 및 QR 배부</h3>
+<p class="text-[12px] text-[#64748B]">모바일 웹 브라우저 기반 · 별도 회원가입 없이 세션 직결</p>
+</div>
+</div>
+<!-- Room Code Chip -->
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] text-[12px]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+<span class="text-[#64748B]">룸코드:</span>
+<strong class="font-mono text-[#1E293B] font-bold">2025-SCI-304</strong>
+</div>
+</div>
+<!-- Labeled Input: 학생 다이렉트 접속 Web App 링크 -->
+<div class="flex flex-col gap-2">
+<label class="text-[13px] font-semibold text-[#1E293B] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-[#2563EB]">link</span>
+              학생 다이렉트 접속 Web App 링크
+            </label>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+<div class="relative flex-1">
+<input class="w-full bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] font-mono text-[13px] rounded-xl px-3.5 py-2.5 pr-9 focus:ring-2 focus:ring-[#3B7DD8] focus:border-transparent select-all cursor-pointer transition-all" id="studentUrlInput" readonly="" type="text" value="https://science-argument.web.app/student?room=2025-SCI-304"/>
+<span class="material-symbols-outlined text-[18px] text-[#94A3B8] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">lock</span>
+</div>
+<div class="flex items-center gap-2">
+<!-- Outlined Copy Link Button -->
+<button class="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#3B7DD8] text-[#2563EB] hover:bg-[#EFF6FF] font-medium text-[13px] transition-all active:scale-[0.98] whitespace-nowrap shadow-sm bg-white" id="copyLinkBtn" onclick="copyStudentLink()">
+<span class="material-symbols-outlined text-[18px]" id="copyBtnIcon">content_copy</span>
+<span id="copyBtnText">링크 복사</span>
+</button>
+<!-- External Link Button -->
+<a class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-[#334155] hover:bg-[#F8FAFC] text-[13px] font-medium transition-colors whitespace-nowrap" href="#" target="_blank" title="새 탭에서 테스트 접속">
+<span class="material-symbols-outlined text-[18px] text-[#64748B]">open_in_new</span>
+<span>학생 화면 열기</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Centered QR Section Frame (220px High-Contrast) -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Decorative Subtle Blur Circles -->
+<div class="absolute -top-10 -right-10 w-36 h-36 bg-blue-100 rounded-full blur-2xl pointer-events-none opacity-50"></div>
+<div class="absolute -bottom-10 -left-10 w-36 h-36 bg-emerald-100 rounded-full blur-2xl pointer-events-none opacity-50"></div>
+<!-- QR Card Container -->
+<div class="relative bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-md flex flex-col items-center">
+<!-- Session Header Badge -->
+<div class="inline-flex items-center gap-1.5 px-3 py-1 mb-3 rounded-full bg-[#12304F] text-white text-[11px] font-semibold">
+<span class="material-symbols-outlined text-[14px] text-[#38BDF8]">science</span>
+<span>과학탐구 논증 AI 세션</span>
+</div>
+<!-- High Contrast 220px Clean QR Code Canvas -->
+<div class="w-[220px] h-[220px] bg-white rounded-xl flex items-center justify-center relative p-1.5">
+<svg class="w-full h-full text-[#0F172A] fill-current" viewbox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+<!-- QR Finder Pattern Top-Left -->
+<rect height="40" rx="6" width="40" x="8" y="8"></rect>
+<rect fill="#ffffff" height="28" rx="4" width="28" x="14" y="14"></rect>
+<rect height="16" rx="2" width="16" x="20" y="20"></rect>
+<!-- QR Finder Pattern Top-Right -->
+<rect height="40" rx="6" width="40" x="112" y="8"></rect>
+<rect fill="#ffffff" height="28" rx="4" width="28" x="118" y="14"></rect>
+<rect height="16" rx="2" width="16" x="124" y="20"></rect>
+<!-- QR Finder Pattern Bottom-Left -->
+<rect height="40" rx="6" width="40" x="8" y="112"></rect>
+<rect fill="#ffffff" height="28" rx="4" width="28" x="14" y="118"></rect>
+<rect height="16" rx="2" width="16" x="20" y="124"></rect>
+<!-- Internal Data Cells Matrix -->
+<rect height="8" rx="1.5" width="8" x="56" y="10"></rect>
+<rect height="8" rx="1.5" width="16" x="68" y="10"></rect>
+<rect height="18" rx="1.5" width="8" x="90" y="10"></rect>
+<rect height="8" rx="1.5" width="20" x="56" y="24"></rect>
+<rect height="6" rx="1.5" width="6" x="80" y="24"></rect>
+<rect height="14" rx="1.5" width="8" x="100" y="24"></rect>
+<rect height="18" rx="1.5" width="8" x="56" y="38"></rect>
+<rect height="8" rx="1.5" width="14" x="70" y="38"></rect>
+<rect height="8" rx="1.5" width="16" x="90" y="38"></rect>
+<!-- Timing Alignment Tracks -->
+<rect height="8" rx="1.5" width="8" x="10" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="24" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="38" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="56" y="56"></rect>
+<rect height="8" rx="1.5" width="20" x="70" y="56"></rect>
+<rect height="8" rx="1.5" width="10" x="96" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="112" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="126" y="56"></rect>
+<rect height="8" rx="1.5" width="12" x="140" y="56"></rect>
+<rect height="8" rx="1.5" width="16" x="56" y="70"></rect>
+<rect height="20" rx="1.5" width="8" x="78" y="70"></rect>
+<rect height="8" rx="1.5" width="14" x="92" y="70"></rect>
+<rect height="8" rx="1.5" width="20" x="112" y="70"></rect>
+<rect height="16" rx="1.5" width="14" x="138" y="70"></rect>
+<rect height="8" rx="1.5" width="16" x="10" y="80"></rect>
+<rect height="18" rx="1.5" width="8" x="32" y="80"></rect>
+<rect height="8" rx="1.5" width="18" x="46" y="80"></rect>
+<rect height="8" rx="1.5" width="14" x="70" y="80"></rect>
+<rect height="8" rx="1.5" width="16" x="104" y="80"></rect>
+<rect height="16" rx="1.5" width="14" x="126" y="80"></rect>
+<rect height="8" rx="1.5" width="18" x="56" y="96"></rect>
+<rect height="14" rx="1.5" width="8" x="80" y="96"></rect>
+<rect height="8" rx="1.5" width="18" x="94" y="96"></rect>
+<rect height="14" rx="1.5" width="8" x="118" y="96"></rect>
+<rect height="8" rx="1.5" width="22" x="130" y="96"></rect>
+<rect height="20" rx="1.5" width="8" x="56" y="112"></rect>
+<rect height="8" rx="1.5" width="18" x="70" y="114"></rect>
+<rect height="20" rx="1.5" width="8" x="94" y="112"></rect>
+<rect height="8" rx="1.5" width="18" x="108" y="114"></rect>
+<rect height="20" rx="1.5" width="8" x="132" y="112"></rect>
+<rect height="8" rx="1.5" width="26" x="56" y="136"></rect>
+<rect height="16" rx="1.5" width="8" x="88" y="136"></rect>
+<rect height="8" rx="1.5" width="20" x="102" y="136"></rect>
+<rect height="8" rx="1.5" width="14" x="128" y="136"></rect>
+</svg>
+<!-- Centered Logo Icon Badge -->
+<div class="absolute inset-0 m-auto w-11 h-11 bg-white rounded-xl shadow-md flex items-center justify-center p-1 border border-[#E2E8F0]">
+<div class="w-full h-full rounded-lg bg-[#2563EB] flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[18px]">psychology_alt</span>
+</div>
+</div>
+</div>
+<!-- Room Code Chip / Badge -->
+<div class="mt-3 pt-2 border-t border-[#F1F5F9] w-full flex items-center justify-center gap-1.5 text-[13px] text-[#475569]">
+<span class="material-symbols-outlined text-[16px] text-[#2563EB]">pin</span>
+<span>참여코드: <strong class="font-mono text-[#0F172A] font-bold text-[14px] tracking-wider">304-772</strong></span>
+</div>
+</div>
+<!-- Guidance Note -->
+<div class="mt-4 w-full max-w-md bg-[#EFF6FF] border border-[#BFDBFE] text-[#1E3A8A] rounded-xl p-3.5 flex items-start gap-2.5">
+<span class="material-symbols-outlined text-[#2563EB] text-[20px] shrink-0 mt-0.5">tips_and_updates</span>
+<p class="text-[12px] leading-relaxed">
+<strong>교실 화면/TV에 QR코드를 띄워두면</strong> 학생들이 스마트폰이나 태블릿 카메라로 스캔해 별도 로그인 없이 즉시 탐구 세션으로 입장할 수 있습니다.
+              </p>
+</div>
+</div>
+<!-- Bottom Action Buttons: Fullscreen & Print -->
+<div class="flex flex-col sm:flex-row items-center gap-3">
+<button class="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#3B7DD8] hover:bg-[#2563EB] text-white text-[14px] font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.99]" onclick="triggerProjectionModal()">
+<span class="material-symbols-outlined text-[20px]">tv</span>
+<span>교실 TV/전자칠판 전체화면 띄우기 (F11)</span>
+</button>
+<button class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#CBD5E1] bg-white text-[#334155] hover:bg-[#F8FAFC] text-[13px] font-semibold transition-colors shadow-sm" onclick="window.print()">
+<span class="material-symbols-outlined text-[18px] text-[#64748B]">print</span>
+<span>A4 배부용 QR 인쇄 (PDF)</span>
+</button>
+</div>
+</div>
+<!-- ==================== CARD 2: Live Waiting Room & Connection Guide (5 Cols) ==================== -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<!-- 2A. Real-time Student Waiting Room & Group Check-in Status -->
+<div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-5">
+<!-- Widget Header -->
+<div class="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+</div>
+<div>
+<h3 class="text-[15px] font-bold text-[#0F172A]">실시간 접속 대기실</h3>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+<span class="text-[11px] text-[#64748B]">5초마다 실시간 자동 갱신 중</span>
+</div>
+</div>
+</div>
+<button class="p-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors" onclick="refreshLobby()" title="즉시 새로고침">
+<span class="material-symbols-outlined text-[18px] transition-transform duration-500" id="refreshIcon">autorenew</span>
+</button>
+</div>
+<!-- Attendance Metric Summary & 64% Progress Ring -->
+<div class="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-xl flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<span class="text-[11px] font-bold text-[#64748B] tracking-wider uppercase">입장 현황 요약</span>
+<div class="flex items-baseline gap-2">
+<span class="text-[26px] font-extrabold text-[#0F172A] leading-none">18</span>
+<span class="text-[13px] text-[#64748B] font-medium">/ 총 28명 접속</span>
+</div>
+<div class="flex items-center gap-1.5 text-[12px] font-medium text-[#059669] mt-0.5">
+<span class="material-symbols-outlined text-[15px]">check_circle</span>
+<span>총 6개 모둠 중 3개 모둠 전원 출석</span>
+</div>
+</div>
+<!-- Circular Progress Badge (64%) -->
+<div class="relative w-16 h-16 shrink-0">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<path class="text-[#E2E8F0]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-[#3B7DD8] stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="64.3, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center font-mono font-bold text-[13px] text-[#0F172A]">
+                  64%
+                </div>
+</div>
+</div>
+<!-- Group 1~6 Status Summary List -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between text-[12px] font-semibold text-[#475569] px-1">
+<span>모둠별 출석 현황 요약</span>
+<span class="text-[11px] text-[#94A3B8] font-normal">실시간 소켓 연동</span>
+</div>
+<div class="flex flex-col gap-1.5 max-h-[260px] overflow-y-auto pr-1">
+<!-- 모둠 1 -->
+<div class="p-2.5 bg-[#F8FAFC] hover:bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] flex items-center justify-between transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-lg bg-[#E2E8F0] text-[#0F172A] font-bold text-[11px] flex items-center justify-center">1</span>
+<div>
+<span class="text-[12px] font-bold text-[#1E293B] block">1모둠 (물리탐구조)</span>
+<span class="text-[11px] text-[#64748B]">김민재, 이서연, 박준형, 최유진</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] text-[11px] font-bold border border-[#A7F3D0]">
+                    4/4명 완료
+                  </span>
+</div>
+<!-- 모둠 2 -->
+<div class="p-2.5 bg-[#F8FAFC] hover:bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] flex items-center justify-between transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-lg bg-[#E2E8F0] text-[#0F172A] font-bold text-[11px] flex items-center justify-center">2</span>
+<div>
+<span class="text-[12px] font-bold text-[#1E293B] block">2모둠 (샤를법칙실험조)</span>
+<span class="text-[11px] text-[#64748B]">강태호, 정다은, 윤상우 <span class="text-[#EF4444] font-medium">(한지호 미접속)</span></span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-[#EFF6FF] text-[#2563EB] text-[11px] font-bold border border-[#BFDBFE]">
+                    3/4명 접속
+                  </span>
+</div>
+<!-- 모둠 3 -->
+<div class="p-2.5 bg-[#F8FAFC] hover:bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] flex items-center justify-between transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-lg bg-[#E2E8F0] text-[#0F172A] font-bold text-[11px] flex items-center justify-center">3</span>
+<div>
+<span class="text-[12px] font-bold text-[#1E293B] block">3모둠 (분자운동모델조)</span>
+<span class="text-[11px] text-[#64748B]">송지훈, 배수아, 오현우, 임가을</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] text-[11px] font-bold border border-[#A7F3D0]">
+                    4/4명 완료
+                  </span>
+</div>
+<!-- 모둠 4 -->
+<div class="p-2.5 bg-[#F8FAFC] hover:bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] flex items-center justify-between transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-lg bg-[#E2E8F0] text-[#0F172A] font-bold text-[11px] flex items-center justify-center">4</span>
+<div>
+<span class="text-[12px] font-bold text-[#1E293B] block">4모둠 (기체압력가설조)</span>
+<span class="text-[11px] text-[#64748B]">조현아, 백승우, 신우진 <span class="text-[#EF4444] font-medium">(유채원 미접속)</span></span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-[#EFF6FF] text-[#2563EB] text-[11px] font-bold border border-[#BFDBFE]">
+                    3/4명 접속
+                  </span>
+</div>
+<!-- 모둠 5 -->
+<div class="p-2.5 bg-[#F8FAFC] hover:bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] flex items-center justify-between transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-lg bg-[#E2E8F0] text-[#0F172A] font-bold text-[11px] flex items-center justify-center">5</span>
+<div>
+<span class="text-[12px] font-bold text-[#1E293B] block">5모둠 (과학논증토론조)</span>
+<span class="text-[11px] text-[#64748B]">문도현, 권예린, 안지석, 류태양</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] text-[11px] font-bold border border-[#A7F3D0]">
+                    4/4명 완료
+                  </span>
+</div>
+<!-- 모둠 6 -->
+<div class="p-2.5 bg-[#FEF2F2] hover:bg-[#FEE2E2] rounded-xl border border-[#FECACA] flex items-center justify-between transition-colors">
+<div class="flex items-center gap-2.5">
+<span class="w-6 h-6 rounded-lg bg-[#FCA5A5] text-[#991B1B] font-bold text-[11px] flex items-center justify-center">6</span>
+<div>
+<span class="text-[12px] font-bold text-[#991B1B] block">6모둠 (탐구질문설계조)</span>
+<span class="text-[11px] text-[#DC2626] font-medium">전체 인원 미입장 (모둠 태블릿 확인 필요)</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-white text-[#DC2626] text-[11px] font-bold border border-[#F87171]">
+                    0/4명 대기
+                  </span>
+</div>
+</div>
+</div>
+<!-- Ping Action Bar -->
+<div class="pt-3 border-t border-[#F1F5F9] flex items-center justify-between">
+<span class="text-[12px] text-[#64748B] flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-[#3B7DD8]">notifications_active</span>
+                미접속 학생 기기 알림
+              </span>
+<button class="px-3 py-1.5 rounded-lg bg-[#F1F5F9] hover:bg-[#3B7DD8] hover:text-white text-[#1E293B] text-[12px] font-semibold transition-colors" id="pingBtn" onclick="sendPingAlert()">
+                대기실 핑(Ping) 전송
+              </button>
+</div>
+</div>
+<!-- 2B. 3-Step Student Connection Guide Card -->
+<div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6 flex flex-col gap-4">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">smartphone</span>
+</div>
+<div>
+<h4 class="text-[14px] font-bold text-[#0F172A]">학생 기기 3단계 접속 가이드</h4>
+<p class="text-[11px] text-[#64748B]">현장 접속 장애 시 다음 순서로 지도하세요</p>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<!-- Step 1 -->
+<div class="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-[#2563EB] text-[12px] font-bold">
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span>1. 학내 Wi-Fi 연결</span>
+</div>
+<p class="text-[11px] text-[#64748B] leading-snug">
+                  학생 기기가 학교 Wi-Fi 또는 LTE/5G에 정상 연결되었는지 확인합니다.
+                </p>
+</div>
+<!-- Step 2 -->
+<div class="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-[#2563EB] text-[12px] font-bold">
+<span class="material-symbols-outlined text-[16px]">photo_camera</span>
+<span>2. 기본 카메라 스캔</span>
+</div>
+<p class="text-[11px] text-[#64748B] leading-snug">
+                  별도 앱 설치 없이 스마트폰 기본 카메라로 비추면 상단 웹 배너가 뜹니다.
+                </p>
+</div>
+<!-- Step 3 -->
+<div class="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-[#2563EB] text-[12px] font-bold">
+<span class="material-symbols-outlined text-[16px]">language</span>
+<span>3. 브라우저 대체 접속</span>
+</div>
+<p class="text-[11px] text-[#64748B] leading-snug">
+                  인식 불량 시 Chrome 주소창에 <strong class="font-mono text-[#0F172A]">sci-arg.kr</strong> 및 코드를 입력합니다.
+                </p>
+</div>
+</div>
+<!-- Extra Lock Session Toggle -->
+<div class="mt-1 pt-3 border-t border-[#F1F5F9] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-[#64748B]">lock_person</span>
+<span class="text-[12px] text-[#334155] font-medium">전원 입장 후 참여코드 잠금(Lock)</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-[#CBD5E1] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#3B7DD8]"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- ==================== CLASSROOM PROJECTION FULLSCREEN MODAL ==================== -->
+<div class="fixed inset-0 z-50 bg-[#0A192F]/90 backdrop-blur-md hidden flex-col items-center justify-center p-6" id="projectionModal">
+<div class="absolute top-6 right-6 flex items-center gap-3">
+<span class="px-3 py-1 bg-white/10 text-white rounded-full font-mono text-[12px]">
+        ESC 키를 누르면 닫힙니다
+      </span>
+<button class="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors" onclick="triggerProjectionModal()">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+</div>
+<!-- Modal Card (Smartboard Presentation Mode) -->
+<div class="bg-white rounded-3xl p-8 max-w-xl w-full flex flex-col items-center text-center shadow-2xl">
+<span class="px-3 py-1 rounded-full bg-[#EFF6FF] text-[#2563EB] text-[12px] font-bold tracking-wide uppercase mb-2">
+        Classroom Projection Mode · [2학년 4반]
+      </span>
+<h2 class="text-[24px] font-extrabold text-[#0F172A] tracking-tight">
+        스마트폰 기본 카메라로 QR 코드를 비추세요
+      </h2>
+<p class="text-[13px] text-[#64748B] mt-1 mb-5">
+        샤를 법칙 과학탐구 논증 실시간 워크스페이스에 즉시 연결됩니다.
+      </p>
+<!-- Upscaled QR for Electronic Board Viewing -->
+<div class="p-5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl flex flex-col items-center shadow-inner">
+<div class="w-[260px] h-[260px] bg-white p-3 rounded-2xl shadow-md flex items-center justify-center relative border border-[#E2E8F0]">
+<svg class="w-full h-full text-[#0F172A] fill-current" viewbox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+<rect height="40" rx="6" width="40" x="8" y="8"></rect>
+<rect fill="#ffffff" height="28" rx="4" width="28" x="14" y="14"></rect>
+<rect height="16" rx="2" width="16" x="20" y="20"></rect>
+<rect height="40" rx="6" width="40" x="112" y="8"></rect>
+<rect fill="#ffffff" height="28" rx="4" width="28" x="118" y="14"></rect>
+<rect height="16" rx="2" width="16" x="124" y="20"></rect>
+<rect height="40" rx="6" width="40" x="8" y="112"></rect>
+<rect fill="#ffffff" height="28" rx="4" width="28" x="14" y="118"></rect>
+<rect height="16" rx="2" width="16" x="20" y="124"></rect>
+<rect height="8" rx="1.5" width="8" x="56" y="10"></rect>
+<rect height="8" rx="1.5" width="16" x="68" y="10"></rect>
+<rect height="18" rx="1.5" width="8" x="90" y="10"></rect>
+<rect height="8" rx="1.5" width="20" x="56" y="24"></rect>
+<rect height="6" rx="1.5" width="6" x="80" y="24"></rect>
+<rect height="14" rx="1.5" width="8" x="100" y="24"></rect>
+<rect height="18" rx="1.5" width="8" x="56" y="38"></rect>
+<rect height="8" rx="1.5" width="14" x="70" y="38"></rect>
+<rect height="8" rx="1.5" width="16" x="90" y="38"></rect>
+<rect height="8" rx="1.5" width="8" x="10" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="24" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="38" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="56" y="56"></rect>
+<rect height="8" rx="1.5" width="20" x="70" y="56"></rect>
+<rect height="8" rx="1.5" width="10" x="96" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="112" y="56"></rect>
+<rect height="8" rx="1.5" width="8" x="126" y="56"></rect>
+<rect height="8" rx="1.5" width="12" x="140" y="56"></rect>
+<rect height="8" rx="1.5" width="16" x="56" y="70"></rect>
+<rect height="20" rx="1.5" width="8" x="78" y="70"></rect>
+<rect height="8" rx="1.5" width="14" x="92" y="70"></rect>
+<rect height="8" rx="1.5" width="20" x="112" y="70"></rect>
+<rect height="16" rx="1.5" width="14" x="138" y="70"></rect>
+<rect height="8" rx="1.5" width="16" x="10" y="80"></rect>
+<rect height="18" rx="1.5" width="8" x="32" y="80"></rect>
+<rect height="8" rx="1.5" width="18" x="46" y="80"></rect>
+<rect height="8" rx="1.5" width="14" x="70" y="80"></rect>
+<rect height="8" rx="1.5" width="16" x="104" y="80"></rect>
+<rect height="16" rx="1.5" width="14" x="126" y="80"></rect>
+<rect height="8" rx="1.5" width="18" x="56" y="96"></rect>
+<rect height="14" rx="1.5" width="8" x="80" y="96"></rect>
+<rect height="8" rx="1.5" width="18" x="94" y="96"></rect>
+<rect height="14" rx="1.5" width="8" x="118" y="96"></rect>
+<rect height="8" rx="1.5" width="22" x="130" y="96"></rect>
+<rect height="20" rx="1.5" width="8" x="56" y="112"></rect>
+<rect height="8" rx="1.5" width="18" x="70" y="114"></rect>
+<rect height="20" rx="1.5" width="8" x="94" y="112"></rect>
+<rect height="8" rx="1.5" width="18" x="108" y="114"></rect>
+<rect height="20" rx="1.5" width="8" x="132" y="112"></rect>
+<rect height="8" rx="1.5" width="26" x="56" y="136"></rect>
+<rect height="16" rx="1.5" width="8" x="88" y="136"></rect>
+<rect height="8" rx="1.5" width="20" x="102" y="136"></rect>
+<rect height="8" rx="1.5" width="14" x="128" y="136"></rect>
+</svg>
+<div class="absolute inset-0 m-auto w-12 h-12 bg-white rounded-xl shadow flex items-center justify-center p-1 border border-[#E2E8F0]">
+<div class="w-full h-full rounded-lg bg-[#2563EB] flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]">psychology_alt</span>
+</div>
+</div>
+</div>
+<div class="mt-4 flex flex-col items-center gap-1">
+<span class="text-[14px] font-bold text-[#0F172A]">직접 입력 URL: <span class="text-[#2563EB] font-mono">sci-arg.kr</span></span>
+<span class="font-mono text-[#2563EB] font-bold text-[18px] bg-blue-50 px-3 py-0.5 rounded-lg border border-blue-200">
+            참여코드: 304-772
+          </span>
+</div>
+</div>
+<div class="mt-5 flex items-center gap-4 text-[13px] text-[#64748B]">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[#2563EB] text-[18px]">bolt</span>
+<span>현재 대기실: <strong>18명 접속 중</strong></span>
+</span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[#10B981] text-[18px]">check_circle</span>
+<span>서버 실시간 세션 대기 중</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Interactive Scripts -->
+<script>
+    // Copy student URL
+    function copyStudentLink() {
+      const input = document.getElementById('studentUrlInput');
+      const btnText = document.getElementById('copyBtnText');
+      const btnIcon = document.getElementById('copyBtnIcon');
+      const btn = document.getElementById('copyLinkBtn');
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(input.value);
+      } else {
+        input.select();
+        document.execCommand('copy');
+      }
+
+      btnText.innerText = '복사됨!';
+      btnIcon.innerText = 'check';
+      btn.classList.add('bg-[#ECFDF5]', 'text-[#059669]', 'border-[#A7F3D0]');
+
+      setTimeout(() => {
+        btnText.innerText = '링크 복사';
+        btnIcon.innerText = 'content_copy';
+        btn.classList.remove('bg-[#ECFDF5]', 'text-[#059669]', 'border-[#A7F3D0]');
+      }, 2000);
+    }
+
+    // Refresh icon animation
+    function refreshLobby() {
+      const icon = document.getElementById('refreshIcon');
+      icon.classList.add('rotate-180');
+      setTimeout(() => {
+        icon.classList.remove('rotate-180');
+      }, 500);
+    }
+
+    // Toggle Modal
+    function triggerProjectionModal() {
+      const modal = document.getElementById('projectionModal');
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    // Escape listener
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('projectionModal');
+        if (!modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      }
+    });
+
+    // Send Ping alert feedback
+    function sendPingAlert() {
+      const btn = document.getElementById('pingBtn');
+      btn.innerText = '전송 완료 ✓';
+      btn.classList.add('bg-[#ECFDF5]', 'text-[#059669]');
+      setTimeout(() => {
+        btn.innerText = '대기실 핑(Ping) 전송';
+        btn.classList.remove('bg-[#ECFDF5]', 'text-[#059669]');
+      }, 2000);
+    }
+  </script>
+</body></html>

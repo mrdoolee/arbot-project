@@ -1,0 +1,12 @@
+node_modules/
+.env
+service-account.json
+data/settings.json
+*.log
+.clasprc.json
+.env.*
+.vercel
+.claude/settings.local.json
+stitch_design/*.zip
+.DS_Store
+Thumbs.db
