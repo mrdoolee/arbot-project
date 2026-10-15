@@ -10,3 +10,6 @@ data/settings.json
 stitch_design/*.zip
 .DS_Store
 Thumbs.db
+
+.vercel
+.env*

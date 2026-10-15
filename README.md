@@ -59,7 +59,9 @@ npm test           # 문법 검사 + 자동 테스트 전체 (실제 시트·Gem
 
 ## 4. 배포하기
 
-`public/`을 서빙할 수 있는 곳이면 어디든 됩니다 — Vercel, Netlify, GitHub Pages, Render 무엇이든 가능합니다. 딱 한 번만 배포해두면 모든 선생님이 같은 주소를 함께 씁니다. 다음 헤더를 걸 수 있다면 같이 걸어 주세요(`server.js`가 하는 일과 같습니다): `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Content-Security-Policy: frame-ancestors 'none'`, `Referrer-Policy: no-referrer`. 각 페이지의 연결 제한(CSP)은 HTML 안의 `<meta>`에 들어 있습니다.
+**현재 배포 구성**: 이 저장소(`mrdoolee/arbot-project`)의 `main`에 푸시하면 Vercel 프로젝트 `arbot-trdoolee`가 `public/`을 자동으로 프로덕션에 배포합니다(주소: https://arbot-trdoolee.vercel.app). 설정은 `vercel.json`에 있고(출력 폴더 `public`, 아래 보안 헤더 4종, `/teacher.html` → `/` 리다이렉트), Vercel 프로젝트의 프레임워크는 **Other**여야 합니다(`package.json`·`server.js`를 보고 Express로 자동 감지되면 정적 사이트가 깨집니다). 이 주소는 학생에게 나눠 준 링크·QR에 들어 있으니 프로젝트 이름이나 도메인을 바꾸지 마세요. Vercel 로그인 보호(Vercel Authentication)는 프리뷰 배포에만 걸려 있어 프로덕션 주소는 학생이 그대로 열 수 있습니다. 이 저장소는 공개이니 API 키·`.env`·`.clasprc.json`은 절대 커밋하지 마세요(테스트용 값은 모두 가짜입니다).
+
+다른 곳에 올린다면 `public/`을 서빙할 수 있는 곳이면 어디든 됩니다 — Vercel, Netlify, GitHub Pages, Render 무엇이든 가능합니다. 딱 한 번만 배포해두면 모든 선생님이 같은 주소를 함께 씁니다. 다음 헤더를 걸 수 있다면 같이 걸어 주세요(`server.js`가 하는 일과 같습니다): `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Content-Security-Policy: frame-ancestors 'none'`, `Referrer-Policy: no-referrer`. 각 페이지의 연결 제한(CSP)은 HTML 안의 `<meta>`에 들어 있습니다.
 
 ## 5. GAS 쪽 JSON API (참고용)
 
