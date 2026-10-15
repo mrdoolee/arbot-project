@@ -259,6 +259,13 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   const cards = [...tea.matchAll(/<div class="step-card">([\s\S]*?)<\/div><\/div>/g)].map((m) => m[1]);
   ok('안내 카드 구조는 <b>제목</b> 다음 <span>설명</span> 하나(CSS 규칙이 전제하는 모양)', cards.length >= 17 && cards.every((c) => /^<span class="n">\d+<\/span><div><b>[^<]+<\/b><span>/.test(c)), cards.filter((c) => !/^<span class="n">\d+<\/span><div><b>[^<]+<\/b><span>/.test(c)).slice(0, 2));
   ok('안내 카드에 줄바꿈 문자가 끼어 있지 않음(한 줄 마크업)', cards.every((c) => !/\n/.test(c)), '');
+  // 메뉴 4: 카드가 하나만 남았는데 옛 2열 레이아웃이 그대로여서 카드가 절반 너비로 좁아졌던 문제의 재발 방지
+  const linkPanel = tea.slice(tea.indexOf('id="panel-link"'), tea.indexOf('id="panel-analyze"'));
+  const linkRule = (adminCss.match(/\.link-layout \{([^}]*)\}/) || [])[1] || '';
+  const cardsInLink = (linkPanel.match(/<div class="card">/g) || []).length;
+  const colsInRule = ((linkRule.match(/grid-template-columns:([^;]*);/) || [])[1] || '').split('minmax(').length - 1;
+  ok('메뉴 4: 카드 수와 .link-layout 의 열 수가 같음(카드 하나면 1열 = 본문 너비 전체)', cardsInLink >= 1 && colsInRule === cardsInLink && !/1\.1fr/.test(linkRule), [cardsInLink, colsInRule, linkRule.slice(0, 80)]);
+  ok('결과 분석 카드 제목은 "대화 불러오기 및 논증 분석"', /<h2>대화 불러오기 및 논증 분석<\/h2>/.test(tea) && !/<h2>[^<]*툴민 분석<\/h2>/.test(tea), '');
   ok('옛 이름("논증 분석 스프레드시트")이 안내문에 남지 않고 해요체로 통일됨', !/논증 분석 스프레드시트/.test(tea) && !/복사합니다|엽니다\.|배포합니다|로그인합니다|누릅니다/.test(tea.slice(tea.indexOf('id="gasGuide"'), tea.indexOf('id="securityCard"'))), '');
 }
 

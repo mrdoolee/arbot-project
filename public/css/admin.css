@@ -194,7 +194,7 @@ html, body { min-height: 100%; background: var(--canvas); color: var(--ink); fon
 .pv-input i { margin-left: auto; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #22c1a3, #4f8ef7); flex-shrink: 0; }
 
 /* ---------- 링크 / QR ---------- */
-.link-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.link-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; } /* 카드 하나가 화면 너비를 다 쓴다(옛 2열은 접속 가이드 카드와 나란히 놓던 모양) */
 .link-row { display: flex; gap: 10px; }
 .link-row .input { flex: 1; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; }
 .qr-stage { margin-top: 18px; padding: 22px; border-radius: 14px; background: linear-gradient(160deg, rgba(34,193,163,.08), rgba(79,142,247,.08)); border: 1px solid var(--line); text-align: center; }
@@ -334,7 +334,7 @@ td.jd { width: 96px; }
 
 /* ---------- 반응형 ---------- */
 @media (max-width: 1100px) {
-  .char-layout, .link-layout, .result-top { grid-template-columns: 1fr; }
+  .char-layout, .result-top { grid-template-columns: 1fr; }
   .preview-box { position: static; }
 }
 @media (max-width: 860px) {
