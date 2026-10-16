@@ -144,7 +144,7 @@ ok('목록 밖 값 거부 안내', /목록에 없어요|확인할 수 없어요/
 
 // 이름 정규화: 공백·대소문자가 달라도 시트에 적힌 이름으로 기록돼 경고 횟수 세기를 피할 수 없다
 env = newEnv();
-env.sheets['기본설정'].rows[11][1] = 'A모둠, B모둠';
+env.sheets['기본설정'].rows[2][1] = 'A모둠, B모둠';
 chat(env, { groupValue: '  a모둠 ', classValue: ' 1반', userQuestion: '질문' });
 let last = env.sheets['채팅기록'].rows.slice(-1)[0];
 ok('공백·대소문자만 다른 이름은 시트에 적힌 이름으로 정리돼 기록됨', last[2] === '1반' && last[3] === 'A모둠' && last[4] === T1, last.slice(2, 5));
@@ -165,7 +165,7 @@ ok('엉터리 이전 대화가 섞여도 채팅 성공', chat(env, { history: me
 
 // ───────────────────────── 4) 횟수 제한 (시계 고정) ─────────────────────────
 env = newEnv();
-env.sheets['기본설정'].rows[11][1] = '1모둠, 2모둠';
+env.sheets['기본설정'].rows[2][1] = '1모둠, 2모둠';
 setNow(env, '2026-10-15T10:30:00');
 const res = Array.from({ length: 22 }, (_, i) => chat(env, { userQuestion: '질문 ' + i }));
 ok('한 모둠은 1분에 20번까지', res.slice(0, 20).every((x) => x.success === true) && res[20].success === false && /너무 빨라요/.test(res[20].error) && res[21].success === false, res.map((x) => x.success));
@@ -175,7 +175,7 @@ setNow(env, '2026-10-15T10:31:05');
 ok('1분이 지나면 다시 보낼 수 있음', chat(env, { userQuestion: '질문 다시' }).success === true, '');
 
 env = newEnv();
-env.sheets['기본설정'].rows[11][1] = Array.from({ length: 25 }, (_, i) => (i + 1) + '모둠').join(', ');
+env.sheets['기본설정'].rows[2][1] = Array.from({ length: 25 }, (_, i) => (i + 1) + '모둠').join(', ');
 setNow(env, '2026-10-15T11:00:00');
 const all = [];
 for (let round = 0; round < 10; round++) for (let g = 1; g <= 25; g++) all.push(chat(env, { groupValue: g + '모둠', userQuestion: '질문 ' + round }));
@@ -203,7 +203,7 @@ ok('비워서 저장하면 키를 지움', sv.success === true && keyCell() === 
 env.sheets['환경설정'].rows[0][1] = PRIMARY;
 ok('백업 시트 ID: 잘못된 형식은 거부, 올바른 ID·빈 값은 허용', teacher(env, 'saveTeacherSettings', { classList: '1반', backupSheetId: 'x y;z' }).success === false
   && teacher(env, 'saveTeacherSettings', { classList: '1반', backupSheetId: '1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789' }).success === true
-  && teacher(env, 'saveTeacherSettings', { classList: '1반', backupSheetId: '' }).success === true, env.sheets['환경설정'].rows[2]);
+  && teacher(env, 'saveTeacherSettings', { classList: '1반', backupSheetId: '' }).success === true, env.sheets['환경설정'].rows[1]);
 
 // 추가 키
 teacher(env, 'saveApiKeys', { keys: [{ label: '학교', key: SECOND }, { label: '개인', key: THIRD }] });
@@ -250,7 +250,7 @@ ok('debug:true 를 보내도 진단 정보가 돌아오지 않음', r.success ==
 
 // ───────────────────────── 8) AI 차단 쿨다운 (시계 고정) ─────────────────────────
 env = newEnv({ geminiReply: (b) => (b.contents[b.contents.length - 1].parts[0].text.includes('장난') ? '안 돼요 [강제차단]' : '네, 좋아요.') });
-env.sheets['기본설정'].rows[11][1] = '1모둠, 2모둠';
+env.sheets['기본설정'].rows[2][1] = '1모둠, 2모둠';
 setNow(env, '2026-10-15T10:30:00');
 const b1 = chat(env, { userQuestion: '장난장난' });
 ok('AI 가 [강제차단]하면 차단 응답', b1.isBlocked === true && /강제 차단/.test(b1.aiReply), b1);

@@ -4,7 +4,7 @@ let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { (cond ? pass++ : fail++); console.log((cond ? 'PASS ' : 'FAIL ') + name + (cond ? '' : '  → ' + JSON.stringify(extra))); };
 const chat = (env, over) => env.ctx.processChatMessage(Object.assign({ classValue: '1반', groupValue: '1모둠', topicValue: '전류와 전압의 관계', userQuestion: '전압계는 어디에 연결해요?', history: [] }, over || {}));
 const lastRow = (env) => env.sheets['채팅기록'].rows[env.sheets['채팅기록'].rows.length - 1];
-// 세부설정 탭을 직접 고친 것처럼 흉내 낸다(시트를 손으로 편집). 첫 호출 때 옛 칸에서 탭이 만들어진다.
+// 세부설정 탭을 직접 고친 것처럼 흉내 낸다(시트를 손으로 편집). 첫 호출 때 기본 상태(소크라테스 발문형 + 템플릿 원본)로 탭이 만들어진다.
 const P = '페르소나 세부설정', R = '루브릭 세부설정', T = '주제 세부설정';
 const setTemplate = (env, key) => { env.ctx.ensureProfileTabs_(); env.sheets[P].rows[1][1] = key; env.cache.clear(); };
 
@@ -21,7 +21,7 @@ ok('qna 행에 학생 글/AI 답이 저장됨', lastRow(env)[5] === '전압계�
 ok('H1·I1 열 이름 기록', env.sheets['채팅기록'].rows[0][7] === '페르소나' && env.sheets['채팅기록'].rows[0][8] === '루브릭', env.sheets['채팅기록'].rows[0]);
 const sys2 = env.calls[0].systemInstruction.parts[0].text;
 ok('자료가 시스템 프롬프트에 붙음', sys2.includes('[탐구 자료: 전류와 전압의 관계') && sys2.includes('전원을 끈다'), sys2.slice(0, 80));
-env.sheets['기본설정'].rows[12][1] = '전류와 전압의 관계, 온도와 반응 속도';
+env.sheets['기본설정'].rows[3][1] = '전류와 전압의 관계, 온도와 반응 속도';
 let init = env.ctx.getInitialData();
 ok('qna 학생 화면 정보: 자료가 없는 주제를 알려 줌', JSON.stringify(init.missingMaterialTopics) === JSON.stringify(['온도와 반응 속도']), init.missingMaterialTopics);
 ok('다른 주제도 자료가 없으면 질문 불가(주제 우회 방지)', (() => { try { chat(env, { topicValue: '온도와 반응 속도' }); return false; } catch (e) { return /준비하지 않았어요/.test(e.message); } })(), '');
@@ -64,7 +64,7 @@ ok('활성화 직후 모든 주제가 "자료 필요"로 내려감', JSON.string
 env.ctx.saveTopicMaterial({ topic: '온도와 반응 속도', procedure: '과정' });
 ok('자료를 입력한 주제만 학생이 쓸 수 있게 풀림', JSON.stringify(env.ctx.getInitialData().missingMaterialTopics) === JSON.stringify(['전류와 전압의 관계']), env.ctx.getInitialData().missingMaterialTopics);
 ok('다른 템플릿 저장도 허용', makeEnv({}).ctx.saveTeacherSettings({ role: 'x', templateKey: 'debate' }).success === true, '');
-ok('B4(보고서 폴더)는 건드리지 않음', env.sheets['환경설정'].rows[3][1] === 'FOLDER-ID-DO-NOT-TOUCH', env.sheets['환경설정'].rows[3]);
+ok('설정 저장이 환경설정의 다른 칸(백업 ID·모델)을 지우지 않음', env.sheets['환경설정'].rows.length === 3 && env.sheets['환경설정'].rows[0][1] === 'AIzaFAKEKEY1234567890', env.sheets['환경설정'].rows);
 
 // 8) 수식/날짜 변환 방지(한 번 더): 모둠 이름 1-2 와 =수식 글
 env = makeEnv({ templateKey: 'socratic' });
@@ -166,7 +166,7 @@ ok('자동 선택: flash-lite-latest 가 있으면 그것을 씀', modelOf({ mod
 ok('flash-lite-latest 가 없으면 최신 정식 Flash-Lite 버전', modelOf({ models: ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite-preview', 'gemini-flash-latest'] }) === 'gemini-3.5-flash-lite', modelOf({ models: ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite-preview', 'gemini-flash-latest'] }));
 ok('Flash-Lite 가 전혀 없으면 flash-latest', modelOf({ models: ['gemini-flash-latest', 'gemini-3.8-flash'] }) === 'gemini-flash-latest', '');
 ok('Flash-Lite·flash-latest 가 없으면 최신 일반 Flash', modelOf({ models: ['gemini-3.8-flash', 'gemini-3.6-flash'] }) === 'gemini-3.8-flash', '');
-ok('교사가 모델을 직접 고르면(환경설정 B5) 그것을 씀', modelOf({ models: ['gemini-flash-lite-latest', 'gemini-3.8-flash'] }, (e) => { e.sheets['환경설정'].rows[4][1] = 'gemini-3.8-flash'; }) === 'gemini-3.8-flash', '');
+ok('교사가 모델을 직접 고르면(환경설정 B3) 그것을 씀', modelOf({ models: ['gemini-flash-lite-latest', 'gemini-3.8-flash'] }, (e) => { e.sheets['환경설정'].rows[2][1] = 'gemini-3.8-flash'; }) === 'gemini-3.8-flash', '');
 ok('콘솔의 자동 선택 표시(listGeminiModels)도 같은 규칙', makeEnv({ models: ['gemini-flash-lite-latest', 'gemini-flash-latest'] }).ctx.listGeminiModels({ apiKey: 'AIzaSomeKey1234567890' }).autoModel === 'gemini-flash-lite-latest', '');
 ok('이전 기본값이 캐시에 남아 있어도(v1 키) 새 규칙을 따름', modelOf({ models: ['gemini-flash-lite-latest', 'gemini-flash-latest'] }, (e) => { e.cache.set('auto_model_v1', 'gemini-flash-latest'); }) === 'gemini-flash-lite-latest', '');
 
@@ -177,7 +177,7 @@ ok('키 목록이 배열이 아니면 거부(불러오기 전 저장 방지)', e
 ok('추가 키 최대 개수 제한', env.ctx.saveApiKeys({ keys: Array.from({ length: 11 }, (_, i) => ({ label: 'k' + i, key: 'AIzaKeyNumber' + String(i).padStart(10, '0') })) }).success === false, '');
 env.ctx.saveApiKeys({ keys: [{ label: 'a', key: SECOND }, { label: 'b', key: THIRD }] });
 ok('키 2개 저장 후 삭제(빈 목록)도 가능', env.ctx.saveApiKeys({ keys: [] }).success && env.ctx.getApiKeys().keys.length === 0, '');
-ok('기본 키(B1)와 보고서 폴더(B4)는 키 저장이 건드리지 않음', env.sheets['환경설정'].rows[0][1] === PRIMARY && env.sheets['환경설정'].rows[3][1] === 'FOLDER-ID-DO-NOT-TOUCH', env.sheets['환경설정'].rows);
+ok('기본 키(B1)와 백업 ID(B2)·모델(B3)은 추가 키 저장이 건드리지 않음', env.sheets['환경설정'].rows[0][1] === PRIMARY && env.sheets['환경설정'].rows[1][1] === '' && env.sheets['환경설정'].rows[2][1] === '', env.sheets['환경설정'].rows);
 env.ctx.setTeacherPin_({ newPin: 'secret-123' });
 ok('비밀번호가 있으면 키 관리도 보호됨', env.ctx.routeAction('getApiKeys', {}).needPin === true && env.ctx.routeAction('saveApiKeys', { keys: [] }).needPin === true && env.ctx.routeAction('getApiKeys', { pin: 'secret-123' }).success === true, '');
 ok('모델 테스트가 한도 소진 키를 표시', (() => { const e = makeEnv({ keyHandler: () => DEPLETED }); e.ctx.testGeminiModel({ apiKey: SECOND, model: 'gemini-flash-latest' }); return e.ctx.getApiKeys().keys.length === 0 && e.ctx.describeKeyStatus_(SECOND).status === 'exhausted'; })(), '');

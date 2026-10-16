@@ -40,20 +40,20 @@ function makeSheet(name, rows) {
 
 function makeEnv(opts) {
   const sheets = {
-    '환경설정': makeSheet('환경설정', [['Gemini key', 'AIzaFAKEKEY1234567890'], ['PDF', ''], ['backup', ''], ['report', 'FOLDER-ID-DO-NOT-TOUCH'], ['model', '']]),
-    '기본설정': makeSheet('기본설정', [['역할', 'role-text'], ['행동', 'action-text'], ['제한', 'restrict-text'], ['예외', 'exception-text'], ['추가', 'extra-text'], ['시간', 20], ['FileAPI', 'OFF'], ['uris', ''], ['pairs', 3], ['금지어', '바보, 멍청이'], ['학급', '1반'], ['모둠', '1모둠'], ['주제', '전류와 전압의 관계, 온도와 반응 속도'], ['캐릭터', 'labcoat'], ['이름', '도우미'], ['인사말', '안녕'], ['템플릿', opts.templateKey || 'socratic']]),
+    '환경설정': makeSheet('환경설정', [['Gemini key', 'AIzaFAKEKEY1234567890'], ['backup', ''], ['model', '']]),
+    '기본설정': makeSheet('기본설정', [['금지어', '바보, 멍청이'], ['학급', '1반'], ['모둠', '1모둠'], ['주제', '전류와 전압의 관계, 온도와 반응 속도']]),
     '논증평가설정': makeSheet('논증평가설정', [['r', 'rubric role'], ['c', 'criteria'], ['l', 'Level 1: a\nLevel 4: b'], ['g', 'guideline']]),
     '채팅기록': makeSheet('채팅기록', [['날짜', '시간', '학급', '모둠', '주제', '학생', 'AI']]),
   };
   // 세부설정 탭은 이미 만들어져 있는 시트가 기본이다 (실서비스 시트와 같은 상태: '구분' 열·템플릿 줄은 첫 요청 때 채워진다).
   // opts.noProfileTabs 를 주면 세부설정 탭이 아직 없는 새 시트(처음 만들어지는 경우)를 시험할 수 있다.
-  // 기본설정 탭의 1~9행·14~17행은 지금은 쓰이지 않는 옛 칸이다 (초기화가 비우는지 시험하려고 남겨 둔다).
+  // 환경설정은 B1 키 · B2 백업 ID · B3 모델, 기본설정은 B1 금지어 · B2 학급 · B3 모둠 · B4 주제 (Code.js 맨 위의 ENV_*/CFG_* 상수와 같다).
   if (!opts.noProfileTabs) {
     const tpl = opts.templateKey || 'socratic';
     sheets['페르소나 세부설정'] = makeSheet('페르소나 세부설정', [['이름', '템플릿', '역할', '행동 지침', '절대 제한', '예외 대처', '추가 참고', '캐릭터 ID', '캐릭터 이름', '첫 인사말'],
       ['기본', tpl, 'role-text', 'action-text', 'restrict-text', 'exception-text', 'extra-text', 'labcoat', '도우미', '안녕']]);
-    sheets['루브릭 세부설정'] = makeSheet('루브릭 세부설정', [['이름', '(미사용)', '평가자 역할', '요소별 판정 기준', '종합 평가 루브릭', '피드백 작성 지침'],
-      ['기본', tpl, 'rubric role', 'criteria', 'Level 1: a\nLevel 4: b', 'guideline']]);
+    sheets['루브릭 세부설정'] = makeSheet('루브릭 세부설정', [['이름', '평가자 역할', '요소별 판정 기준', '종합 평가 루브릭', '피드백 작성 지침'],
+      ['기본', 'rubric role', 'criteria', 'Level 1: a\nLevel 4: b', 'guideline']]);
     sheets['주제 세부설정'] = makeSheet('주제 세부설정', [['주제', '페르소나', '루브릭', '제한 시간(분)', '기억할 대화 쌍'], ['(기본)', '기본', '기본', 20, 3]]);
   }
   const calls = []; // Gemini 로 나간 요청

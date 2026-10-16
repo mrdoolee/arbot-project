@@ -9,6 +9,24 @@
 let CACHED_MODEL_NAME = "";
 
 // ============================================================================
+// 환경설정·기본설정 탭의 고정 칸. 값은 B열, 설명은 A열(이름표)·C열(메모)이다. 행을 끼우거나 지우면 주소가 밀리니 숨기기만 할 것.
+// 위치를 바꿀 때는 이 상수들과 Guide.html 의 시트 구조 표, tests/gas_harness.js 의 가짜 시트만 고치면 된다(코드 곳곳에 주소를 쓰지 않는다).
+//   환경설정:  B1 기본 Gemini API 키 · B2 백업 스프레드시트 ID(선택) · B3 사용할 Gemini 모델(비우면 자동)
+//   기본설정:  B1 금지어 · B2 학급 목록 · B3 모둠 목록 · B4 탐구 주제 목록 (쉼표로 구분)
+// ============================================================================
+var ENV_KEY_CELL_ = 'B1';
+var ENV_BACKUP_CELL_ = 'B2';
+var ENV_MODEL_CELL_ = 'B3';
+var ENV_MODEL_LABEL_CELL_ = 'A3';
+var ENV_RANGE_ = 'B1:B3';        // 키 · 백업 ID · 모델 (위에서부터)
+var CFG_BANNED_CELL_ = 'B1';
+var CFG_CLASSES_CELL_ = 'B2';
+var CFG_GROUPS_CELL_ = 'B3';
+var CFG_TOPICS_CELL_ = 'B4';
+var CFG_ALL_RANGE_ = 'B1:B4';    // 금지어 · 학급 · 모둠 · 주제 (위에서부터)
+var CFG_LISTS_RANGE_ = 'B2:B4';  // 학급 · 모둠 · 주제 (위에서부터)
+
+// ============================================================================
 // [JSON API] 외부에 별도로 호스팅된 프론트엔드(정적 웹앱)가 이 GAS 웹 앱을
 // API 서버처럼 호출한다. 화면(HTML)은 더 이상 이 프로젝트가 렌더링하지 않는다.
 //   - GET  {웹앱URL}?_action=getInitialData
@@ -196,7 +214,7 @@ function validateChatRequest_(p) {
   }
   // 시트의 학급·모둠·주제 목록에 있는 값만 받는다 (다른 모둠을 사칭하거나 기록을 어지럽히는 요청 차단).
   // 맞는 항목은 시트에 적힌 그대로의 이름으로 바꿔 기록한다 — 앞뒤 공백·대소문자만 다른 이름으로 경고 횟수 세기를 피하지 못하게.
-  var lists = requireSheet_("기본설정").getRange("B11:B13").getValues();
+  var lists = requireSheet_("기본설정").getRange(CFG_LISTS_RANGE_).getValues();
   var canonical = function(listCell, v) {
     var want = normalizeTopic_(v), items = String(listCell || "").split(",");
     for (var i = 0; i < items.length; i++) { var t = items[i].trim(); if (t && normalizeTopic_(t) === want) return t; }
@@ -346,7 +364,7 @@ function setTeacherPinFromMenu() {
     '이제 교사 콘솔에서 이 비밀번호로 들어갈 수 있어요. 잊어버리지 않게 적어 두세요.\n\n학생이 대화방에 들어갈 때 쓰는 수업 입장 코드는 ' + code + ' 예요. (교사 콘솔의 "학생 배부 링크 & QR"에서 바꿀 수 있어요)', ui.ButtonSet.OK);
 }
 
-// 시트 메뉴: 주제 목록(기본설정 B13)에 맞춰 '주제 세부설정' 탭에 주제별 줄을 만든다.
+// 시트 메뉴: 주제 목록(기본설정 B4)에 맞춰 '주제 세부설정' 탭에 주제별 줄을 만든다.
 // 교사 콘솔에서 주제 목록을 저장하면 자동으로 맞춰지므로, 시트에서 목록 칸을 직접 고쳤을 때 쓴다. 값이 든 줄은 지우지 않는다.
 function syncTopicRowsFromMenu() {
   var ui = SpreadsheetApp.getUi();
@@ -401,8 +419,8 @@ function showAbout_() {
 // ---------------------------------------------------------
 function getTeacherSettings() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var env = requireSheet_('환경설정').getRange('B1:B5').getValues();
-  var config = requireSheet_('기본설정').getRange('B10:B13').getValues();
+  var env = requireSheet_('환경설정').getRange(ENV_RANGE_).getValues();
+  var config = requireSheet_('기본설정').getRange(CFG_ALL_RANGE_).getValues();
   // 페르소나·루브릭·제한 시간·기억 쌍은 '세부설정' 탭의 기본 줄에 있다 (옛 콘솔과 같은 이름으로 돌려준다)
   var base = readBaseValues_();
 
@@ -410,8 +428,8 @@ function getTeacherSettings() {
   return {
     geminiApiKey: maskKey_(primaryKey), // 키 원문은 화면으로 내려보내지 않는다 (앞4자…뒤4자만)
     geminiApiKeySet: !!primaryKey,
-    backupSheetId: env[2][0] || '',
-    geminiModel: env[4][0] || '',
+    backupSheetId: env[1][0] || '',
+    geminiModel: env[2][0] || '',
 
     bannedWords: config[0][0] || '',
     classList: config[1][0] || '',
@@ -469,20 +487,19 @@ function saveTeacherSettings(s) {
     if (s[key] !== undefined && s[key] !== null) sheet.getRange(cell).setValue(safeCell_(String(s[key]).trim()));
   };
 
-  if (keyChange) put(envSheet, 'B1', 'geminiApiKey');
-  put(envSheet, 'B3', 'backupSheetId');
-  // B5: 사용할 Gemini 모델 (비우면 자동 선택). 첫 저장 시 A5에 라벨도 적어 둔다.
-  // (B4는 보고서 저장 폴더 ID 칸이라 건드리지 않는다)
+  if (keyChange) put(envSheet, ENV_KEY_CELL_, 'geminiApiKey');
+  put(envSheet, ENV_BACKUP_CELL_, 'backupSheetId');
+  // 사용할 Gemini 모델 (비우면 자동 선택). 이름표 칸이 비어 있으면 첫 저장 때 적어 둔다.
   if (s.geminiModel !== undefined && s.geminiModel !== null && (s.geminiModel === '' || /^(gemini|gemma)[a-z0-9.-]*$/i.test(s.geminiModel))) {
-    if (!envSheet.getRange('A5').getValue()) envSheet.getRange('A5').setValue('Gemini 모델 (비우면 자동 선택)');
-    envSheet.getRange('B5').setValue(s.geminiModel);
+    if (!envSheet.getRange(ENV_MODEL_LABEL_CELL_).getValue()) envSheet.getRange(ENV_MODEL_LABEL_CELL_).setValue('Gemini 모델 (비우면 자동 선택)');
+    envSheet.getRange(ENV_MODEL_CELL_).setValue(s.geminiModel);
   }
 
   // 시트 전체에 하나뿐인 공통 설정 (기본설정 탭에는 이것들만 남는다)
-  put(configSheet, 'B10', 'bannedWords');
-  put(configSheet, 'B11', 'classList');
-  put(configSheet, 'B12', 'groupList');
-  put(configSheet, 'B13', 'topicList');
+  put(configSheet, CFG_BANNED_CELL_, 'bannedWords');
+  put(configSheet, CFG_CLASSES_CELL_, 'classList');
+  put(configSheet, CFG_GROUPS_CELL_, 'groupList');
+  put(configSheet, CFG_TOPICS_CELL_, 'topicList');
 
   // 옛 콘솔 호환: 페르소나·캐릭터·루브릭·제한 시간·기억 쌍이 요청에 있으면 세부설정 탭의 '기본' 줄에 쓴다
   var pick = function(map) {
@@ -518,7 +535,7 @@ function saveTeacherSettings(s) {
 //  - 주제 세부설정:     한 줄 = 주제 하나가 쓰는 페르소나·루브릭 + 제한 시간·기억할 대화 쌍. 2행 '(기본)'이 기준.
 //  규칙 하나: 기본이 아닌 줄의 빈 칸은 같은 탭의 기본 줄 값을 따른다. 주제 줄이 없는 주제는 기본값을 쓴다.
 //  이 탭들이 시트에 없으면 처음 실행될 때 기본 상태(소크라테스 발문형 내용의 '기본' 줄 + 템플릿 원본)로 만든다.
-//  모델은 시트 전체에서 하나만 쓴다(환경설정 B5, 비면 자동).
+//  모델은 시트 전체에서 하나만 쓴다(환경설정 B3, 비면 자동).
 // ============================================================================
 var PERSONA_SHEET_ = '페르소나 세부설정';
 var RUBRIC_SHEET_ = '루브릭 세부설정';
@@ -528,10 +545,10 @@ var TOPIC_DEFAULT_ = '(기본)';
 var NO_RUBRIC_ = '-'; // 채팅기록 I열: 이 대화는 평가하지 않는다
 var NO_RUBRIC_WORD_ = '없음'; // 주제 세부설정에서 평가 안 함을 뜻하는 글자
 var PERSONA_COLS_ = ['name', 'templateKey', 'role', 'action', 'restrict', 'exception', 'extra', 'characterId', 'characterName', 'greeting', 'kind'];
-var RUBRIC_COLS_ = ['name', 'templateKey', 'role', 'criteria', 'level', 'guideline', 'kind'];
+var RUBRIC_COLS_ = ['name', 'role', 'criteria', 'level', 'guideline', 'kind'];
 var TOPIC_CFG_COLS_ = ['topic', 'persona', 'rubric', 'timeLimitMinutes', 'windowPairs'];
 var PERSONA_HEADERS_ = ['이름', '템플릿', '역할', '행동 지침', '절대 제한', '예외 대처', '추가 참고', '캐릭터 ID', '캐릭터 이름', '첫 인사말', '구분'];
-var RUBRIC_HEADERS_ = ['이름', '(미사용)', '평가자 역할', '요소별 판정 기준', '종합 평가 루브릭', '피드백 작성 지침', '구분'];
+var RUBRIC_HEADERS_ = ['이름', '평가자 역할', '요소별 판정 기준', '종합 평가 루브릭', '피드백 작성 지침', '구분'];
 var TOPIC_CFG_HEADERS_ = ['주제', '페르소나', '루브릭', '제한 시간(분)', '기억할 대화 쌍'];
 var TEMPLATE_KEYS_ = ['socratic', 'cer', 'advanced', 'debate', 'qna'];
 var TEMPLATE_KIND_ = '템플릿'; // 페르소나·루브릭 세부설정의 '구분' 열: 미리 넣어 둔 원본 줄. 화면에서 고치거나 지울 수 없다(고치면 새 이름으로 따로 저장).
@@ -630,7 +647,7 @@ function seedTemplateRows_(ss) {
       added++;
     }
     if (rsh && t.rubric && !findByName_(rTable, 'name', t.name)) {
-      rsh.appendRow(profileRowArray_(RUBRIC_COLS_, Object.assign({ name: t.name, templateKey: t.key, kind: TEMPLATE_KIND_ }, t.rubric)));
+      rsh.appendRow(profileRowArray_(RUBRIC_COLS_, Object.assign({ name: t.name, kind: TEMPLATE_KIND_ }, t.rubric)));
       added++;
     }
   });
@@ -653,15 +670,15 @@ function defaultProfileValues_() {
   var t = TEMPLATE_PROFILES_.filter(function(x) { return x.key === 'socratic'; })[0] || TEMPLATE_PROFILES_[0];
   return {
     persona: Object.assign({ name: BASE_NAME_ }, t.persona),
-    rubric: Object.assign({ name: BASE_NAME_, templateKey: t.key }, t.rubric),
+    rubric: Object.assign({ name: BASE_NAME_ }, t.rubric),
     topic: { topic: TOPIC_DEFAULT_, persona: BASE_NAME_, rubric: BASE_NAME_, timeLimitMinutes: DEFAULT_TIME_LIMIT_, windowPairs: DEFAULT_WINDOW_PAIRS_ }
   };
 }
 
 // ---------------------------------------------------------
 // 시트 초기화 — 되돌릴 수 없다. 웹 API(routeAction)에는 연결하지 않았고, 시트 메뉴의 확인 창(resetSheetToDefaultsFromMenu)에서만 실행된다.
-// 지우는 것: 세 세부설정 탭(기본 상태로 다시 만듦), 기본설정의 금지어·학급/모둠/주제 목록과 쓰이지 않는 옛 칸(1~9행·14~17행, A~C열),
-//           '논증평가설정'·'대시보드' 탭, 탐구자료의 모든 줄, 채팅기록의 모든 대화(머리글은 남김).
+// 지우는 것: 세 세부설정 탭(기본 상태로 다시 만듦), 기본설정의 금지어·학급/모둠/주제 목록(B1:B4),
+//           '논증평가설정'·'대시보드' 탭(옛 버전이 만든 것), 탐구자료의 모든 줄, 채팅기록의 모든 대화(머리글은 남김).
 // 건드리지 않는 것: 환경설정(키·모델·백업 시트 ID), API키 탭, 교사 비밀번호, 백업 스프레드시트의 사본.
 // 이 함수 이름 끝의 _ 는 Apps Script 편집기의 실행 목록에서 숨기려는 것이다(확인 없이 실수로 실행하지 않도록).
 // ---------------------------------------------------------
@@ -686,11 +703,10 @@ function resetSheetToDefaults_() {
     seedTemplateRows_(ss);
     PropertiesService.getScriptProperties().setProperty(TEMPLATE_SEED_PROP_, TEMPLATE_SEED_VERSION_);
 
-    // 2) 기본설정: 금지어·목록을 비우고, 더 이상 쓰이지 않는 옛 칸과 안내 메모를 지운다
+    // 2) 기본설정: 금지어·목록을 비운다 (A열 이름표와 C열 안내 메모는 남긴다)
     var cfg = ss.getSheetByName('기본설정'); // 초기화는 탭이 없어도 멈추지 않는다 (requireSheet_ 를 쓰지 않는 곳)
     if (cfg) {
-      cfg.getRange('B10:B13').clearContent();
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 15, 16, 17].forEach(function(n) { cfg.getRange('A' + n + ':C' + n).clearContent(); });
+      cfg.getRange(CFG_ALL_RANGE_).clearContent();
     }
 
     // 3) 옛 탭 삭제
@@ -736,7 +752,7 @@ function resetSheetToDefaultsFromMenu() {
     '· 학급·모둠·탐구 주제 목록, 금지어\n' +
     '· 탐구 자료 전체\n' +
     '· 채팅기록(학생 대화) 전체\n' +
-    '· 쓰이지 않는 옛 설정 칸, \'논증평가설정\'·\'대시보드\' 탭\n\n' +
+    '· 옛 버전이 만든 \'논증평가설정\'·\'대시보드\' 탭(있을 때만)\n\n' +
     'Gemini API 키·모델·백업 시트(환경설정), API키 탭, 교사 비밀번호는 그대로 둡니다.\n' +
     '(환경설정에 적어 둔 백업 스프레드시트의 사본도 지우지 않습니다)\n\n계속할까요?';
   if (ui.alert('⚠️ 설정·기록 초기화', warn, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
@@ -840,7 +856,7 @@ function readBaseValues_() {
 // [API] 교사 콘솔: 페르소나·루브릭·주제 연결 목록 (교사 전용)
 // ---------------------------------------------------------
 function getProfiles() {
-  // 탭을 못 만드는 상태여도 화면이 '옛 설정으로 동작 중'을 알릴 수 있게 오류로 끝내지 않는다 (readCoreConfig_ 가 옛 칸으로 대체한다)
+  // 탭을 못 만드는 상태여도 화면이 '기본 상태로 동작 중'을 알릴 수 있게 오류로 끝내지 않는다 (readCoreConfig_ 가 기본 상태(소크라테스 발문형)로 대신한다)
   // 목록에 있는데 '주제 세부설정' 줄이 없는 주제(시트에서 목록을 직접 고친 경우 등)는 여기서 줄을 만들어 준다. 실패해도 화면은 계속된다.
   var sync = syncTopicRows_();
   var core = readCoreConfig_(true), rubrics = readRubricTable_();
@@ -1010,10 +1026,10 @@ function deleteProfile(p) {
   }
 }
 
-// 주제 목록(기본설정 B13)을 이름 배열로 읽는다: 쉼표로 나누고 앞뒤 공백을 떼며, 같은 이름(공백·대소문자만 다른 것 포함)은 처음 것만 남긴다.
+// 주제 목록(기본설정 B4)을 이름 배열로 읽는다: 쉼표로 나누고 앞뒤 공백을 떼며, 같은 이름(공백·대소문자만 다른 것 포함)은 처음 것만 남긴다.
 // 목록을 읽는 곳(주제 연결 화면·줄 맞추기·저장)이 같은 규칙을 쓰도록 한 군데에 둔다.
 function readTopicList_() {
-  var raw = requireSheet_('기본설정').getRange('B13').getValue().toString();
+  var raw = requireSheet_('기본설정').getRange(CFG_TOPICS_CELL_).getValue().toString();
   var seen = {}, out = [];
   raw.split(',').forEach(function(t) { t = t.trim(); var k = normalizeTopic_(t); if (k && !seen[k]) { seen[k] = true; out.push(t); } });
   return out;
@@ -1088,7 +1104,7 @@ function saveTopicSetting(p) {
     if (!sh) return { success: false, error: "'" + TOPIC_CFG_SHEET_ + "' 탭이 없어요. 새로고침 후 다시 시도해 주세요." };
     var table = readTable_(TOPIC_CFG_SHEET_, TOPIC_CFG_COLS_);
     var existing = findByName_(table, 'topic', topic);
-    // 주제 목록(기본설정 B13)에 있는 주제인가: 있으면 줄을 지우지 않고 남긴다(시트에서 계속 고칠 수 있게)
+    // 주제 목록(기본설정 B4)에 있는 주제인가: 있으면 줄을 지우지 않고 남긴다(시트에서 계속 고칠 수 있게)
     var inList = !isDefault && readTopicList_().some(function(t) { return normalizeTopic_(t) === normalizeTopic_(topic); });
 
     if (p.remove === true) {
@@ -1213,7 +1229,7 @@ function getTopicMaterialBlock_(topic) {
 
 // [API] 교사 콘솔용: 현재 주제 목록과 저장된 자료 전체
 function getTopicMaterials() {
-  var topicsRaw = requireSheet_('기본설정').getRange('B13').getValue().toString();
+  var topicsRaw = requireSheet_('기본설정').getRange(CFG_TOPICS_CELL_).getValue().toString();
   var topics = topicsRaw.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
   var materials = readMaterialRows_().map(function(m) {
     return { topic: m.topic, procedure: m.procedure, materials: m.materials, safety: m.safety, notes: m.notes };
@@ -1277,7 +1293,7 @@ function saveTopicMaterial(p) {
 function getInitialData() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var configSheet = requireSheet_('기본설정');
-  var values = configSheet.getRange("B11:B13").getValues();
+  var values = configSheet.getRange(CFG_LISTS_RANGE_).getValues();
 
   var parseList = function(val) {
     if (!val) return [];
@@ -1377,9 +1393,9 @@ function processChatMessage(payload) {
   var configSheet = requireSheet_('기본설정');
   var recordSheet = requireSheet_('채팅기록');
 
-  var apiKey = envSheet.getRange("B1").getValue().toString().trim();
-  var backupSheetId = envSheet.getRange("B3").getValue().toString().trim();
-  var bannedWordsRaw = String(configSheet.getRange("B10").getValue() || ""); // 시트 공통 설정: 금지어
+  var apiKey = envSheet.getRange(ENV_KEY_CELL_).getValue().toString().trim();
+  var backupSheetId = envSheet.getRange(ENV_BACKUP_CELL_).getValue().toString().trim();
+  var bannedWordsRaw = String(configSheet.getRange(CFG_BANNED_CELL_).getValue() || ""); // 시트 공통 설정: 금지어
   // 학생이 고른 주제에 연결된 설정 한 벌(페르소나·캐릭터·제한 시간·기억 쌍). 서버가 주제로 찾으므로 학생 화면이 바꿀 수 없다.
   var cfg = resolveTopicConfig_(readCoreConfig_(), payload.topicValue);
   // 탐구 도우미는 항상 켤 수 있지만, 교사가 탐구 자료를 입력한 주제에서만 질문을 받는다.
@@ -1623,7 +1639,7 @@ function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricNa
   var recordSheet = requireSheet_('채팅기록');
   var envSheet = requireSheet_('환경설정');
 
-  var apiKey = envSheet.getRange("B1").getValue().toString().trim();
+  var apiKey = envSheet.getRange(ENV_KEY_CELL_).getValue().toString().trim();
   var core = readCoreConfig_(true);
   var cfg = resolveTopicConfig_(core, targetTopic);
   var rubricTable = readRubricTable_();
@@ -1879,7 +1895,7 @@ var CONTEXT_GUIDE_ = [
 // ============================================================================
 // ★ 2026년 기준 Flash 모델 최우선 스마트 탐색 엔진
 // ============================================================================
-// 사용할 모델 결정 순서: ① 교사가 웹 콘솔에서 고른 모델(환경설정 B5) → ② 자동 감지
+// 사용할 모델 결정 순서: ① 교사가 웹 콘솔에서 고른 모델(환경설정 B3) → ② 자동 감지
 var AUTO_MODEL_CACHE_KEY_ = "auto_model_v2"; // 기본 모델 규칙을 바꿀 때 숫자를 올려 이전 캐시를 버린다
 
 function getOptimalGeminiModel(apiKey) {
@@ -1899,10 +1915,10 @@ function getOptimalGeminiModel(apiKey) {
   return detectAutoModel_(apiKey);
 }
 
-// 환경설정 B5: 비어 있거나 'auto'/'자동'이면 자동 선택. 모델 이름 형식이 아니면 무시한다.
+// 환경설정 B3(ENV_MODEL_CELL_): 비어 있거나 'auto'/'자동'이면 자동 선택. 모델 이름 형식이 아니면 무시한다.
 function readModelPreference_() {
   try {
-    var v = requireSheet_('환경설정').getRange('B5').getValue().toString().trim();
+    var v = requireSheet_('환경설정').getRange(ENV_MODEL_CELL_).getValue().toString().trim();
     if (v.indexOf('models/') === 0) v = v.substring(7);
     if (!/^(gemini|gemma)[a-z0-9.-]*$/i.test(v)) return '';
     return v;
@@ -2139,7 +2155,7 @@ function describeKeyStatus_(key) {
 }
 
 function readPrimaryKey_() {
-  return String(requireSheet_('환경설정').getRange('B1').getValue() || "").trim();
+  return String(requireSheet_('환경설정').getRange(ENV_KEY_CELL_).getValue() || "").trim();
 }
 
 // [API] 키 목록과 상태. (교사 전용, 비밀번호 보호) 키 원문은 내려보내지 않는다:
@@ -2288,21 +2304,21 @@ function inspectSheetStructure_() {
   // 2) 환경설정: 키·백업 시트·모델
   var envSh = tab('환경설정');
   if (envSh) {
-    var key = str(envSh.getRange('B1').getValue());
-    if (!key) add("warn", "환경설정", "B1(기본 API 키)이 비어 있어요. 키가 없으면 학생 대화와 분석이 동작하지 않아요.");
-    else if (!isSafeKey_(key)) add("warn", "환경설정", "B1의 API 키 모양이 이상해요(영문·숫자·_-. 만, 10자 이상). 복사할 때 공백이나 줄바꿈이 섞이지 않았는지 확인하세요.");
+    var key = str(envSh.getRange(ENV_KEY_CELL_).getValue());
+    if (!key) add("warn", "환경설정", ENV_KEY_CELL_ + "(기본 API 키)이 비어 있어요. 키가 없으면 학생 대화와 분석이 동작하지 않아요.");
+    else if (!isSafeKey_(key)) add("warn", "환경설정", ENV_KEY_CELL_ + "의 API 키 모양이 이상해요(영문·숫자·_-. 만, 10자 이상). 복사할 때 공백이나 줄바꿈이 섞이지 않았는지 확인하세요.");
     else add("ok", "환경설정", "API 키가 있어요 (" + maskKey_(key) + ").");
-    var bid = str(envSh.getRange('B3').getValue());
-    if (bid && !/^[A-Za-z0-9_-]{20,100}$/.test(bid)) add("warn", "환경설정", "B3(백업 스프레드시트 ID) 모양이 이상해요. 주소창의 /d/ 와 /edit 사이 글자만 넣어야 해요. 그대로면 백업은 조용히 실패해요.");
-    var model = str(envSh.getRange('B5').getValue());
-    if (model && !/^(models\/)?(gemini|gemma)[a-z0-9.-]*$/i.test(model)) add("warn", "환경설정", "B5(AI 모델) 이름이 모델 이름 모양이 아니에요('" + model + "'). 이 값은 무시되고 자동 선택으로 동작해요.");
+    var bid = str(envSh.getRange(ENV_BACKUP_CELL_).getValue());
+    if (bid && !/^[A-Za-z0-9_-]{20,100}$/.test(bid)) add("warn", "환경설정", ENV_BACKUP_CELL_ + "(백업 스프레드시트 ID) 모양이 이상해요. 주소창의 /d/ 와 /edit 사이 글자만 넣어야 해요. 그대로면 백업은 조용히 실패해요.");
+    var model = str(envSh.getRange(ENV_MODEL_CELL_).getValue());
+    if (model && !/^(models\/)?(gemini|gemma)[a-z0-9.-]*$/i.test(model)) add("warn", "환경설정", ENV_MODEL_CELL_ + "(AI 모델) 이름이 모델 이름 모양이 아니에요('" + model + "'). 이 값은 무시되고 자동 선택으로 동작해요.");
   }
 
   // 3) 기본설정: 학급·모둠·주제 목록
   var cfgSh = tab('기본설정'), lists = { classes: [], groups: [], topics: [] };
   if (cfgSh) {
-    var vals = cfgSh.getRange('B10:B13').getValues();
-    var defs = [['학급', 'B11', splitList(vals[1][0]), 'classes'], ['모둠', 'B12', splitList(vals[2][0]), 'groups'], ['탐구 주제', 'B13', splitList(vals[3][0]), 'topics']];
+    var vals = cfgSh.getRange(CFG_ALL_RANGE_).getValues();
+    var defs = [['학급', CFG_CLASSES_CELL_, splitList(vals[1][0]), 'classes'], ['모둠', CFG_GROUPS_CELL_, splitList(vals[2][0]), 'groups'], ['탐구 주제', CFG_TOPICS_CELL_, splitList(vals[3][0]), 'topics']];
     defs.forEach(function(d) {
       var label = d[0], cell = d[1], raw = d[2], names = raw.filter(Boolean);
       lists[d[3]] = names;

@@ -64,15 +64,27 @@ const join = (h) => h.join(' · ');
 ok('페르소나 세부설정 머리글 순서가 안내문과 같음', text.includes(join(c.PERSONA_HEADERS_)), join(c.PERSONA_HEADERS_));
 ok('루브릭 세부설정 머리글 순서가 안내문과 같음', text.includes(join(c.RUBRIC_HEADERS_)), join(c.RUBRIC_HEADERS_));
 ok('주제 세부설정 머리글 순서가 안내문과 같음', text.includes(join(c.TOPIC_CFG_HEADERS_)), join(c.TOPIC_CFG_HEADERS_));
-ok('안내문이 설명하는 고정 칸(B1·B3·B5·B10~B13)이 모두 적혀 있음', ['B1', 'B3', 'B5', 'B10', 'B11', 'B12', 'B13'].every((a) => new RegExp('<code>' + a + '</code>').test(GUIDE)), '');
+{
+  // 환경설정·기본설정의 칸 주소는 Code.js 맨 위 상수에서만 정한다: 다른 곳에 'B3' 같은 숫자 주소가 흩어지면 칸을 옮길 때 빠뜨리기 쉽다
+  const codeSrc = fs.readFileSync(path.join(__dirname, '..', 'gas-source', 'Code.js'), 'utf8');
+  const scattered = [...codeSrc.matchAll(/getRange\(\s*["'](?:B\d|A3)[^"']*["']/g)].map((m) => m[0]);
+  ok('Code.js 에 환경설정·기본설정의 숫자 주소(getRange("B3") 등)가 흩어져 있지 않음(상수 ENV_*·CFG_*만 씀)', scattered.length === 0, scattered);
+  // 안내문의 칸 주소는 코드 맨 위의 상수(ENV_*·CFG_*)와 같아야 한다 (칸 위치를 바꾸고 안내문을 안 고치는 일을 막는다)
+  const envRow = row('환경설정'), cfgRow = row('기본설정');
+  ok('안내문이 설명하는 고정 칸이 코드의 칸 주소와 같음 (환경설정 B1 키·B2 백업 ID·B3 모델 / 기본설정 B1 금지어·B2 학급·B3 모둠·B4 주제)',
+    [c.ENV_KEY_CELL_, c.ENV_BACKUP_CELL_, c.ENV_MODEL_CELL_, c.CFG_BANNED_CELL_, c.CFG_CLASSES_CELL_, c.CFG_GROUPS_CELL_, c.CFG_TOPICS_CELL_].join() === 'B1,B2,B3,B1,B2,B3,B4'
+    && envRow.includes('<code>' + c.ENV_KEY_CELL_ + '</code> Gemini API 키') && envRow.includes('<code>' + c.ENV_BACKUP_CELL_ + '</code> 백업') && envRow.includes('<code>' + c.ENV_MODEL_CELL_ + '</code> 사용할 Gemini 모델')
+    && cfgRow.includes('<code>' + c.CFG_BANNED_CELL_ + '</code> 금지어') && cfgRow.includes('<code>' + c.CFG_CLASSES_CELL_ + '</code> 학급') && cfgRow.includes('<code>' + c.CFG_GROUPS_CELL_ + '</code> 모둠') && cfgRow.includes('<code>' + c.CFG_TOPICS_CELL_ + '</code> 탐구 주제'), [envRow.slice(0, 160), cfgRow.slice(0, 160)]);
+}
 {
   // 안내문이 말한 칸을 코드가 정말 그 용도로 읽는지: 칸마다 서로 다른 값을 넣고 getTeacherSettings 가 같은 이름으로 돌려주는지 본다
   const e = makeEnv({ pin: PIN, accessCode: CODE });
   const env5 = e.sheets['환경설정'].rows, cfg = e.sheets['기본설정'].rows;
-  env5[0][1] = 'AIzaFAKEKEY1234567890'; env5[2][1] = 'BACKUP-ID-1'; env5[4][1] = 'gemini-model-x';
-  cfg[9][1] = '금지어A'; cfg[10][1] = '학급A'; cfg[11][1] = '모둠A'; cfg[12][1] = '주제A';
+  const at = (rows, cell, v) => { rows[Number(cell.slice(1)) - 1][1] = v; }; // 'B3' → 3번째 줄의 값 칸
+  at(env5, c.ENV_KEY_CELL_, 'AIzaFAKEKEY1234567890'); at(env5, c.ENV_BACKUP_CELL_, 'BACKUP-ID-1'); at(env5, c.ENV_MODEL_CELL_, 'gemini-model-x');
+  at(cfg, c.CFG_BANNED_CELL_, '금지어A'); at(cfg, c.CFG_CLASSES_CELL_, '학급A'); at(cfg, c.CFG_GROUPS_CELL_, '모둠A'); at(cfg, c.CFG_TOPICS_CELL_, '주제A');
   const s = e.ctx.getTeacherSettings();
-  ok('안내한 칸이 실제 설정 읽기와 맞음 (B1 키 · B3 백업 ID · B5 모델 · B10 금지어 · B11 학급 · B12 모둠 · B13 주제)',
+  ok('안내한 칸이 실제 설정 읽기와 맞음 (환경설정 B1 키 · B2 백업 ID · B3 모델 / 기본설정 B1 금지어 · B2 학급 · B3 모둠 · B4 주제)',
     s.geminiApiKeySet === true && s.backupSheetId === 'BACKUP-ID-1' && s.geminiModel === 'gemini-model-x' && s.bannedWords === '금지어A' && s.classList === '학급A' && s.groupList === '모둠A' && s.topicList === '주제A', s);
 }
 {
