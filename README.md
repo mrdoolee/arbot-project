@@ -21,7 +21,7 @@
 - `public/` — 정적 프론트엔드
   - `index.html` — **교사 관리 콘솔** (사이트 첫 화면): 1 GAS 연동 → 2 기본 설정 → 3 주제 설정 → 4 학생 배부 링크·QR(+수업 입장 코드) → 5 대화 결과 확인·분석
   - `student.html` — **학생 화면**: 수업 입장 코드 → 학급·모둠·주제 선택 → AI 튜터와 대화
-  - `js/gasClient.js` — GAS 웹 앱과 통신하는 공통 모듈, `js/argu-shared.js` — 캐릭터·논증 단계 등 공통 부품, `js/qrcode.js` — QR 생성(MIT, 외부 CDN 없이 내장), `js/credit-footer.js` — 두 화면 아래의 제작자 크레딧 푸터와 안내 모달, `js/pick-logic.js` — 결과 분석의 학급 → 주제 → 모둠 단추 선택 규칙(화면 없이 시험 가능)
+  - `js/gasClient.js` — GAS 웹 앱과 통신하는 공통 모듈, `js/argu-shared.js` — 캐릭터·논증 단계 등 공통 부품, `js/qrcode.js` — QR 생성(MIT, 외부 CDN 없이 내장), `js/credit-footer.js` — 두 화면 아래의 제작자 크레딧 푸터와 안내 모달, `js/pick-logic.js` — 결과 분석의 학급 → 주제 → 모둠 단추 선택 규칙(화면 없이 시험 가능), `js/material-samples.js` — 탐구 주제 예시와 주제별 탐구 자료 예시(예시 채우기)
   - `css/` — 공통 토큰, 교사 콘솔, 학생 화면 스타일
 - `server.js` — `public/`을 서빙하는 아주 얇은 Express 정적 서버 (어떤 정적 호스팅에 올려도 무방)
 - `tests/` — 자동 테스트와 가짜 GAS 서버 (`npm test`)

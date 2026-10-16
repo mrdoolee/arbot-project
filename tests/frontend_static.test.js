@@ -323,6 +323,45 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('콘솔 미리보기의 상태 글자도 대화 방식을 따름(온화하게 질문하는 중 고정 문구 없음)', /AS\.studentCopy\(\$\('s_templateKey'\)\.value \|\| 'socratic'\)\.states\.asking/.test(idxScript) && !/온화하게 질문하는 중/.test(idxScript), '');
 }
 
+// ───────── 10c) 탐구 자료 '예시 채우기': 주제마다 알맞은 예시 ─────────
+// 예전에는 어느 주제를 골라도 '전류와 전압의 관계' 예시만 채워졌다. 예시 주제 하나에 자료 예시 하나가 짝이어야 한다.
+{
+  const matSrc = read('public/js/material-samples.js');
+  const matCtx = vm.createContext({}); // window 가 없으면 globalThis(=이 가짜 환경)에 붙는다
+  vm.runInContext(matSrc, matCtx);
+  const M = matCtx.ArguMaterials;
+  const norm = (t) => String(t).replace(/\s+/g, ' ').trim().toLowerCase();
+  const exampleTopics = M.TOPIC_EXAMPLES.flatMap((g) => g.items);
+  const sampleKeys = Object.keys(M.SAMPLES);
+  const total = (s) => ['procedure', 'materials', 'safety', 'notes'].reduce((n, k) => n + s[k].length, 0);
+
+  ok('예시 주제 목록은 4묶음 23개이고 이름에 쉼표가 없음(주제 목록은 쉼표로 구분)', M.TOPIC_EXAMPLES.length === 4 && exampleTopics.length === 23 && new Set(exampleTopics.map(norm)).size === 23 && exampleTopics.every((t) => !t.includes(',')), exampleTopics.length);
+  ok('예시 주제마다 탐구 자료 예시가 하나씩 있음(빠진 주제 없음)', exampleTopics.every((t) => M.sampleFor(t)), exampleTopics.filter((t) => !M.sampleFor(t)));
+  ok('짝 없는 자료 예시도 없음(예시 주제 이름과 자료 예시 이름이 1:1)', sampleKeys.length === exampleTopics.length && sampleKeys.every((k) => exampleTopics.includes(k)), sampleKeys.filter((k) => !exampleTopics.includes(k)));
+  ok('모든 예시가 실험 과정·준비물·유의사항·교사용 메모 네 칸을 다 채움', Object.values(M.SAMPLES).every((s) => ['procedure', 'materials', 'safety', 'notes'].every((k) => typeof s[k] === 'string' && s[k].trim().length > 10)), '');
+  // 탐구 자료는 학생이 말할 때마다 AI에게 가므로 짧게 쓴다. 서버 한도(칸당 1500자·전체 3000자)보다 훨씬 작게.
+  const sizes = Object.entries(M.SAMPLES).map(([k, s]) => [k, total(s), Math.max(...['procedure', 'materials', 'safety', 'notes'].map((f) => s[f].length))]);
+  ok('분량 조절: 한 주제의 예시는 전체 500자 이내, 한 칸은 250자 이내(토큰 절약)', sizes.every(([, t, m]) => t <= 500 && m <= 250), sizes.filter(([, t, m]) => t > 500 || m > 250));
+  const serverLimits = { field: Number((server.match(/MATERIAL_MAX_FIELD_\s*=\s*(\d+)/) || [])[1]), total: Number((server.match(/MATERIAL_MAX_TOTAL_\s*=\s*(\d+)/) || [])[1]) };
+  ok('서버의 탐구 자료 한도(칸당·전체)를 넘는 예시가 없음', serverLimits.field > 0 && serverLimits.total > 0 && sizes.every(([, t, m]) => t <= serverLimits.total && m <= serverLimits.field), serverLimits);
+  ok('주제마다 내용이 다름: 같은 실험 과정·교사용 메모를 쓰는 예시 주제가 없음(전압-전류 예시를 모두에게 채우던 문제)', new Set(Object.values(M.SAMPLES).map((s) => s.notes)).size === 23 && new Set(Object.values(M.SAMPLES).filter((s) => !/찬성·반대 중/.test(s.procedure)).map((s) => s.procedure)).size === 15, '');
+  ok("전압계·전류계 같은 전기 회로 내용은 '전류와 전압의 관계' 예시에만 있음", sampleKeys.filter((k) => /전압계|전류계/.test(JSON.stringify(M.SAMPLES[k]))).join() === '전류와 전압의 관계', sampleKeys.filter((k) => /전압계|전류계/.test(JSON.stringify(M.SAMPLES[k]))));
+  ok('실험 탐구 주제 15개는 안전 유의사항, 찬반 토론 주제 8개는 토론 태도와 반론 재료를 담음', M.TOPIC_EXAMPLES.slice(0, 3).flatMap((g) => g.items).every((t) => { const s = M.sampleFor(t) || {}; return /조심|주의|않는다|않게|씻|끈다|한다/.test(s.safety || '') && !/토론/.test(s.procedure || '-'); })
+    && M.TOPIC_EXAMPLES[3].items.every((t) => { const s = M.sampleFor(t) || {}; return /판정하지 않는다/.test(s.safety || '') && /(반론|쟁점) 재료/.test(s.notes || '') && /입장을 정한다/.test(s.procedure || ''); }), '');
+  ok("sampleFor: 공백·대소문자가 달라도 같은 주제로 찾고, 예시가 없는 주제(교사가 만든 주제)는 null", !!M.sampleFor('  전류와   전압의 관계 ') && M.sampleFor('온도와 반응 속도').notes.includes('발포') === false && M.sampleFor('우리 학교 운동장 토양 조사') === null && M.sampleFor('') === null && M.sampleFor(undefined) === null, '');
+  ok("sampleFor 의 kind: 실험 주제는 'experiment', 찬반 토론 주제는 'debate'(안내 문구가 갈림)", M.TOPIC_EXAMPLES.slice(0, 3).flatMap((g) => g.items).every((t) => M.sampleFor(t).kind === 'experiment') && M.TOPIC_EXAMPLES[3].items.every((t) => M.sampleFor(t).kind === 'debate'), '');
+  const one = M.sampleFor('온도와 반응 속도'); one.procedure = '바꿈';
+  ok('sampleFor 는 복사본을 돌려줌(화면에서 고쳐도 원본 예시가 안 바뀜)', M.sampleFor('온도와 반응 속도').procedure !== '바꿈', '');
+  ok('예시 파일은 화면·저장소·네트워크를 쓰지 않는 순수 데이터', !/\bdocument\b|localStorage|sessionStorage|fetch\(|XMLHttpRequest|eval\(|new Function/.test(matSrc.replace(/\/\*[\s\S]*?\*\//, '')), '');
+
+  const idxHtml = pages['public/index.html'];
+  const idxScript2 = [...idxHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
+  ok('콘솔이 예시 파일을 내 폴더에서, 인라인 스크립트보다 먼저 불러옴', /<script src="js\/material-samples\.js"><\/script>/.test(idxHtml) && idxHtml.indexOf('js/material-samples.js') < idxHtml.indexOf('<script>\n'), '');
+  ok('예시 채우기: 선택한 주제의 예시(sampleFor)만 채우고, 예시 없는 주제는 아무것도 채우지 않고 안내만 함', /ArguMaterials\.sampleFor\(matSel\)/.test(idxScript2) && /if \(!sample\) \{[\s\S]*?return; \}/.test(idxScript2) && /\$\(id\)\.value = sample\[k\]/.test(idxScript2) && !/MAT_SAMPLE/.test(idxScript2), '');
+  ok('주제 예시 드롭박스도 같은 파일(ArguMaterials.TOPIC_EXAMPLES)에서 가져옴(목록이 둘로 갈라지지 않음)', /const TOPIC_EXAMPLES = ArguMaterials\.TOPIC_EXAMPLES;/.test(idxScript2), '');
+  ok("완료 안내에 '전류와 전압의 관계' 이름이 박혀 있지 않고 고른 주제 이름을 보여 줌", !/'전류와 전압의 관계' 예시를 채웠어요/.test(idxScript2) && /\$\{matSel\}' 예시를 채웠어요/.test(idxScript2) && /sample\.kind === 'debate'/.test(idxScript2), '');
+}
+
 // ───────── 11) 기타 ─────────
 const pkg = JSON.parse(read('package.json'));
 ok('package.json 에 npm test 가 있음', /node tests\/gas_logic\.test\.js/.test((pkg.scripts || {}).test || '') && /frontend_static/.test((pkg.scripts || {}).test || ''), pkg.scripts);
