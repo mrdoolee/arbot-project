@@ -283,6 +283,46 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('서버의 해당 메뉴 이름과 응답 필드(topicRows)가 화면이 쓰는 것과 같음', server.includes("'🔄 주제 세부설정 맞추기', 'syncTopicRowsFromMenu'") && /result\.topicRows = \{ added: sync\.added, removed: sync\.removed \}/.test(server) && /if \(!sync\.success\) result\.topicRows\.error = sync\.error;/.test(server), '');
 }
 
+// ───────── 10b) 캐릭터 ↔ 대화 방식(템플릿) 1:1 짝 ─────────
+// 학생 첫 화면에 '○○가 함께해요'로 나오는 캐릭터와 설명이 AI의 실제 역할(템플릿)과 어긋나지 않게 하는 규칙.
+{
+  const sharedCtx = vm.createContext({ window: {}, document: { documentElement: { classList: { add() {} } }, fonts: { load: () => ({ then() {} }) } }, setTimeout: () => 0, localStorage: {} });
+  vm.runInContext(read('public/js/argu-shared.js'), sharedCtx);
+  const AS = sharedCtx.window.ArguShared;
+  const tplCtx = vm.createContext({});
+  const TP = vm.runInContext(read('gas-source/Templates.js') + '\nTEMPLATE_PROFILES_', tplCtx);
+  const keys = Object.keys(AS.TEMPLATE_NAMES);
+  const chars = AS.CHARACTERS;
+
+  ok('캐릭터는 5명이고 대화 방식(템플릿) 5종과 하나씩 짝(1:1)', chars.length === 5 && keys.length === 5 && new Set(chars.map((c) => c.id)).size === 5 && new Set(chars.map((c) => c.template)).size === 5 && keys.every((k) => chars.filter((c) => c.template === k).length === 1), chars.map((c) => [c.id, c.template]));
+  ok('찬반 토론형의 짝은 토론 파트너, 탐구 도우미의 짝은 로봇 (옛 짝 비판적 사고 코치·실험 가운 선생님이 아님)', AS.characterFor('debate').id === 'debater' && AS.characterFor('debate').name === '토론 파트너' && AS.characterFor('qna').id === 'robot' && AS.characterFor('socratic').id === 'socrates' && AS.characterFor('cer').id === 'labcoat' && AS.characterFor('advanced').id === 'coach', keys.map((k) => AS.characterFor(k).id));
+  ok('모든 캐릭터에 그림이 있고 세 가지 입 모양(질문·생각·칭찬)을 갖춤', chars.every((c) => { const h = AS.avatarHtml(c.id, 'asking'); return /<svg/.test(h) && h.includes('m-ask') && h.includes('m-think') && h.includes('m-happy'); }), '');
+  ok("옛 '추천 템플릿(recommend)' 목록은 없어지고 캐릭터마다 template 하나", chars.every((c) => !('recommend' in c) && typeof c.template === 'string' && c.tagline), '');
+  ok('Templates.js 의 템플릿 원본이 같은 짝·이름·인사말을 씀(새 시트에 처음부터 맞게 들어감)', TP.length === 5 && TP.every((t) => t.persona.characterId === AS.characterFor(t.key).id && t.persona.characterName === AS.characterFor(t.key).name && t.persona.greeting === AS.GREETINGS[t.key]), TP.map((t) => [t.key, t.persona.characterId, t.persona.characterName]));
+
+  const rc = (t, id, name) => { const r = AS.resolveCharacter(t, id, name); return r.id + '|' + r.name; };
+  ok('예전 시트의 어긋난 짝(찬반 토론형=비판적 사고 코치)은 토론 파트너로, 탐구 도우미=실험 가운 선생님은 로봇으로 바뀌어 보임', rc('debate', 'coach', '비판적 사고 코치') === 'debater|토론 파트너' && rc('debate', 'coach', '') === 'debater|토론 파트너' && rc('qna', 'labcoat', '실험 가운 과학 선생님') === 'robot|과학 조교 로봇', [rc('debate', 'coach', '비판적 사고 코치'), rc('qna', 'labcoat', '실험 가운 과학 선생님')]);
+  ok('교사가 이름을 직접 바꾼 것은 옛 짝이어도 그대로 둠', rc('debate', 'coach', '토론왕') === 'coach|토론왕' && rc('qna', 'labcoat', '실험 도우미') === 'labcoat|실험 도우미', [rc('debate', 'coach', '토론왕'), rc('qna', 'labcoat', '실험 도우미')]);
+  ok('옛 짝이 아닌 정상 조합은 건드리지 않음(고급 논쟁형=코치, CER=가운, 소크라테스형에서 고른 다른 캐릭터)', rc('advanced', 'coach', '비판적 사고 코치') === 'coach|비판적 사고 코치' && rc('cer', 'labcoat', '실험 가운 과학 선생님') === 'labcoat|실험 가운 과학 선생님' && rc('socratic', 'robot', '') === 'robot|과학 조교 로봇' && rc('debate', 'socrates', '소크라테스 선생님') === 'socrates|소크라테스 선생님', '');
+  ok('모르는 캐릭터 ID나 빈 값은 그 방식의 짝 캐릭터로(이름은 직접 적은 것을 우선)', rc('debate', 'scientist', '') === 'debater|토론 파트너' && rc('debate', '', '') === 'debater|토론 파트너' && rc('qna', undefined, undefined) === 'robot|과학 조교 로봇' && rc('cer', 'scientist', 'CER쌤') === 'labcoat|CER쌤' && rc('모르는방식', 'zzz', '') === 'socrates|소크라테스 선생님', '');
+
+  const sc = keys.map((k) => AS.studentCopy(k));
+  ok('대화 방식마다 입장 화면 문구(인사 한 줄·튜터 설명·상태 글자)가 있고 서로 다름', sc.every((c) => c.hero && c.tutor && c.states.asking && c.states.thinking && c.states.praising) && new Set(sc.map((c) => c.tutor)).size === 5 && new Set(sc.map((c) => c.hero)).size === 5, sc.map((c) => c.tutor));
+  ok('찬반 토론형의 튜터 설명은 반론·입장을 말하고, 소크라테스형 문구(질문으로 키워 줘요)가 아님', /반론/.test(AS.studentCopy('debate').tutor) && /입장/.test(AS.studentCopy('debate').tutor) && !/정답을 알려주는 대신/.test(AS.studentCopy('debate').tutor) && /반론/.test(AS.studentCopy('debate').states.asking), AS.studentCopy('debate'));
+  ok('모르는 방식은 소크라테스형 문구로(깨지지 않음)', AS.studentCopy('모르는방식').tutor === AS.studentCopy('socratic').tutor, '');
+
+  // 화면이 이 규칙을 실제로 쓴다
+  const stuScript = [...pages['public/student.html'].matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
+  const idxScript = [...pages['public/index.html'].matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
+  ok('학생 화면: 캐릭터를 resolveCharacter 로 정하고, 인사 한 줄·튜터 설명·상태 글자를 studentCopy 에서 가져옴', /AS\.resolveCharacter\(S\.templateKey, c\.id, c\.name\)/.test(stuScript) && /AS\.studentCopy\(S\.templateKey\)/.test(stuScript) && /\$\('heroLine'\)\.textContent = copy\.hero/.test(stuScript) && /\$\('tutorDesc'\)\.textContent = copy\.tutor/.test(stuScript) && /\.states\[state\]/.test(stuScript), '');
+  ok('학생 화면 스크립트에 소크라테스형 튜터 문구가 모든 방식에 박혀 있지 않음', !/정답을 알려주는 대신/.test(stuScript), '');
+  ok('학생 화면: 캐릭터를 템플릿보다 먼저 정하지 않음(템플릿을 먼저 정한 뒤 짝을 구함)', stuScript.indexOf('S.templateKey = AS.STEPS[c.templateKey]') > -1 && stuScript.indexOf('S.templateKey = AS.STEPS[c.templateKey]') < stuScript.indexOf('AS.resolveCharacter(S.templateKey'), '');
+  ok("콘솔: 캐릭터 카드는 template 짝을 보여 주고 recommend 는 더 이상 쓰지 않음", /c\.template === curTpl/.test(idxScript) && !/\.recommend/.test(idxScript), '');
+  ok('콘솔: 대화 방식을 바꾸면 고르지 않은 캐릭터·이름이 새 짝으로 바뀌고 카드·미리보기를 다시 그림', /\$\('p_template'\)\.addEventListener\('change'[\s\S]*?AS\.characterFor\(tpl\)\.id[\s\S]*?renderCharGrid\(\); renderPreview\(\)/.test(idxScript), '');
+  ok('콘솔: 시트의 값을 불러올 때도 학생 화면과 같은 resolveCharacter 규칙, 초기화 단추는 이 방식의 짝으로', /AS\.resolveCharacter\(tpl, row\.characterId \|\| base\.characterId, row\.characterName \|\| base\.characterName\)/.test(idxScript) && /\$\('btnResetChar'\)\.addEventListener\('click'[\s\S]*?AS\.characterFor\(tpl\)/.test(idxScript), '');
+  ok('콘솔 미리보기의 상태 글자도 대화 방식을 따름(온화하게 질문하는 중 고정 문구 없음)', /AS\.studentCopy\(\$\('s_templateKey'\)\.value \|\| 'socratic'\)\.states\.asking/.test(idxScript) && !/온화하게 질문하는 중/.test(idxScript), '');
+}
+
 // ───────── 11) 기타 ─────────
 const pkg = JSON.parse(read('package.json'));
 ok('package.json 에 npm test 가 있음', /node tests\/gas_logic\.test\.js/.test((pkg.scripts || {}).test || '') && /frontend_static/.test((pkg.scripts || {}).test || ''), pkg.scripts);

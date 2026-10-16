@@ -93,25 +93,56 @@
       '<rect x="67" y="68" width="66" height="50" rx="15" fill="#0f2a3d"/>' +
       '<circle cx="86" cy="86" r="7" fill="#6ef9d9"/><circle cx="114" cy="86" r="7" fill="#6ef9d9"/>' +
       '<circle cx="88" cy="84" r="2" fill="#ffffff"/><circle cx="116" cy="84" r="2" fill="#ffffff"/>' +
-      mouths(100, 106, '#6ef9d9')
+      mouths(100, 106, '#6ef9d9'),
+
+    debater:
+      // 양쪽 입장을 뜻하는 찬(파랑) · 반(빨강) 말풍선
+      '<rect x="24" y="36" width="42" height="32" rx="10" fill="#3b7dd8"/><path d="M50 66 L60 80 L38 67 Z" fill="#3b7dd8"/>' +
+      '<text x="45" y="59" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="Noto Sans KR, sans-serif">찬</text>' +
+      '<rect x="134" y="36" width="42" height="32" rx="10" fill="#e5484d"/><path d="M150 66 L140 80 L162 67 Z" fill="#e5484d"/>' +
+      '<text x="155" y="59" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="Noto Sans KR, sans-serif">반</text>' +
+      '<path d="M18 200 C18 166 54 150 100 150 C146 150 182 166 182 200 Z" fill="#2f3550"/>' +
+      '<path d="M86 152 L100 182 L114 152 Z" fill="#ffffff"/>' +
+      '<path d="M86 152 L74 178 M114 152 L126 178" stroke="#1f2338" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+      '<path d="M100 164 L95 174 L100 192 Z" fill="#3b7dd8"/><path d="M100 164 L105 174 L100 192 Z" fill="#e5484d"/>' +
+      '<rect x="89" y="126" width="22" height="28" rx="8" fill="#e9b88c"/>' +
+      '<ellipse cx="65" cy="100" rx="6" ry="8" fill="#e5ad80"/><ellipse cx="135" cy="100" rx="6" ry="8" fill="#e5ad80"/>' +
+      '<ellipse cx="100" cy="98" rx="35" ry="39" fill="#f1c7a0"/>' +
+      '<path d="M62 94 C54 40 146 40 138 94 C134 76 124 66 106 63 C92 70 76 72 62 94 Z" fill="#5a3a2a"/>' +
+      '<path d="M84 62 C90 48 112 46 122 60 C110 56 98 58 84 62 Z" fill="#5a3a2a"/>' +
+      // 토론용 헤드셋과 마이크
+      '<path d="M63 96 C58 42 142 42 137 96" stroke="#3b7dd8" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+      '<rect x="56" y="90" width="12" height="24" rx="6" fill="#2f68b3"/><rect x="132" y="90" width="12" height="24" rx="6" fill="#2f68b3"/>' +
+      '<path d="M60 112 C60 128 72 134 82 128" stroke="#2f68b3" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="84" cy="127" r="4.5" fill="#1f4a8a"/>' +
+      '<path d="M75 88 Q85 82 95 86" stroke="#3a2a22" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
+      '<path d="M105 86 Q115 82 125 88" stroke="#3a2a22" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
+      '<circle cx="86" cy="99" r="3.2" fill="#2b2b3a"/><circle cx="114" cy="99" r="3.2" fill="#2b2b3a"/>' +
+      '<ellipse cx="124" cy="110" rx="6" ry="3.5" fill="#f4a8a0" opacity=".5"/>' +
+      mouths(100, 122, '#9a4a4a')
   };
 
+  // 대화 방식(템플릿)과 캐릭터는 1:1 짝이다: 템플릿마다 그 방식에 어울리는 캐릭터 한 명.
+  // (학생 화면 첫 장에 '○○가 함께해요'로 나오는 캐릭터가 AI의 실제 역할과 어긋나지 않게 하려는 규칙)
   var CHARACTERS = [
     {
-      id: 'socrates', name: '소크라테스 선생님', recommend: ['socratic'],
+      id: 'socrates', name: '소크라테스 선생님', template: 'socratic',
       tagline: '온화한 미소와 월계관을 쓴 철학자. 정답을 주지 않고 따뜻한 질문으로 생각을 이끌어요.'
     },
     {
-      id: 'labcoat', name: '실험 가운 과학 선생님', recommend: ['cer', 'qna'],
-      tagline: '친근한 실험실 연구원 모습. 관찰한 사실과 측정값으로 근거를 찾도록 도와요.'
+      id: 'labcoat', name: '실험 가운 과학 선생님', template: 'cer',
+      tagline: '친근한 실험실 연구원 모습. 주장 → 증거 → 추론을 차근차근 채우도록 힌트를 줘요.'
     },
     {
-      id: 'coach', name: '비판적 사고 코치', recommend: ['advanced', 'debate'],
+      id: 'coach', name: '비판적 사고 코치', template: 'advanced',
       tagline: '칠판 앞에서 논리의 빈틈과 반례를 함께 찾아주는 코치예요.'
     },
     {
-      id: 'robot', name: '과학 조교 로봇', recommend: ['cer', 'qna'],
-      tagline: '눈이 반짝이는 친근한 조교. 처음 논증을 배우는 친구들에게 잘 어울려요.'
+      id: 'debater', name: '토론 파트너', template: 'debate',
+      tagline: '헤드셋을 쓴 토론 상대. 반대편에 서서 반론을 던지며 내 입장을 단단하게 만들어 줘요.'
+    },
+    {
+      id: 'robot', name: '과학 조교 로봇', template: 'qna',
+      tagline: '눈이 반짝이는 친근한 조교. 실험 중 궁금한 측정 방법·준비물·안전을 바로 알려 줘요.'
     }
   ];
 
@@ -146,9 +177,29 @@
     advanced: [['주장', 'claim', '내 생각(가설)'], ['근거', 'evidence', '관찰·자료'], ['정당화', 'warrant', '왜 뒷받침하는가'], ['반박', 'rebuttal', '예외나 반례'], ['한정어', 'qualifier', '성립하는 조건']]
   };
 
+  function hasCharacter(id) {
+    for (var i = 0; i < CHARACTERS.length; i++) if (CHARACTERS[i].id === id) return true;
+    return false;
+  }
   function getCharacter(id) {
     for (var i = 0; i < CHARACTERS.length; i++) if (CHARACTERS[i].id === id) return CHARACTERS[i];
     return CHARACTERS[0];
+  }
+  // 이 대화 방식(템플릿)의 짝 캐릭터. 모르는 템플릿이면 소크라테스 발문형의 짝.
+  function characterFor(templateKey) {
+    for (var i = 0; i < CHARACTERS.length; i++) if (CHARACTERS[i].template === templateKey) return CHARACTERS[i];
+    return CHARACTERS[0];
+  }
+  // 예전 버전이 템플릿 줄에 미리 넣어 둔 캐릭터는 대화 방식과 맞지 않았다(찬반 토론형=비판적 사고 코치, 탐구 도우미=실험 가운 과학 선생님).
+  // 시트에 그 값이 이름까지 그대로 남아 있으면 '고르지 않은 값'으로 보고 새 짝으로 바꿔 쓴다. 이름을 직접 바꾼 것은 그대로 둔다.
+  var LEGACY_PAIRS = { debate: { id: 'coach', name: '비판적 사고 코치' }, qna: { id: 'labcoat', name: '실험 가운 과학 선생님' } };
+  // 시트에 저장된 캐릭터 ID·이름을 실제로 쓸 값으로 정한다: 모르는 ID나 옛 기본 짝이면 템플릿의 짝, 이름이 비면 캐릭터의 기본 이름.
+  function resolveCharacter(templateKey, id, name) {
+    var nm = String(name == null ? '' : name).trim();
+    var lg = LEGACY_PAIRS[templateKey];
+    var legacy = !!lg && id === lg.id && (!nm || nm === lg.name);
+    var ch = (legacy || !hasCharacter(id)) ? characterFor(templateKey) : getCharacter(id);
+    return { id: ch.id, name: legacy ? ch.name : (nm || ch.name) };
   }
 
   function avatarHtml(id, state) {
@@ -190,6 +241,37 @@
     }
   };
 
+  // 학생 입장 화면·대화 화면의 안내 문구. AI가 실제로 하는 일은 대화 방식(템플릿)이 정하므로 문구도 캐릭터가 아니라 템플릿을 따른다.
+  // hero: 맨 위 인사 카드의 한 줄, tutor: '○○가 함께해요' 아래 설명, states: 캐릭터 상태 글자(질문 대기 / 생각 중 / 칭찬 중)
+  var STUDENT_COPY = {
+    socratic: {
+      hero: '오늘의 탐구에서 나만의 가설을 세우고, 근거로 단단하게 만들어 볼까요?',
+      tutor: '정답을 알려주는 대신, 질문으로 내 생각을 함께 키워 줘요.',
+      states: { asking: '질문하는 중', thinking: '생각하는 중…', praising: '칭찬하는 중' }
+    },
+    cer: {
+      hero: '오늘의 탐구에서 내 주장을 세우고, 증거와 과학 원리로 뒷받침해 볼까요?',
+      tutor: '주장 → 증거 → 추론, 빠진 한 걸음을 힌트로 채워 줘요.',
+      states: { asking: '다음 걸음을 묻는 중', thinking: '살펴보는 중…', praising: '칭찬하는 중' }
+    },
+    advanced: {
+      hero: '오늘은 내 주장이 통하지 않는 예외와 반례까지 찾아, 한 걸음 더 깊이 논증해 볼까요?',
+      tutor: '내 주장의 예외와 반례를 함께 찾고, 어떤 조건에서 맞는지 따져 줘요.',
+      states: { asking: '반례를 찾는 중', thinking: '따져 보는 중…', praising: '칭찬하는 중' }
+    },
+    debate: {
+      hero: '오늘은 찬성과 반대 중 내 입장을 정하고, 근거로 반론에 맞서 볼까요?',
+      tutor: '반대편에서 반론을 던져 줘요. 근거로 맞서며 내 입장을 단단하게 만들어 봐요.',
+      states: { asking: '반론을 던지는 중', thinking: '반론을 고르는 중…', praising: '잘 맞섰다고 인정하는 중' }
+    },
+    qna: {
+      hero: '실험하다가 궁금한 점이 생기면 도우미에게 편하게 물어보세요.',
+      tutor: '실험하다가 궁금한 건 편하게 물어보세요. 방법과 이유를 알려 줘요.',
+      states: { asking: '궁금한 걸 기다리는 중', thinking: '찾아보는 중…', praising: '응원하는 중' }
+    }
+  };
+  function studentCopy(templateKey) { return STUDENT_COPY[templateKey] || STUDENT_COPY.socratic; }
+
   // ---------- 테마 (학생 화면: 라이트 기본, 다크 전환) ----------
   var THEME_KEY = 'argu_student_theme';
   function getTheme() { try { return localStorage.getItem(THEME_KEY) || 'light'; } catch (e) { return 'light'; } }
@@ -200,8 +282,8 @@
 
   global.ArguShared = {
     CHARACTERS: CHARACTERS, TEMPLATE_NAMES: TEMPLATE_NAMES, DEFAULT_GREETING: DEFAULT_GREETING, GREETINGS: GREETINGS, greetingFor: greetingFor, isDefaultGreeting: isDefaultGreeting,
-    STEPS: STEPS, MODE_TEXT: MODE_TEXT,
-    getCharacter: getCharacter, avatarHtml: avatarHtml, tagClass: tagClass, tagText: tagText,
+    STEPS: STEPS, MODE_TEXT: MODE_TEXT, STUDENT_COPY: STUDENT_COPY, studentCopy: studentCopy,
+    getCharacter: getCharacter, hasCharacter: hasCharacter, characterFor: characterFor, resolveCharacter: resolveCharacter, avatarHtml: avatarHtml, tagClass: tagClass, tagText: tagText,
     applyGreeting: applyGreeting, josa: josa, getTheme: getTheme, setTheme: setTheme
   };
 })(window);
