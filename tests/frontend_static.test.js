@@ -176,7 +176,7 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   const missingBtn = consoleButtons.filter((b) => guideText.includes(b) && !restText.includes(b));
   ok('가이드가 안내하는 버튼 이름이 모두 실제 화면에 있음', consoleButtons.filter((b) => guideText.includes(b)).length >= 15 && missingBtn.length === 0, missingBtn);
   ok('가이드가 안내하는 학생 화면 버튼("탐구 대화방 입장하기")이 학생 화면에 있음', guideText.includes('탐구 대화방 입장하기') && pages['public/student.html'].includes('탐구 대화방 입장하기'), '');
-  ok('가이드가 말하는 시트 메뉴 이름이 GAS 메뉴와 같음', ['🔐 교사 비밀번호 설정', '🔑 수업 입장 코드 보기', '🩺 시트 구조 점검', '🗣️ 아르봇(ARBOT)', '📖 사용 가이드'].every((m) => guideText.includes(m) && server.includes(m)), '');
+  ok('가이드가 말하는 시트 메뉴 이름이 GAS 메뉴와 같음', ['🔐 교사 비밀번호 설정', '🔑 수업 입장 코드 보기', '🔄 주제 세부설정 맞추기', '🩺 시트 구조 점검', '🗣️ 아르봇(ARBOT)', '📖 사용 가이드'].every((m) => guideText.includes(m) && server.includes(m)), '');
 }
 
 // ───────── 7) 푸터 크레딧 + 제작자 모달 (교사 콘솔·학생 화면 공용) ─────────
@@ -269,7 +269,21 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('옛 이름("논증 분석 스프레드시트")이 안내문에 남지 않고 해요체로 통일됨', !/논증 분석 스프레드시트/.test(tea) && !/복사합니다|엽니다\.|배포합니다|로그인합니다|누릅니다/.test(tea.slice(tea.indexOf('id="gasGuide"'), tea.indexOf('id="securityCard"'))), '');
 }
 
-// ───────── 10) 기타 ─────────
+// ───────── 10) 주제 목록 저장 ↔ 시트 '주제 세부설정' 탭 연동 안내 ─────────
+{
+  const tea = pages['public/index.html'];
+  const script = [...tea.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
+  const guideText = tea.slice(tea.indexOf('id="guideModal"'), tea.indexOf('<script src="js/qrcode.js">')).replace(/<[^>]+>/g, '');
+  ok('목록 저장 함수가 서버 응답을 받아 저장 후 처리(onSaved)에 넘김', /const res = await GasClient\.callPost\('saveTeacherSettings', payload\);/.test(script) && /onSaved\(res\);/.test(script), '');
+  const topicSave = script.slice(script.indexOf('const saveTopicList'), script.indexOf('// ---- 페르소나 · 루브릭 편집'));
+  ok('주제 목록 저장 뒤 "주제 세부설정 탭에 N개의 줄을 만들었어요"를 알리고, 줄 맞추기 실패는 주의로 알림', /res && res\.topicRows/.test(topicSave) && /tr\.added/.test(topicSave) && /주제 세부설정' 탭에 새 주제 \$\{tr\.added\}개의 줄을 만들었어요/.test(topicSave) && /tr && tr\.error\) setStatus\(\$\('topicsStatus'\), 'warn'/.test(topicSave), topicSave.slice(0, 120));
+  ok('옛 GAS(topicRows 없음)여도 저장 안내가 정상으로 나옴(topicRows 가 없으면 안내만 빠짐)', /const tr = res && res\.topicRows;/.test(topicSave) && /\(tr && tr\.added \?/.test(topicSave), '');
+  ok('저장한 뒤 주제 연결 표를 다시 불러옴(줄이 만들어진 것을 화면도 보게)', /loadProfiles\(\);\s*\}\);/.test(topicSave), '');
+  ok('가이드가 "주제 목록 저장 → 시트 주제 세부설정 탭에 줄 자동 생성"과 시트 메뉴를 설명함', /주제 세부설정<\/b>|주제 세부설정/.test(guideText) && guideText.includes('자동으로 만들어져요') && guideText.includes('🔄 주제 세부설정 맞추기'), '');
+  ok('서버의 해당 메뉴 이름과 응답 필드(topicRows)가 화면이 쓰는 것과 같음', server.includes("'🔄 주제 세부설정 맞추기', 'syncTopicRowsFromMenu'") && /result\.topicRows = \{ added: sync\.added, removed: sync\.removed \}/.test(server) && /if \(!sync\.success\) result\.topicRows\.error = sync\.error;/.test(server), '');
+}
+
+// ───────── 11) 기타 ─────────
 const pkg = JSON.parse(read('package.json'));
 ok('package.json 에 npm test 가 있음', /node tests\/gas_logic\.test\.js/.test((pkg.scripts || {}).test || '') && /frontend_static/.test((pkg.scripts || {}).test || ''), pkg.scripts);
 ok('npm test 에 새 시험(gas_chat_overview·pick_logic)이 들어 있음', /gas_chat_overview\.test\.js/.test((pkg.scripts || {}).test || '') && /pick_logic\.test\.js/.test((pkg.scripts || {}).test || ''), pkg.scripts.test);

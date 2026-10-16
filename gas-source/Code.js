@@ -320,6 +320,7 @@ function onOpen() {
     .addSeparator()
     .addItem('🔐 교사 비밀번호 설정', 'setTeacherPinFromMenu')
     .addItem('🔑 수업 입장 코드 보기', 'showAccessCodeFromMenu')
+    .addItem('🔄 주제 세부설정 맞추기', 'syncTopicRowsFromMenu')
     .addItem('🩺 시트 구조 점검', 'checkSheetStructureFromMenu')
     .addSeparator()
     .addItem('⚠️ 설정·기록 초기화…', 'resetSheetToDefaultsFromMenu')
@@ -343,6 +344,19 @@ function setTeacherPinFromMenu() {
   var code = ensureAccessCode_();
   ui.alert('비밀번호를 정했어요',
     '이제 교사 콘솔에서 이 비밀번호로 들어갈 수 있어요. 잊어버리지 않게 적어 두세요.\n\n학생이 대화방에 들어갈 때 쓰는 수업 입장 코드는 ' + code + ' 예요. (교사 콘솔의 "학생 배부 링크 & QR"에서 바꿀 수 있어요)', ui.ButtonSet.OK);
+}
+
+// 시트 메뉴: 주제 목록(기본설정 B13)에 맞춰 '주제 세부설정' 탭에 주제별 줄을 만든다.
+// 교사 콘솔에서 주제 목록을 저장하면 자동으로 맞춰지므로, 시트에서 목록 칸을 직접 고쳤을 때 쓴다. 값이 든 줄은 지우지 않는다.
+function syncTopicRowsFromMenu() {
+  var ui = SpreadsheetApp.getUi();
+  var r = syncTopicRows_();
+  if (!r.success) { ui.alert('🔄 주제 세부설정 맞추기', '맞추지 못했어요: ' + r.error, ui.ButtonSet.OK); return; }
+  var lines = [];
+  if (r.added) lines.push("새로 만든 줄 " + r.added + "개: " + r.addedTopics.join(', '));
+  if (r.removed) lines.push("주제 목록에서 빠진 주제의 빈 줄 " + r.removed + "개를 지웠어요.");
+  if (!lines.length) lines.push("이미 주제 목록과 맞아요. 바꿀 것이 없어요.");
+  ui.alert('🔄 주제 세부설정 맞추기', lines.join('\n') + "\n\n빈 칸은 '(기본)' 줄을 따라요. 주제별로 페르소나·루브릭·제한 시간을 정하려면 그 줄의 칸을 채우세요. 값이 든 줄은 지우지 않아요.", ui.ButtonSet.OK);
 }
 
 // 시트 메뉴: 수업 입장 코드 확인 (없으면 만들어 보여 준다)
@@ -486,7 +500,15 @@ function saveTeacherSettings(s) {
   if (topicVals) { var r3 = saveTopicSetting(Object.assign({ topic: TOPIC_DEFAULT_ }, topicVals)); if (!r3.success) return r3; }
   clearSettingsCache_();
 
-  return { success: true };
+  var result = { success: true };
+  // 주제 목록을 저장했다면 '주제 세부설정' 탭도 목록에 맞춘다(새 주제의 줄을 만든다). 목록 저장은 이미 끝났으므로,
+  // 맞추기에 실패해도 저장은 성공으로 두고 이유를 알려 준다(다음에 연결 화면을 불러올 때 다시 맞춘다).
+  if (s.topicList !== undefined && s.topicList !== null) {
+    var sync = syncTopicRows_();
+    result.topicRows = { added: sync.added, removed: sync.removed };
+    if (!sync.success) result.topicRows.error = sync.error;
+  }
+  return result;
 }
 
 // ============================================================================
@@ -819,11 +841,13 @@ function readBaseValues_() {
 // ---------------------------------------------------------
 function getProfiles() {
   // 탭을 못 만드는 상태여도 화면이 '옛 설정으로 동작 중'을 알릴 수 있게 오류로 끝내지 않는다 (readCoreConfig_ 가 옛 칸으로 대체한다)
+  // 목록에 있는데 '주제 세부설정' 줄이 없는 주제(시트에서 목록을 직접 고친 경우 등)는 여기서 줄을 만들어 준다. 실패해도 화면은 계속된다.
+  var sync = syncTopicRows_();
   var core = readCoreConfig_(true), rubrics = readRubricTable_();
-  var topicsRaw = requireSheet_('기본설정').getRange('B13').getValue().toString();
-  var seen = {}, topicList = [];
-  topicsRaw.split(',').forEach(function(t) { t = t.trim(); var k = normalizeTopic_(t); if (k && !seen[k]) { seen[k] = true; topicList.push(t); } });
+  var topicList = readTopicList_(), seen = {};
+  topicList.forEach(function(t) { seen[normalizeTopic_(t)] = true; });
   var warnings = [];
+  if (!sync.success && !core.fallback) warnings.push("'주제 세부설정' 탭에 주제 줄을 맞추지 못했어요: " + sync.error);
   var dupCheck = function(rows, key, label) {
     var s = {};
     rows.forEach(function(r) { var k = normalizeTopic_(r[key]); if (s[k]) warnings.push(label + " 이름 '" + r[key] + "'이 두 번 있어요. 위쪽 줄만 쓰여요."); s[k] = true; });
@@ -986,8 +1010,59 @@ function deleteProfile(p) {
   }
 }
 
+// 주제 목록(기본설정 B13)을 이름 배열로 읽는다: 쉼표로 나누고 앞뒤 공백을 떼며, 같은 이름(공백·대소문자만 다른 것 포함)은 처음 것만 남긴다.
+// 목록을 읽는 곳(주제 연결 화면·줄 맞추기·저장)이 같은 규칙을 쓰도록 한 군데에 둔다.
+function readTopicList_() {
+  var raw = requireSheet_('기본설정').getRange('B13').getValue().toString();
+  var seen = {}, out = [];
+  raw.split(',').forEach(function(t) { t = t.trim(); var k = normalizeTopic_(t); if (k && !seen[k]) { seen[k] = true; out.push(t); } });
+  return out;
+}
+
+// 주제 목록의 모든 주제가 '주제 세부설정' 탭에 한 줄씩 있게 맞춘다(시트에서 바로 고칠 수 있도록).
+//  - 목록에 있는데 줄이 없는 주제 → 빈 칸 줄을 추가한다. 빈 칸은 '(기본)' 줄을 따르므로 동작은 그대로다.
+//  - 목록에 없고 모든 칸이 빈 줄 → 지운다(잘못 적었다가 고친 주제가 쌓이지 않게). 값이 하나라도 든 줄은 절대 지우지 않는다.
+// 학생 화면 경로에서는 부르지 않는다(교사가 목록을 저장할 때와 연결 화면을 불러올 때만). 락을 잡으므로 이미 락을 잡은 구간 안에서는 부르지 말 것.
+// 실패해도 예외를 던지지 않고 결과로 알린다: { success, added, removed, error? }
+function syncTopicRows_() {
+  try {
+    ensureProfileTabs_(); // 락을 스스로 잡으므로 아래 락보다 먼저
+    var topics = readTopicList_();
+    var lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    try {
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TOPIC_CFG_SHEET_);
+      if (!sh) return { success: false, added: 0, removed: 0, error: "'" + TOPIC_CFG_SHEET_ + "' 탭이 없어요." };
+      var table = readTable_(TOPIC_CFG_SHEET_, TOPIC_CFG_COLS_);
+      var listed = {}, have = {}, removed = 0, added = 0, addedTopics = [];
+      topics.forEach(function(t) { listed[normalizeTopic_(t)] = true; });
+      table.forEach(function(r) { have[normalizeTopic_(r.topic)] = true; });
+      var defKey = normalizeTopic_(TOPIC_DEFAULT_);
+      for (var i = table.length - 1; i >= 0; i--) { // 아래 줄부터 지워야 위쪽 줄 번호가 밀리지 않는다
+        var r = table[i], k = normalizeTopic_(r.topic);
+        if (k === defKey || listed[k]) continue;
+        if (!r.persona && !r.rubric && !r.timeLimitMinutes && !r.windowPairs) { sh.deleteRow(r.row); removed++; }
+      }
+      var add = [];
+      topics.forEach(function(t) {
+        var k = normalizeTopic_(t);
+        if (!have[k]) { have[k] = true; addedTopics.push(t); add.push(profileRowArray_(TOPIC_CFG_COLS_, { topic: t })); }
+      });
+      if (add.length) { sh.getRange(sh.getLastRow() + 1, 1, add.length, TOPIC_CFG_COLS_.length).setValues(add); added = add.length; }
+      if (added || removed) clearSettingsCache_();
+      return { success: true, added: added, removed: removed, addedTopics: addedTopics };
+    } finally {
+      lock.releaseLock();
+    }
+  } catch (err) {
+    return { success: false, added: 0, removed: 0, error: maskSecrets_(err && err.message ? err.message : String(err)) };
+  }
+}
+
 // [API] 주제 하나의 연결 저장/되돌리기. { topic, persona?, rubric?, timeLimitMinutes?, windowPairs?, remove? }
-// topic 이 '(기본)'이면 제한 시간·기억 쌍의 기본값을 바꾼다. 요청에 있는 칸만 바꾼다. 모든 칸이 기본과 같으면 그 주제의 줄은 지운다.
+// topic 이 '(기본)'이면 제한 시간·기억 쌍의 기본값을 바꾼다. 요청에 있는 칸만 바꾼다.
+// 주제 목록에 있는 주제는 모든 칸이 기본과 같아져도(또는 remove) 줄을 지우지 않고 칸만 비운다 — 시트에서 계속 고칠 수 있게 줄은 남긴다.
+// 주제 목록에 없는 주제는 기본과 같아지면 줄을 지운다.
 function saveTopicSetting(p) {
   if (!p) return { success: false, error: "요청이 비어 있어요." };
   var topic = cleanName_(p.topic);
@@ -1013,9 +1088,18 @@ function saveTopicSetting(p) {
     if (!sh) return { success: false, error: "'" + TOPIC_CFG_SHEET_ + "' 탭이 없어요. 새로고침 후 다시 시도해 주세요." };
     var table = readTable_(TOPIC_CFG_SHEET_, TOPIC_CFG_COLS_);
     var existing = findByName_(table, 'topic', topic);
+    // 주제 목록(기본설정 B13)에 있는 주제인가: 있으면 줄을 지우지 않고 남긴다(시트에서 계속 고칠 수 있게)
+    var inList = !isDefault && readTopicList_().some(function(t) { return normalizeTopic_(t) === normalizeTopic_(topic); });
 
     if (p.remove === true) {
       if (isDefault) return { success: false, error: "기본 줄은 지울 수 없어요." };
+      if (inList) { // 목록에 있는 주제를 기본 설정으로 되돌림: 줄은 남기고 칸만 비운다
+        var blankRow = profileRowArray_(TOPIC_CFG_COLS_, { topic: existing ? existing.topic : topic });
+        if (existing) sh.getRange(existing.row, 1, 1, TOPIC_CFG_COLS_.length).setValues([blankRow]);
+        else sh.appendRow(blankRow);
+        clearSettingsCache_();
+        return { success: true, reset: true };
+      }
       if (existing) { sh.deleteRow(existing.row); clearSettingsCache_(); }
       return { success: true, removed: true };
     }
@@ -1051,7 +1135,7 @@ function saveTopicSetting(p) {
     }
 
     var same = !personaName && !rubricName && !nextTime && !nextPairs;
-    if (same) { // 기본값과 같은 줄은 남기지 않는다
+    if (same && !inList) { // 목록에 없는 주제의 기본값과 같은 줄은 남기지 않는다(목록에 있는 주제는 빈 칸 줄로 남긴다 — 아래에서 씀)
       if (existing) { sh.deleteRow(existing.row); clearSettingsCache_(); }
       return { success: true, removed: true };
     }
@@ -2268,6 +2352,9 @@ function inspectSheetStructure_() {
   if (tTab) {
     dupNames(topicRows, 'topic', TOPIC_CFG_SHEET_);
     var inTopics = {}; lists.topics.forEach(function(t) { inTopics[normalizeTopic_(t)] = true; });
+    var hasRow = {}; topicRows.forEach(function(t) { hasRow[normalizeTopic_(t.topic)] = true; });
+    var noRow = lists.topics.filter(function(t) { return !hasRow[normalizeTopic_(t)]; });
+    if (cfgSh && noRow.length) add("info", TOPIC_CFG_SHEET_, "주제 목록에는 있는데 이 탭에 줄이 없는 주제가 있어요: " + noRow.join(", ") + ". 메뉴 '🔄 주제 세부설정 맞추기'를 누르거나 교사 콘솔에서 주제 목록을 저장하면 줄이 만들어져요(빈 칸은 '(기본)' 줄을 따라요).");
     topicRows.forEach(function(t) {
       if (normalizeTopic_(t.topic) === normalizeTopic_(TOPIC_DEFAULT_)) return;
       if (cfgSh && !inTopics[normalizeTopic_(t.topic)]) add("warn", TOPIC_CFG_SHEET_, "주제 '" + t.topic + "' 줄은 주제 목록에 없어서 학생에게 보이지 않아요(연결 안 됨).");

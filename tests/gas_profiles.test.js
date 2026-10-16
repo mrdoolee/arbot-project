@@ -173,8 +173,12 @@ ok('칸을 비우면 (기본)을 따름', rc.windowPairs === 4, rc);
 ok('(기본) 줄은 지울 수 없음', st({ topic: '(기본)', remove: true }).success === false, '');
 ok('(기본) 줄에 페르소나·루브릭은 못 바꿈(시간·쌍만)', (() => { st({ topic: '(기본)', persona: 'P1' }); const row = env.sheets[T].rows[1]; return row[1] === '기본' && row[2] === '기본'; })(), env.sheets[T].rows[1]);
 st({ topic: T1, persona: '기본', rubric: '기본', timeLimitMinutes: '', windowPairs: '' });
-ok('모든 칸이 기본과 같으면 그 주제의 줄은 지워짐', !env.sheets[T].rows.some((r) => r[0] === T1), env.sheets[T].rows);
-ok('remove:true 로 되돌리기', (() => { st({ topic: T2, persona: 'P1' }); return st({ topic: T2, remove: true }).success && !env.sheets[T].rows.some((r) => r[0] === T2); })(), '');
+const blankRowOf = (topic) => { const r = env.sheets[T].rows.find((x) => x[0] === topic); return !!r && !r[1] && !r[2] && !r[3] && !r[4]; };
+ok('주제 목록에 있는 주제는 모든 칸이 기본과 같아져도 줄이 남고 칸만 비워짐(시트에서 계속 고칠 수 있게)', blankRowOf(T1), env.sheets[T].rows);
+ok('remove:true 로 되돌리기(목록에 있는 주제): 줄은 남고 칸만 비워짐', (() => { st({ topic: T2, persona: 'P1' }); const r = st({ topic: T2, remove: true }); return r.success && r.reset === true && blankRowOf(T2); })(), env.sheets[T].rows);
+ok('되돌린 주제는 (기본)을 따름(기본 시간·쌍 적용)', (() => { const c = env.ctx.resolveTopicConfig_(env.ctx.readCoreConfig_(true), T2); return c.personaName === '기본' && c.timeLimitMinutes === 25 && c.windowPairs === 4; })(), '');
+ok('주제 목록에 없는 주제는 기본과 같아지면 줄이 지워짐', (() => { st({ topic: '목록밖주제', persona: 'P1' }); const had = env.sheets[T].rows.some((r) => r[0] === '목록밖주제'); st({ topic: '목록밖주제', persona: '기본' }); return had && !env.sheets[T].rows.some((r) => r[0] === '목록밖주제'); })(), env.sheets[T].rows);
+ok('주제 목록에 없는 주제는 remove:true 로 줄이 지워짐', (() => { st({ topic: '목록밖주제', persona: 'P1' }); const r = st({ topic: '목록밖주제', remove: true }); return r.success && r.removed === true && !env.sheets[T].rows.some((x) => x[0] === '목록밖주제'); })(), env.sheets[T].rows);
 ok('없는 줄 remove 도 성공(멱등)', st({ topic: '없는주제', remove: true }).success, '');
 
 // ── 7) getProfiles ──
@@ -189,7 +193,10 @@ ok('getProfiles: 쓰는 주제(usedBy)와 기본 표시', gp.personas.find((p) =
 ok('getProfiles: 해석된 값(템플릿·제한 시간) 포함', gp.topics[0].resolved.templateKey === 'debate' && gp.topics[0].resolved.timeLimitMinutes === 10 && gp.topics[1].resolved.templateKey === 'socratic', gp.topics.map((t) => t.resolved));
 ok('getProfiles: 목록에 없는 주제 줄은 orphan + 경고', gp.topics[2].orphan === true && gp.warnings.some((w) => w.includes('목록에 없어서')), [gp.topics[2], gp.warnings]);
 ok('getProfiles: 기본 제한 시간 값', gp.topicDefault.timeLimitMinutes === 20 && gp.topicDefault.windowPairs === 3, gp.topicDefault);
-env.sheets[T].rows.push(['온도와 반응 속도', '없는 페르소나', '없는 루브릭', '', '']);
+// 시트에서 직접 고치는 상황: getProfiles 가 만들어 둔 그 주제의 줄에서 페르소나·루브릭 칸을 없는 이름으로 바꾼다
+const t2Row = env.sheets[T].rows.find((r) => r[0] === '온도와 반응 속도');
+ok('(준비) getProfiles 가 목록의 주제 줄을 미리 만들어 둠', !!t2Row, env.sheets[T].rows);
+t2Row[1] = '없는 페르소나'; t2Row[2] = '없는 루브릭';
 env.cache.clear();
 gp = env.ctx.getProfiles();
 ok('getProfiles: 존재하지 않는 페르소나·루브릭 이름은 경고하고 기본으로 대체', gp.warnings.some((w) => w.includes('없는 페르소나')) && gp.warnings.some((w) => w.includes('없는 루브릭')) && gp.topics[1].resolved.personaName === '기본', gp.warnings);

@@ -82,6 +82,12 @@ ok('안내문이 설명하는 고정 칸(B1·B3·B5·B10~B13)이 모두 적혀 �
   ok('안내문이 말하는 "기본" 줄 이름이 코드와 같음', text.includes(c.BASE_NAME_) && text.includes(c.TOPIC_DEFAULT_) && text.includes(c.TEMPLATE_KIND_), [c.BASE_NAME_, c.TOPIC_DEFAULT_, c.TEMPLATE_KIND_]);
 }
 ok('메뉴 설명에 메뉴 이름과 모든 메뉴 항목이 적혀 있음', text.includes(menu.name) && items.every((i) => text.includes(i.label)), items.filter((i) => !text.includes(i.label)).map((i) => i.label));
+{
+  // 반대 방향도 본다: 가이드의 '메뉴 설명'에 적힌 항목이 실제 메뉴에 있고, 메뉴에 있는 항목이 가이드에서 빠지지 않았는지(양방향)
+  const menuPanel = GUIDE.slice(GUIDE.indexOf('id="p-menu"'), GUIDE.indexOf('id="p-care"'));
+  const guideLabels = [...menuPanel.matchAll(/<li><b>([^<]+)<\/b> —/g)].map((m) => m[1]);
+  ok('가이드 메뉴 설명의 항목과 실제 시트 메뉴 항목이 서로 정확히 같음(양방향)', guideLabels.length === items.length && guideLabels.every((l) => items.some((i) => i.label === l)) && items.every((i) => guideLabels.includes(i.label)), [guideLabels, items.map((i) => i.label)]);
+}
 ok('캐시 시간 안내(5분)가 코드의 CORE_CACHE_SECONDS_ 와 같음', c.CORE_CACHE_SECONDS_ === 300 && /최대 5분/.test(text), c.CORE_CACHE_SECONDS_);
 ok('초기화 설명이 실제 동작과 같음(환경설정·API키·비밀번호는 남음)', /환경설정\(키\)·API키·교사 비밀번호<\/b>는 그대로 남아요/.test(GUIDE), '');
 {

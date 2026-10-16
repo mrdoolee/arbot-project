@@ -78,6 +78,7 @@ const cases = [
   ['채팅기록에 지금 목록에 없는 기록', (e) => { e.sheets['채팅기록'].rows.push(['2026-10-15', '10:00', '옛반', '1모둠', T1, '질문', '답']); }, 'info', /목록에 없는 학급·모둠·주제의 기록/],
   ['교사 비밀번호가 없음', (e) => { e.props.delete('TEACHER_PIN_HASH'); }, 'warn', /교사 비밀번호가 아직 없어요/],
   ['수업 입장 코드가 없음', (e) => { e.props.delete('STUDENT_ACCESS_CODE'); }, 'warn', /수업 입장 코드가 아직 없어요/],
+  ['주제 목록에는 있는데 주제 세부설정 줄이 없음(맞추기 메뉴 안내)', () => {}, 'info', /줄이 없는 주제가 있어요.*주제 세부설정 맞추기/],
 ];
 for (const [name, mutate, level, re] of cases) {
   const e = fresh(); mutate(e);
@@ -110,6 +111,7 @@ env.ctx.checkSheetStructureFromMenu();
 ok('메뉴: 오류·주의·참고 개수와 각 항목을 보여 줌', /오류 0 · 주의 \d+ · 참고 \d+/.test(log[0].msg) && /같은 이름이 겹쳐/.test(log[0].msg) && /읽기 전용/.test(log[0].msg), log[0] && log[0].msg.slice(0, 200));
 ok('메뉴: 알림 문구에 API 키 원문이 없음', !log[0].msg.includes('AIzaFAKEKEY1234567890'), '');
 env = fresh(); env.sheets['채팅기록'].rows[0] = ['날짜', '시간', '학급', '모둠', '주제', '학생', 'AI', '페르소나', '루브릭'];
+env.ctx.syncTopicRows_(); // 콘솔에서 주제 목록을 저장해 주제 줄이 맞춰진 시트
 log = fakeUi(env); env.ctx.checkSheetStructureFromMenu();
 ok('메뉴: 문제가 없으면 문제가 없다고 알려 줌', /문제가 발견되지 않았어요/.test(log[0].msg), log[0].msg);
 env = fresh(); for (let i = 0; i < 30; i++) env.sheets['기본설정'].rows[12][1] += ', ' + T1.slice(0, 5) + i; env.sheets['주제 세부설정'].rows.push(...Array.from({ length: 30 }, (_, i) => ['orphan' + i, '', '', 5, '']));

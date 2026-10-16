@@ -593,8 +593,8 @@
     <details class="accordion">
       <summary><span class="ms" style="color:var(--blue)">topic</span>메뉴 3 · 주제 설정 — 주제 목록, 주제 연결, 탐구 자료<span class="ms chev">expand_more</span></summary>
       <div class="body"><ul class="gd-list">
-        <li><b>① 탐구 주제 목록</b> — 학생이 고를 주제를 정하고 저장해요.</li>
-        <li><b>② 주제 연결</b> — 주제마다 쓸 페르소나·루브릭·제한 시간(분)·AI가 기억할 대화 수를 정해요. 줄이 없거나 비워 둔 칸은 <b>(기본)</b> 줄을 따르고, 줄마다 저장하거나 기본으로 되돌릴 수 있어요.</li>
+        <li><b>① 탐구 주제 목록</b> — 학생이 고를 주제를 정하고 저장해요. 저장하면 스프레드시트의 <b>주제 세부설정</b> 탭에도 그 주제의 줄이 자동으로 만들어져요(시트에서 목록을 직접 고쳤다면 시트 메뉴 <b>🔄 주제 세부설정 맞추기</b>).</li>
+        <li><b>② 주제 연결</b> — 주제마다 쓸 페르소나·루브릭·제한 시간(분)·AI가 기억할 대화 수를 정해요. 비워 둔 칸은 <b>(기본)</b> 줄을 따르고, 줄마다 저장하거나 기본으로 되돌릴 수 있어요. 시트의 <b>주제 세부설정</b> 탭에서 그 줄의 칸을 직접 채워도 같은 효과예요.</li>
         <li><b>③ 탐구 자료</b> — 탐구 도우미에 연결한 주제는 실험 과정·준비물·유의사항·교사용 메모가 있어야 학생이 열 수 있어요(없으면 "준비 중"으로 보여요). 논증 주제에도 넣어 두면 분석 때 참고 자료로 쓸 수 있어요.</li>
       </ul></div>
     </details>
@@ -972,10 +972,10 @@
     btn.disabled = true;
     setStatus(statusEl, 'busy', '저장하는 중…');
     try {
-      await GasClient.callPost('saveTeacherSettings', payload);
+      const res = await GasClient.callPost('saveTeacherSettings', payload);
       keys.forEach((key) => { sheetLists[key] = payload[key]; });
       markSaved();
-      onSaved();
+      onSaved(res);
     } catch (err) {
       setStatus(statusEl, 'err', '저장하지 못했어요', err.message);
     } finally { setSaveEnabled(settingsLoaded); }
@@ -986,9 +986,12 @@
     setStatus($('commonStatus'), 'ok', '저장했어요', hhmm(new Date()) + ' 저장 완료');
   });
   // 주제 설정 메뉴 '탐구 주제 목록' 탭
-  const saveTopicList = () => saveListSettings(TOPIC_LIST_KEYS, $('btnSaveTopics'), $('topicsStatus'), () => {
+  // 서버가 주제 목록을 저장하면서 시트의 '주제 세부설정' 탭에 주제별 줄을 만들어 주므로(topicRows), 그 결과를 알린다. 옛 GAS 는 topicRows 가 없어 안내만 빠진다.
+  const saveTopicList = () => saveListSettings(TOPIC_LIST_KEYS, $('btnSaveTopics'), $('topicsStatus'), (res) => {
     setDone('topics', !!sheetLists.topicList.trim());
-    setStatus($('topicsStatus'), 'ok', '저장했어요', hhmm(new Date()) + ' 저장 완료 · 주제 연결 표도 새 주제 목록으로 다시 불러와요');
+    const tr = res && res.topicRows;
+    if (tr && tr.error) setStatus($('topicsStatus'), 'warn', '주제 목록은 저장했지만, 주제 세부설정 탭에 줄을 만들지 못했어요', tr.error + ' · 주제 연결 화면을 불러올 때 다시 맞춰요');
+    else setStatus($('topicsStatus'), 'ok', '저장했어요', hhmm(new Date()) + ' 저장 완료' + (tr && tr.added ? ` · 시트의 '주제 세부설정' 탭에 새 주제 ${tr.added}개의 줄을 만들었어요` : '') + (tr && tr.removed ? ` · 목록에서 뺀 주제의 빈 줄 ${tr.removed}개를 정리했어요` : '') + ' · 주제 연결 표도 새 주제 목록으로 다시 불러와요');
     loadProfiles();
   });
 
