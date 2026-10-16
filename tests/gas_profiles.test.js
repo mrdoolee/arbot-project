@@ -279,6 +279,8 @@ const cerT = TP.find((t) => t.key === 'cer');
 const cerRow = env.sheets[P].rows.find((r) => r[0] === 'CER 코치형');
 ok('시트의 템플릿 줄이 Templates.js 원본과 글자까지 같음', cerRow[1] === 'cer' && cerRow[2] === cerT.persona.role && cerRow[3] === cerT.persona.action && cerRow[4] === cerT.persona.restrict && cerRow[5] === cerT.persona.exception && cerRow[6] === cerT.persona.extra, '');
 ok('템플릿 줄은 캐릭터·템플릿별 인사말까지 채워져 있음', cerRow[7] === 'labcoat' && cerRow[8] === '실험 가운 과학 선생님' && cerRow[9].includes('주장 → 증거 → 추론'), cerRow.slice(7, 10));
+const tplChar = (name) => { const r = env.sheets[P].rows.find((x) => x[0] === name); return r && r[7] + '|' + r[8]; };
+ok('템플릿 5종의 캐릭터는 서로 다른 1:1 짝(소크라테스·가운·코치·토론 파트너·로봇)', tplChar('소크라테스 발문형') === 'socrates|소크라테스 선생님' && tplChar('CER 코치형') === 'labcoat|실험 가운 과학 선생님' && tplChar('고급 논쟁형') === 'coach|비판적 사고 코치' && tplChar('찬반 토론형') === 'debater|토론 파트너' && tplChar('탐구 도우미') === 'robot|과학 조교 로봇', ['소크라테스 발문형', 'CER 코치형', '고급 논쟁형', '찬반 토론형', '탐구 도우미'].map(tplChar));
 const cerRub = env.sheets[R].rows.find((r) => r[0] === 'CER 코치형');
 ok('루브릭 템플릿도 원본과 같음', cerRub[2] === cerT.rubric.role && cerRub[3] === cerT.rubric.criteria && cerRub[4] === cerT.rubric.level && cerRub[5] === cerT.rubric.guideline, '');
 ok('도우미 템플릿(qna)은 평가 루브릭이 없음', !env.sheets[R].rows.some((r) => r[0] === '탐구 도우미') && env.sheets[P].rows.some((r) => r[0] === '탐구 도우미' && r[1] === 'qna'), '');

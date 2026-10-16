@@ -256,7 +256,7 @@
 
             <!-- 위: 학생 화면에 보이는 것 (캐릭터·이름·첫 인사말) -->
             <section class="pg-section">
-              <div class="pg-head"><span class="ms">face</span><div><h3>캐릭터 · 인사말</h3><p>학생 화면 상단에 나타나는 AI 튜터의 모습과 첫 인사말이에요. 추천 템플릿은 참고용이며 자유롭게 고를 수 있어요.</p></div></div>
+              <div class="pg-head"><span class="ms">face</span><div><h3>캐릭터 · 인사말</h3><p>학생 화면 상단에 나타나는 AI 튜터의 모습과 첫 인사말이에요. 캐릭터는 대화 방식(템플릿)마다 <b>한 명씩 짝</b>이 있어요. 대화 방식을 바꾸면 직접 고르지 않은 캐릭터·이름·인사말은 새 짝에 맞게 함께 바뀌어요.</p></div></div>
               <div class="char-layout">
                 <div>
                   <div class="char-grid" id="charGrid"></div>
@@ -584,7 +584,7 @@
       <summary><span class="ms" style="color:var(--blue)">tune</span>메뉴 2 · 기본 설정 — 학급, 캐릭터, 페르소나, 루브릭<span class="ms chev">expand_more</span></summary>
       <div class="body"><ul class="gd-list">
         <li><b>① 학급 · 모둠 · 금지어</b> — 쉼표(,)로 구분해 입력해요. 학생은 여기 있는 학급·모둠만 고를 수 있고, 금지어를 3번 쓰면 그날은 대화가 차단돼요.</li>
-        <li><b>② 캐릭터 · 인사말 · 페르소나</b> — 위쪽에서 편집할 페르소나(기본 / 템플릿 / 내가 만든 것)를 고르면, 학생 화면에 보일 캐릭터·첫 인사말(미리보기 제공)과 AI의 역할·행동 지침·절대 제한·예외 대처·추가 참고를 고칠 수 있어요. 비워 둔 칸은 <b>기본</b> 페르소나를 따라요.</li>
+        <li><b>② 캐릭터 · 인사말 · 페르소나</b> — 위쪽에서 편집할 페르소나(기본 / 템플릿 / 내가 만든 것)를 고르면, 학생 화면에 보일 캐릭터·첫 인사말(미리보기 제공)과 AI의 역할·행동 지침·절대 제한·예외 대처·추가 참고를 고칠 수 있어요. 캐릭터는 대화 방식(템플릿)마다 한 명씩 짝이 있어서, 대화 방식을 바꾸면 직접 고르지 않은 캐릭터·인사말도 함께 바뀌어요. 비워 둔 칸은 <b>기본</b> 페르소나를 따라요.</li>
         <li><b>대화 방식(템플릿) 5가지</b> — 소크라테스 발문형 · CER 코치형 · 고급 논쟁형 · 찬반 토론형 · 탐구 도우미(실험 질문에 답하는 용도, 평가 없음). 템플릿 원본은 고쳐지지 않아요. 고치면 <b>"이름 (수정)"</b>이라는 새 줄로 따로 저장돼요.</li>
         <li><b>③ 평가 루브릭</b> — 분석할 때 AI가 따르는 평가 기준이에요. 같은 이름의 페르소나와 짝을 이뤄 함께 열리고, 탐구 도우미에는 루브릭이 없어요.</li>
       </ul></div>
@@ -1035,9 +1035,11 @@
       el.placeholder = (!isBase && base[k]) ? "비워 두면 '기본'과 같아요 — " + oneLine(base[k], 110) : PLACEHOLDERS['persona_' + k];
     });
     // 캐릭터와 템플릿은 비어 있으면 '기본'의 값을 채워 보여 주고, 저장하면 이 페르소나 자신의 값이 된다
-    $('s_characterId').value = row.characterId || base.characterId || 'socrates';
-    $('s_characterName').value = row.characterName || base.characterName || AS.getCharacter($('s_characterId').value).name;
     const tpl = row.templateKey || base.templateKey || 'socratic';
+    // 모르는 ID나 예전 템플릿 줄에 들어 있던 어긋난 짝(찬반 토론형=비판적 사고 코치 등)은 이 대화 방식의 짝 캐릭터로 보여 준다 (학생 화면과 같은 규칙)
+    const ch = AS.resolveCharacter(tpl, row.characterId || base.characterId, row.characterName || base.characterName);
+    $('s_characterId').value = ch.id;
+    $('s_characterName').value = ch.name;
     // 직접 고친 인사말은 그대로, 비었거나 예전 기본 문구면 이 대화 방식(템플릿)의 기본 인사말을 보여 준다
     $('s_greeting').value = AS.isDefaultGreeting(row.greeting) ? AS.greetingFor(tpl) : row.greeting;
     $('s_templateKey').value = tpl; $('p_template').value = tpl; renderTplEffect();
@@ -1050,7 +1052,7 @@
     const steps = (AS.STEPS[k] || AS.STEPS.socratic).map((x) => `<span class="chip chip-${x[1]}">${escapeHtml(x[0])}</span>`).join('');
     const qna = k === 'qna';
     $('tplEffect').innerHTML = `<span class="pe-lbl">학생 화면의 ${qna ? '질문 안내' : '논증 가이드'}</span>${steps}`
-      + (qna ? '<span class="pe-note">· 대화는 기록되지만 평가에서 제외돼요 · 연결한 주제마다 탐구 자료가 필요해요</span>' : '<span class="pe-note">· 이 방식의 기본 인사말이 쓰여요(위쪽 인사말 칸에서 바꿀 수 있어요)</span>');
+      + (qna ? '<span class="pe-note">· 대화는 기록되지만 평가에서 제외돼요 · 연결한 주제마다 탐구 자료가 필요해요</span>' : '<span class="pe-note">· 이 방식의 짝 캐릭터와 기본 인사말이 쓰여요(위쪽 캐릭터·인사말 칸에서 바꿀 수 있어요)</span>');
   }
   // 선택 목록: 기본 / 템플릿(원본) / 내가 만든 것, 세 묶음. 페르소나와 루브릭 목록이 같은 모양을 쓴다.
   function profGroupsHtml(kind) {
@@ -1180,9 +1182,15 @@
     catch (err) { setProfileStatus('err', '지우지 못했어요', err.message); }
   });
   $('p_template').addEventListener('change', () => {
-    // 직접 고치지 않은 인사말은 새 대화 방식의 기본 인사말로 함께 바꾼다
-    if (AS.isDefaultGreeting($('s_greeting').value)) $('s_greeting').value = AS.greetingFor($('p_template').value);
-    $('s_templateKey').value = $('p_template').value; markPersonaDirty(); renderTplEffect(); renderPersonaMeta(); renderPreview(); renderTopicExamples();
+    const prevTpl = $('s_templateKey').value, tpl = $('p_template').value;
+    // 직접 고르거나 고치지 않은 캐릭터·이름·인사말은 새 대화 방식의 짝으로 함께 바꾼다
+    const idNow = $('s_characterId').value, nameNow = $('s_characterName').value.trim();
+    if (idNow === AS.characterFor(prevTpl).id) {
+      if (!nameNow || nameNow === AS.getCharacter(idNow).name) $('s_characterName').value = AS.characterFor(tpl).name;
+      $('s_characterId').value = AS.characterFor(tpl).id;
+    }
+    if (AS.isDefaultGreeting($('s_greeting').value)) $('s_greeting').value = AS.greetingFor(tpl);
+    $('s_templateKey').value = tpl; markPersonaDirty(); renderTplEffect(); renderPersonaMeta(); renderCharGrid(); renderPreview(); renderTopicExamples();
   });
   ['s_role', 's_action', 's_restrict', 's_exception', 's_extra', 's_characterName', 's_greeting', 'p_name'].forEach((id) => $(id).addEventListener('input', markPersonaDirty));
 
@@ -1858,13 +1866,14 @@
   // ---- 캐릭터 ----
   function renderCharGrid() {
     const grid = $('charGrid'); const cur = $('s_characterId').value || 'socrates';
+    const curTpl = $('s_templateKey').value || 'socratic'; // 지금 고른 대화 방식: 그 짝 캐릭터에 '지금 방식의 짝' 표시
     grid.innerHTML = '';
     AS.CHARACTERS.forEach((c) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'char-card' + (c.id === cur ? ' selected' : '');
       b.innerHTML = `<span class="ms tick fill">check_circle</span>${AS.avatarHtml(c.id, 'asking')}
         <div><div class="nm">${escapeHtml(c.name)}</div><div class="ds">${escapeHtml(c.tagline)}</div>
-        <span class="rec">추천: ${escapeHtml(c.recommend.map((k) => AS.TEMPLATE_NAMES[k]).join(' · '))}</span></div>`;
+        <span class="rec${c.template === curTpl ? ' now' : ''}">${c.template === curTpl ? '지금 방식의 짝' : '짝'}: ${escapeHtml(AS.TEMPLATE_NAMES[c.template])}</span></div>`;
       b.addEventListener('click', () => {
         const prev = AS.getCharacter($('s_characterId').value);
         const nameEl = $('s_characterName');
@@ -1887,17 +1896,19 @@
     box.innerHTML = `<div class="phone">
       <div class="pv-top"><span>1반 1모둠 · ${escapeHtml(topics[0] || '탐구 주제')}</span><span class="timer">⏳ ${String(mins).padStart(2, '0')}:00</span></div>
       <div class="pv-steps">${steps.map((s) => `<span class="chip chip-${s[1]}">${escapeHtml(s[0])}</span>`).join('')}</div>
-      <div class="pv-stage">${AS.avatarHtml(id, 'asking')}<div class="pv-name">${escapeHtml(name)}</div><div class="pv-state">● 온화하게 질문하는 중</div></div>
+      <div class="pv-stage">${AS.avatarHtml(id, 'asking')}<div class="pv-name">${escapeHtml(name)}</div><div class="pv-state">● ${escapeHtml(AS.studentCopy($('s_templateKey').value || 'socratic').states.asking)}</div></div>
       <div class="pv-bubble">${escapeHtml(greet)}</div>
       <div class="pv-input"><span>내 생각을 말해 보세요…</span><i></i></div></div>`;
   }
   ['s_characterName', 's_greeting', 's_topicList'].forEach((id) => $(id).addEventListener('input', renderPreview));
   $('btnResetChar').addEventListener('click', () => {
-    const ch = AS.getCharacter($('s_characterId').value);
+    const tpl = $('s_templateKey').value; // 이 대화 방식(템플릿)의 짝 캐릭터·이름·기본 인사말로
+    const ch = AS.characterFor(tpl);
+    $('s_characterId').value = ch.id;
     $('s_characterName').value = ch.name;
-    $('s_greeting').value = AS.greetingFor($('s_templateKey').value); // 이 대화 방식(템플릿)의 기본 인사말로
-    markPersonaDirty(); renderPreview();
-    toast('캐릭터 이름과 인사말을 기본값으로 되돌렸어요. (저장 전)');
+    $('s_greeting').value = AS.greetingFor(tpl);
+    markPersonaDirty(); renderCharGrid(); renderPreview();
+    toast('캐릭터·이름·인사말을 이 대화 방식의 기본으로 되돌렸어요. (저장 전)');
   });
 
   // ================= 4. 학생 배부 링크 =================
