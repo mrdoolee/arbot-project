@@ -8,7 +8,7 @@ const chat = (env, over) => env.ctx.processChatMessage(Object.assign({ classValu
 const lastRow = (env) => env.sheets['채팅기록'].rows[env.sheets['채팅기록'].rows.length - 1];
 const sysOf = (env) => env.calls[env.calls.length - 1].systemInstruction.parts[0].text;
 const cerValues = { templateKey: 'cer', role: 'CER-ROLE', action: 'CER-ACTION', characterId: 'scientist', characterName: 'CER쌤', greeting: '안녕 CER {주제}' };
-const cerRubric = { templateKey: 'cer', role: 'CER-RUBRIC-ROLE', criteria: 'CER-CRITERIA', level: 'Level 1: a\nLevel 3: c', guideline: 'CER-GUIDE' };
+const cerRubric = { role: 'CER-RUBRIC-ROLE', criteria: 'CER-CRITERIA', level: 'Level 1: a\nLevel 3: c', guideline: 'CER-GUIDE' };
 
 // ── 1) 옛 시트 → 처음 실행될 때 세부설정 탭이 만들어지고 옛 값이 '기본' 줄로 복사된다 ──
 let env = makeEnv({ templateKey: 'socratic', noProfileTabs: true });
@@ -18,9 +18,9 @@ chat(env);
 ok('첫 채팅이 세 탭을 만듦', !!env.sheets[P] && !!env.sheets[R] && !!env.sheets[T], Object.keys(env.sheets));
 ok('페르소나 탭: 머리글 + 기본 줄이 소크라테스 발문형 기본 상태', env.sheets[P].rows[0][0] === '이름' && env.sheets[P].rows[1][0] === '기본' && env.sheets[P].rows[1][1] === 'socratic' && env.sheets[P].rows[1][2] === SOC.persona.role && env.sheets[P].rows[1][3] === SOC.persona.action
   && env.sheets[P].rows[1][7] === 'socrates' && env.sheets[P].rows[1][9] === SOC.persona.greeting && !env.sheets[P].rows[1][10], env.sheets[P].rows[1].map((v) => String(v).slice(0, 14)));
-ok('루브릭 탭: 기본 줄이 소크라테스 루브릭', env.sheets[R].rows[1][0] === '기본' && env.sheets[R].rows[1][2] === SOC.rubric.role && env.sheets[R].rows[1][3] === SOC.rubric.criteria && env.sheets[R].rows[1][4] === SOC.rubric.level, env.sheets[R].rows[1].map((v) => String(v).slice(0, 14)));
+ok('루브릭 탭: 기본 줄이 소크라테스 루브릭', env.sheets[R].rows[1][0] === '기본' && env.sheets[R].rows[1][1] === SOC.rubric.role && env.sheets[R].rows[1][2] === SOC.rubric.criteria && env.sheets[R].rows[1][3] === SOC.rubric.level, env.sheets[R].rows[1].map((v) => String(v).slice(0, 14)));
 ok("주제 탭: '(기본)' 줄에 제한 시간 20·기억 쌍 3", env.sheets[T].rows[1][0] === '(기본)' && env.sheets[T].rows[1][3] === 20 && env.sheets[T].rows[1][4] === 3, env.sheets[T].rows[1]);
-ok('기본설정의 옛 칸과 논증평가설정은 읽지도 쓰지도 않음(내용·메모 그대로)', env.sheets['기본설정'].rows[0].length === 2 && env.sheets['기본설정'].rows[0][1] === 'role-text' && env.sheets['논증평가설정'].rows[0].length === 2 && !sysOf(env).includes('role-text'), [env.sheets['기본설정'].rows[0], sysOf(env).slice(0, 60)]);
+ok('기본설정은 금지어·목록 4칸뿐이고, 옛 논증평가설정 탭은 읽지도 쓰지도 않음', env.sheets['기본설정'].rows.length === 4 && env.sheets['논증평가설정'].rows[0].length === 2 && !sysOf(env).includes('role-text'), [env.sheets['기본설정'].rows, sysOf(env).slice(0, 60)]);
 ok('기본 프롬프트가 소크라테스 발문형 내용으로 AI 호출에 쓰임', sysOf(env).includes('[역할]\n' + SOC.persona.role) && sysOf(env).includes('[행동 지침]\n' + SOC.persona.action), sysOf(env).slice(0, 80));
 chat(env); env.ctx.getInitialData();
 ok('두 번째부터는 탭을 다시 만들지 않음', env.sheets[P].rows.length === 7 && env.sheets[R].rows.length === 6 && env.sheets[T].rows.length === 2, [env.sheets[P].rows.length, env.sheets[R].rows.length, env.sheets[T].rows.length]);
@@ -39,7 +39,7 @@ chat(env, { topicValue: T1 });
 ok('줄이 없는 주제는 기본 페르소나', sysOf(env).includes('[역할]\nrole-text') && lastRow(env)[7] === '기본' && lastRow(env)[8] === '기본', [sysOf(env).slice(0, 60), lastRow(env)]);
 ok('주제 이름은 공백·대소문자 차이를 무시하고 연결', (() => { chat(env, { topicValue: '온도와  반응   속도' }); return sysOf(env).includes('CER-ROLE'); })(), '');
 // 학생 화면 초기 데이터
-env.sheets['기본설정'].rows[12][1] = `${T1}, ${T2}`;
+env.sheets['기본설정'].rows[3][1] = `${T1}, ${T2}`;
 let init = env.ctx.getInitialData();
 ok('학생 화면: 주제마다 캐릭터·제한 시간이 다름', init.topicConfigs[T2].character.id === 'scientist' && init.topicConfigs[T2].character.name === 'CER쌤' && init.topicConfigs[T2].timeLimitMinutes === 15
   && init.topicConfigs[T1].character.id === 'labcoat' && init.topicConfigs[T1].timeLimitMinutes === 20, init.topicConfigs);
@@ -49,7 +49,7 @@ ok('학생에게 페르소나·루브릭 내용은 내려가지 않음', !JSON.s
 
 // ── 3) 탐구 도우미는 주제 단위: 도우미 주제만 자료가 필요하고 다른 주제는 평소대로 ──
 env = makeEnv({ templateKey: 'socratic' });
-env.sheets['기본설정'].rows[12][1] = `${T1}, ${T2}`;
+env.sheets['기본설정'].rows[3][1] = `${T1}, ${T2}`;
 env.ctx.saveProfile({ kind: 'persona', name: '내 도우미', values: { templateKey: 'qna', role: 'QNA-ROLE', action: 'QNA-ACTION' } });
 env.ctx.saveTopicSetting({ topic: T1, persona: '내 도우미' });
 init = env.ctx.getInitialData();
@@ -183,7 +183,7 @@ ok('없는 줄 remove 도 성공(멱등)', st({ topic: '없는주제', remove: t
 
 // ── 7) getProfiles ──
 env = makeEnv({ templateKey: 'socratic' });
-env.sheets['기본설정'].rows[12][1] = `${T1}, ${T2}`;
+env.sheets['기본설정'].rows[3][1] = `${T1}, ${T2}`;
 env.ctx.saveProfile({ kind: 'persona', name: 'P1', values: { role: 'x', templateKey: 'debate' } });
 env.ctx.saveTopicSetting({ topic: T1, persona: 'P1', timeLimitMinutes: 10 });
 env.ctx.saveTopicSetting({ topic: '목록에 없는 주제', persona: 'P1' });
@@ -211,10 +211,10 @@ ok('getTeacherSettings: 옛 이름 그대로(기본 줄에서 읽음)', gs.role 
 env.ctx.saveTeacherSettings({ role: 'NEW-ROLE', rubricCriteria: 'NEW-CRIT', timeLimitMinutes: 33, windowPairs: 6, characterName: '새이름' });
 gs = env.ctx.getTeacherSettings();
 ok('saveTeacherSettings(옛 형식): 기본 줄에 저장', gs.role === 'NEW-ROLE' && gs.rubricCriteria === 'NEW-CRIT' && gs.timeLimitMinutes === 33 && gs.windowPairs === 6 && gs.characterName === '새이름' && gs.action === 'action-text', gs);
-ok('옛 칸(기본설정 B1)은 그대로', env.sheets['기본설정'].rows[0][1] === 'role-text', env.sheets['기본설정'].rows[0]);
+ok('옛 형식 저장이 기본설정의 금지어 칸(B1)을 건드리지 않음', env.sheets['기본설정'].rows[0][1] === '바보, 멍청이' && env.sheets['기본설정'].rows.length === 4, env.sheets['기본설정'].rows);
 chat(env);
 ok('저장하자마자 채팅에 반영(캐시 비움)', sysOf(env).includes('[역할]\nNEW-ROLE'), sysOf(env).slice(0, 60));
-ok('공통 설정 저장은 기본설정 탭에 씀(금지어·목록)', env.ctx.saveTeacherSettings({ geminiApiKey: 'AIzaFAKEKEY1234567890', bannedWords: '나쁜말', topicList: 'A, B' }).success && env.sheets['기본설정'].rows[9][1] === '나쁜말' && env.sheets['기본설정'].rows[12][1] === 'A, B', '');
+ok('공통 설정 저장은 기본설정 탭에 씀(금지어·목록)', env.ctx.saveTeacherSettings({ geminiApiKey: 'AIzaFAKEKEY1234567890', bannedWords: '나쁜말', topicList: 'A, B' }).success && env.sheets['기본설정'].rows[0][1] === '나쁜말' && env.sheets['기본설정'].rows[3][1] === 'A, B', '');
 ok('옛 가드: 핵심 칸이 모두 비면 저장 거부', env.ctx.saveTeacherSettings({ role: '', classList: '', geminiApiKey: '', rubricCriteria: '' }).success === false, '');
 // 캐시: 시트를 직접 고쳐도 캐시가 살아 있는 동안은 이전 값(5분), 저장 API는 즉시 반영
 env = makeEnv({ templateKey: 'socratic' });
@@ -227,16 +227,15 @@ env.cache.clear();
 chat(env);
 ok('캐시가 지나면 직접 수정한 값이 반영됨', sysOf(env).includes('HAND-EDITED'), sysOf(env).slice(0, 40));
 
-// ── 8-2) File API(PDF 자료)는 쓰지 않는다: 시트에 옛 값이 남아 있어도 채팅·설정에 영향이 없다 ──
+// ── 8-2) File API(PDF 자료)는 쓰지 않는다: 채팅 요청에 파일이 들어가지 않고, 옛 콘솔이 값을 보내도 시트에 쓰지 않는다 ──
 env = makeEnv({ templateKey: 'socratic' });
-env.sheets['기본설정'].rows[6][1] = 'ON'; env.sheets['기본설정'].rows[7][1] = 'files/abc, files/def'; // 옛 File API 칸에 값이 남아 있는 시트
 chat(env);
 const lastContent = env.calls[0].contents[env.calls[0].contents.length - 1];
-ok('옛 File API 칸이 ON 이어도 Gemini 요청에는 학생 글만 들어감(fileData 없음)', lastContent.parts.length === 1 && lastContent.parts[0].text && !JSON.stringify(env.calls[0]).includes('fileData'), lastContent);
+ok('Gemini 요청에는 학생 글만 들어감(fileData 없음)', lastContent.parts.length === 1 && lastContent.parts[0].text && !JSON.stringify(env.calls[0]).includes('fileData'), lastContent);
 gs = env.ctx.getTeacherSettings();
 ok('교사 설정 조회에 PDF 폴더·File API 항목이 없음', !('pdfFolderId' in gs) && !('fileApiOnOff' in gs) && !('fileUris' in gs), Object.keys(gs));
 env.ctx.saveTeacherSettings({ geminiApiKey: 'AIzaFAKEKEY1234567890', pdfFolderId: 'NEW-PDF', fileApiOnOff: 'ON', classList: '9반' });
-ok('PDF 폴더·File API 값을 보내도 시트에 쓰지 않음(환경설정 B2·기본설정 B7 그대로)', env.sheets['환경설정'].rows[1][1] === '' && env.sheets['기본설정'].rows[6][1] === 'ON' && env.sheets['기본설정'].rows[10][1] === '9반', [env.sheets['환경설정'].rows[1], env.sheets['기본설정'].rows[6]]);
+ok('PDF 폴더·File API 값을 보내도 시트에 쓰지 않음(환경설정은 3칸 그대로, 기본설정은 4칸 그대로, 학급만 저장)', env.sheets['환경설정'].rows.length === 3 && env.sheets['환경설정'].rows[1][1] === '' && env.sheets['기본설정'].rows.length === 4 && env.sheets['기본설정'].rows[1][1] === '9반', [env.sheets['환경설정'].rows, env.sheets['기본설정'].rows]);
 const SRC = require('fs').readFileSync(require('path').join(__dirname, '..', 'gas-source', 'Code.js'), 'utf8');
 ok('백엔드 코드에 File API·Drive·Docs·옛 대시보드 분석 코드가 남아 있지 않음', !/DriveApp|DocumentApp|fileData|syncDriveFilesToGemini|uploadBlobToGemini|runToulminAnalysis|exportAnalysisToDoc|readLegacyValues_|markLegacyCells_/.test(SRC), SRC.match(/DriveApp|DocumentApp|fileData|syncDriveFilesToGemini|uploadBlobToGemini|runToulminAnalysis|exportAnalysisToDoc|readLegacyValues_|markLegacyCells_/g));
 
@@ -273,7 +272,7 @@ env.ctx.ensureProfileTabs_();
 const TP = env.ctx.TEMPLATE_PROFILES_;
 const tplRows = (sh) => sh.rows.slice(1).filter((r) => r[sh.rows[0].length - 1] === '템플릿');
 ok('템플릿 5종(페르소나)과 4종(루브릭, 탐구 도우미는 없음)이 미리 들어감', TP.length === 5 && tplRows(env.sheets[P]).length === 5 && tplRows(env.sheets[R]).length === 4, [tplRows(env.sheets[P]).length, tplRows(env.sheets[R]).length]);
-ok("머리글에 '구분' 열", env.sheets[P].rows[0][10] === '구분' && env.sheets[R].rows[0][6] === '구분', [env.sheets[P].rows[0], env.sheets[R].rows[0]]);
+ok("머리글에 '구분' 열", env.sheets[P].rows[0][10] === '구분' && env.sheets[R].rows[0][5] === '구분', [env.sheets[P].rows[0], env.sheets[R].rows[0]]);
 ok("'기본' 줄은 템플릿이 아님(고칠 수 있음)", env.sheets[P].rows[1][0] === '기본' && !env.sheets[P].rows[1][10], env.sheets[P].rows[1]);
 const cerT = TP.find((t) => t.key === 'cer');
 const cerRow = env.sheets[P].rows.find((r) => r[0] === 'CER 코치형');
@@ -282,7 +281,7 @@ ok('템플릿 줄은 캐릭터·템플릿별 인사말까지 채워져 있음', 
 const tplChar = (name) => { const r = env.sheets[P].rows.find((x) => x[0] === name); return r && r[7] + '|' + r[8]; };
 ok('템플릿 5종의 캐릭터는 서로 다른 1:1 짝(소크라테스·가운·코치·토론 파트너·로봇)', tplChar('소크라테스 발문형') === 'socrates|소크라테스 선생님' && tplChar('CER 코치형') === 'labcoat|실험 가운 과학 선생님' && tplChar('고급 논쟁형') === 'coach|비판적 사고 코치' && tplChar('찬반 토론형') === 'debater|토론 파트너' && tplChar('탐구 도우미') === 'robot|과학 조교 로봇', ['소크라테스 발문형', 'CER 코치형', '고급 논쟁형', '찬반 토론형', '탐구 도우미'].map(tplChar));
 const cerRub = env.sheets[R].rows.find((r) => r[0] === 'CER 코치형');
-ok('루브릭 템플릿도 원본과 같음', cerRub[2] === cerT.rubric.role && cerRub[3] === cerT.rubric.criteria && cerRub[4] === cerT.rubric.level && cerRub[5] === cerT.rubric.guideline, '');
+ok('루브릭 템플릿도 원본과 같음', cerRub[1] === cerT.rubric.role && cerRub[2] === cerT.rubric.criteria && cerRub[3] === cerT.rubric.level && cerRub[4] === cerT.rubric.guideline, '');
 ok('도우미 템플릿(qna)은 평가 루브릭이 없음', !env.sheets[R].rows.some((r) => r[0] === '탐구 도우미') && env.sheets[P].rows.some((r) => r[0] === '탐구 도우미' && r[1] === 'qna'), '');
 // 한 번 넣으면 다시 넣지 않는다: 교사가 시트에서 지운 줄을 되살리지 않음
 env.sheets[P].rows = env.sheets[P].rows.filter((r) => r[0] !== '고급 논쟁형');
@@ -291,7 +290,7 @@ ok('지운 템플릿 줄은 되살아나지 않음(한 번만 채움)', !env.she
 ok('채우기 기록이 스크립트 속성에 남음', env.props.get('PROFILE_TEMPLATES_SEEDED') === '1', [...env.props.entries()]);
 // 템플릿을 바로 주제에 연결해서 쓴다
 env = makeEnv({ templateKey: 'socratic' });
-env.sheets['기본설정'].rows[12][1] = `${T1}, ${T2}`;
+env.sheets['기본설정'].rows[3][1] = `${T1}, ${T2}`;
 env.ctx.ensureProfileTabs_();
 ok('템플릿 페르소나·루브릭을 그대로 주제에 연결', env.ctx.saveTopicSetting({ topic: T2, persona: 'CER 코치형', rubric: 'CER 코치형' }).success, '');
 chat(env, { topicValue: T2 });
@@ -322,10 +321,10 @@ ok('getProfiles 가 템플릿 줄을 isTemplate 로 알려 줌', gpT.personas.fi
 env = makeEnv({ templateKey: 'socratic' });
 env.ctx.ensureProfileTabs_();
 env.sheets[P].rows = env.sheets[P].rows.slice(0, 2).map((r) => r.slice(0, 10)); env.sheets[P].rows[0] = env.sheets[P].rows[0].slice(0, 10);
-env.sheets[R].rows = env.sheets[R].rows.slice(0, 2).map((r) => r.slice(0, 6)); env.sheets[R].rows[0] = env.sheets[R].rows[0].slice(0, 6);
+env.sheets[R].rows = env.sheets[R].rows.slice(0, 2).map((r) => r.slice(0, 5)); env.sheets[R].rows[0] = env.sheets[R].rows[0].slice(0, 5);
 env.props.delete('PROFILE_TEMPLATES_SEEDED'); env.cache.clear();
 env.ctx.ensureProfileTabs_();
-ok('운영 중인 시트: 기본 줄은 그대로 두고 템플릿 줄만 추가, 머리글도 채움', env.sheets[P].rows.length === 7 && env.sheets[P].rows[1][2] === 'role-text' && env.sheets[P].rows[0][10] === '구분' && env.sheets[R].rows.length === 6 && env.sheets[R].rows[0][6] === '구분', [env.sheets[P].rows.length, env.sheets[P].rows[0]]);
+ok('운영 중인 시트: 기본 줄은 그대로 두고 템플릿 줄만 추가, 머리글도 채움', env.sheets[P].rows.length === 7 && env.sheets[P].rows[1][2] === 'role-text' && env.sheets[P].rows[0][10] === '구분' && env.sheets[R].rows.length === 6 && env.sheets[R].rows[0][5] === '구분', [env.sheets[P].rows.length, env.sheets[P].rows[0]]);
 // 교사가 같은 이름의 페르소나를 이미 만들어 둔 경우: 덮어쓰지 않고 템플릿 표시도 붙이지 않는다
 env = makeEnv({ templateKey: 'socratic' });
 env.ctx.ensureProfileTabs_();

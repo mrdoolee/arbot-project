@@ -9,8 +9,8 @@ const chat = (env, over) => env.ctx.processChatMessage(Object.assign({ classValu
 // 한참 쓴 시트를 흉내 낸다: 직접 만든 페르소나·루브릭·주제 연결, 탐구 자료, 대화 기록, 추가 API 키, 교사 비밀번호, 옛 대시보드 탭
 function usedSheet() {
   const env = makeEnv({ templateKey: 'cer' });
-  env.sheets['기본설정'].rows[12][1] = `${T1}, ${T2}`;
-  env.sheets['환경설정'].rows[1][1] = 'PDF-FOLDER'; env.sheets['환경설정'].rows[2][1] = 'BACKUP-SHEET-ID'; env.sheets['환경설정'].rows[4][1] = 'gemini-flash-latest';
+  env.sheets['기본설정'].rows[3][1] = `${T1}, ${T2}`;
+  env.sheets['환경설정'].rows[1][1] = 'BACKUP-SHEET-ID'; env.sheets['환경설정'].rows[2][1] = 'gemini-flash-latest';
   env.ctx.ensureProfileTabs_();
   env.ctx.saveProfile({ kind: 'persona', name: '내 CER', values: { templateKey: 'cer', role: 'MY-ROLE' } });
   env.ctx.saveProfile({ kind: 'rubric', name: '내 루브릭', values: { role: 'r', criteria: 'MY-CRITERIA' } });
@@ -37,20 +37,19 @@ ok('채팅기록은 머리글만 남음(페르소나·루브릭 열 이름 포�
 ok('탐구자료는 머리글만 남음', env.sheets['탐구자료'].rows.length === 1 && env.sheets['탐구자료'].rows[0][0] === '주제', env.sheets['탐구자료'].rows);
 ok("옛 '논증평가설정'·'대시보드' 탭 삭제", !env.sheets['논증평가설정'] && !env.sheets['대시보드'], Object.keys(env.sheets));
 const cfg = env.sheets['기본설정'].rows;
-ok('금지어·학급·모둠·주제 목록이 비어 있음', [9, 10, 11, 12].every((i) => cfg[i][1] === ''), cfg.slice(9, 13));
-ok('쓰이지 않는 옛 칸(1~9행·14~17행, A~C열)이 비어 있음', [0, 1, 2, 3, 4, 5, 6, 7, 8, 13, 14, 15, 16].every((i) => cfg[i].slice(0, 3).every((v) => v === '')), cfg.slice(0, 6));
-ok('쓰이지 않는 File API 칸(7·8행)도 비워짐', cfg[6].slice(0, 3).every((v) => v === '') && cfg[7].slice(0, 3).every((v) => v === ''), [cfg[6], cfg[7]]);
+ok('금지어·학급·모둠·주제 목록(B1:B4)이 비어 있음', [0, 1, 2, 3].every((i) => cfg[i][1] === ''), cfg);
+ok('A열 이름표는 남음(금지어·학급·모둠·주제)', cfg.map((r) => r[0]).join() === '금지어,학급,모둠,주제', cfg.map((r) => r[0]));
 
 // ── 새 기본 상태 ──
 const TP = env.ctx.TEMPLATE_PROFILES_, soc = TP.find((t) => t.key === 'socratic');
 ok('페르소나 탭: 머리글 + 기본 줄 + 템플릿 5종, 직접 만든 줄은 없음', env.sheets[P].rows.length === 7 && env.sheets[P].rows[1][0] === '기본' && !env.sheets[P].rows.some((r) => r[0] === '내 CER'), env.sheets[P].rows.map((r) => r[0]));
 ok('기본 페르소나 = 소크라테스 발문형 내용(템플릿 표시는 없음)', env.sheets[P].rows[1][1] === 'socratic' && env.sheets[P].rows[1][2] === soc.persona.role && env.sheets[P].rows[1][3] === soc.persona.action && env.sheets[P].rows[1][9] === soc.persona.greeting && !env.sheets[P].rows[1][10], env.sheets[P].rows[1].map((v) => String(v).slice(0, 20)));
-ok('루브릭 탭: 머리글 + 기본 줄(소크라테스 루브릭) + 템플릿 4종', env.sheets[R].rows.length === 6 && env.sheets[R].rows[1][0] === '기본' && env.sheets[R].rows[1][3] === soc.rubric.criteria && !env.sheets[R].rows.some((r) => r[0] === '내 루브릭'), env.sheets[R].rows.map((r) => r[0]));
+ok('루브릭 탭: 머리글 + 기본 줄(소크라테스 루브릭) + 템플릿 4종', env.sheets[R].rows.length === 6 && env.sheets[R].rows[1][0] === '기본' && env.sheets[R].rows[1][2] === soc.rubric.criteria && !env.sheets[R].rows.some((r) => r[0] === '내 루브릭'), env.sheets[R].rows.map((r) => r[0]));
 ok("주제 탭: '(기본)' 줄 하나(제한 시간 20, 기억 쌍 3), 주제 연결 없음", env.sheets[T].rows.length === 2 && env.sheets[T].rows[1][0] === '(기본)' && env.sheets[T].rows[1][3] === 20 && env.sheets[T].rows[1][4] === 3, env.sheets[T].rows);
-ok('템플릿 줄은 보호 표시(구분)가 붙어 있음', env.sheets[P].rows.slice(2).every((r) => r[10] === '템플릿') && env.sheets[R].rows.slice(2).every((r) => r[6] === '템플릿'), '');
+ok('템플릿 줄은 보호 표시(구분)가 붙어 있음', env.sheets[P].rows.slice(2).every((r) => r[10] === '템플릿') && env.sheets[R].rows.slice(2).every((r) => r[5] === '템플릿'), '');
 
 // ── 건드리지 않은 것 ──
-ok('환경설정(키·모델·폴더·백업 시트 ID)과 API키 탭은 그대로', snap(env, ['환경설정', 'API키']) === keep, '');
+ok('환경설정(키·백업 시트 ID·모델)과 API키 탭은 그대로', snap(env, ['환경설정', 'API키']) === keep, '');
 ok('교사 비밀번호는 그대로', env.props.get('TEACHER_PIN_HASH') === pinBefore && !!pinBefore, '');
 ok('초기화 뒤에도 비밀번호가 필요함', env.ctx.routeAction('getProfiles', {}).needPin === true && env.ctx.routeAction('getProfiles', { pin: 'secret-123' }).success === true, '');
 
@@ -110,7 +109,7 @@ ok('두 번 실행해도 같은 상태(멱등)', snap(env, [P, R, T, '기본설�
 // ── 세부설정 탭이 없는 새 시트: 옛 칸(기본설정 1~17행·논증평가설정)이 남아 있어도 읽지 않고 기본 템플릿 내용으로 만든다 ──
 env = makeEnv({ templateKey: 'socratic', noProfileTabs: true });
 env.ctx.ensureProfileTabs_();
-ok('기본 줄은 옛 칸이 아니라 소크라테스 템플릿 내용(옛 칸 값은 쓰이지 않음)', env.sheets[P].rows[1][2] === soc.persona.role && env.sheets[R].rows[1][3] === soc.rubric.criteria && env.sheets[P].rows[1][2] !== 'role-text', env.sheets[P].rows[1].map((v) => String(v).slice(0, 12)));
+ok('기본 줄은 옛 칸이 아니라 소크라테스 템플릿 내용(옛 칸 값은 쓰이지 않음)', env.sheets[P].rows[1][2] === soc.persona.role && env.sheets[R].rows[1][2] === soc.rubric.criteria && env.sheets[P].rows[1][2] !== 'role-text', env.sheets[P].rows[1].map((v) => String(v).slice(0, 12)));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

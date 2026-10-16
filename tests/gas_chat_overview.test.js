@@ -15,7 +15,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
 
 function fresh(opts) {
   const e = makeEnv(Object.assign({ pin: PIN, accessCode: CODE }, opts || {}));
-  e.sheets['기본설정'].rows[10][1] = '1반, 2반, 3반'; e.sheets['기본설정'].rows[11][1] = 'A1모둠, A2모둠, B1모둠'; e.sheets['기본설정'].rows[12][1] = `${T1}, ${T2}, ${T3}`;
+  e.sheets['기본설정'].rows[1][1] = '1반, 2반, 3반'; e.sheets['기본설정'].rows[2][1] = 'A1모둠, A2모둠, B1모둠'; e.sheets['기본설정'].rows[3][1] = `${T1}, ${T2}, ${T3}`;
   e.ctx.ensureProfileTabs_();
   return e;
 }

@@ -13,7 +13,7 @@ const rowOf = (e, topic) => e.sheets[T].rows.find((r, i) => i > 0 && r[0] === to
 const isBlank = (r) => !!r && [1, 2, 3, 4].every((i) => r[i] === '' || r[i] === undefined);
 const fresh = (list, opts) => {
   const e = makeEnv(Object.assign({ pin: PIN, accessCode: CODE }, opts || {}));
-  e.sheets['기본설정'].rows[12][1] = list === undefined ? '' : list;
+  e.sheets['기본설정'].rows[3][1] = list === undefined ? '' : list;
   e.ctx.ensureProfileTabs_();
   return e;
 };
@@ -29,7 +29,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
   ok('새 주제마다 한 줄씩 생기고 순서는 목록 순서(기본 줄 다음)', names(e).join('|') === ['(기본)', A, B, C].join('|'), names(e));
   ok('새 줄의 페르소나·루브릭·제한 시간·기억 쌍 칸은 빈 칸(= (기본) 줄을 따름)', [A, B, C].every((t) => isBlank(rowOf(e, t))), dataRows(e));
   ok('(기본) 줄은 건드리지 않음(기본·기본·20·3)', JSON.stringify(rowOf(e, '(기본)')) === JSON.stringify(['(기본)', '기본', '기본', 20, 3]), rowOf(e, '(기본)'));
-  ok('주제 목록 칸(B13)에는 입력한 그대로 저장됨', e.sheets['기본설정'].rows[12][1] === `${A}, ${B}, ${C}`, e.sheets['기본설정'].rows[12]);
+  ok('주제 목록 칸(B13)에는 입력한 그대로 저장됨', e.sheets['기본설정'].rows[3][1] === `${A}, ${B}, ${C}`, e.sheets['기본설정'].rows[3]);
   const again = save(e, { topicList: `${A}, ${B}, ${C}` });
   ok('같은 목록을 다시 저장해도 줄이 늘거나 줄지 않음(멱등)', again.success && again.topicRows.added === 0 && again.topicRows.removed === 0 && names(e).length === 4, [again, names(e)]);
 }
@@ -88,7 +88,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
 // ───────── 5) 연결 화면(getProfiles)이 줄을 맞춤: 시트에서 목록을 직접 고친 경우 ─────────
 {
   const e = fresh(`${A}`);
-  e.sheets['기본설정'].rows[12][1] = `${A}, 새로 적은 주제, 또 다른 주제`; // 시트에서 B13 을 직접 편집
+  e.sheets['기본설정'].rows[3][1] = `${A}, 새로 적은 주제, 또 다른 주제`; // 시트에서 B13 을 직접 편집
   ok('(준비) 시트에서만 고치면 주제 세부설정 탭에는 아직 줄이 없음', !rowOf(e, '새로 적은 주제'), names(e));
   const gp = e.ctx.getProfiles();
   ok('연결 화면을 불러오면 목록의 모든 주제 줄이 만들어짐', gp.success && ['새로 적은 주제', '또 다른 주제'].every((t) => !!rowOf(e, t)) && gp.topics.filter((t) => !t.orphan).length === 3, [names(e), gp.topics.map((t) => t.topic)]);
@@ -99,7 +99,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
 // ───────── 6) 학생 화면 경로는 시트를 건드리지 않음 ─────────
 {
   const e = fresh(`${A}, ${B}`);
-  e.sheets['기본설정'].rows[10][1] = '1반'; e.sheets['기본설정'].rows[11][1] = '1모둠';
+  e.sheets['기본설정'].rows[1][1] = '1반'; e.sheets['기본설정'].rows[2][1] = '1모둠';
   const before = JSON.stringify(e.sheets[T].rows);
   const init = e.ctx.routeAction('getInitialData', { accessCode: CODE });
   const chat = e.ctx.routeAction('processChatMessage', { accessCode: CODE, classValue: '1반', groupValue: '1모둠', topicValue: A, userQuestion: '질문입니다', history: [] });
@@ -126,7 +126,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
 {
   const e = fresh(`${A}`);
   e.ctx.readCoreConfig_(); // 캐시를 채운다
-  e.sheets['기본설정'].rows[12][1] = `${A}, ${B}`;
+  e.sheets['기본설정'].rows[3][1] = `${A}, ${B}`;
   const r = e.ctx.syncTopicRows_();
   const cached = e.ctx.readCoreConfig_(); // 캐시를 지웠다면 새로 읽어 B 줄이 보인다
   ok('줄을 추가하면 설정 캐시가 비워져 새 줄이 바로 읽힘', r.added === 2 && cached.topics.some((t) => t.topic === B), [r, cached.topics.map((t) => t.topic)]);
@@ -140,13 +140,13 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
 {
   const e = makeEnv({ pin: PIN, accessCode: CODE, noProfileTabs: true, insertSheetFails: true }); // 세부설정 탭을 못 만드는 시트(보호 등)
   const r = save(e, { topicList: `${A}, ${B}` });
-  ok('세부설정 탭을 만들 수 없어도 주제 목록 저장은 성공하고 이유를 알려 줌', r.success === true && e.sheets['기본설정'].rows[12][1] === `${A}, ${B}` && r.topicRows && r.topicRows.error && r.topicRows.added === 0, r);
+  ok('세부설정 탭을 만들 수 없어도 주제 목록 저장은 성공하고 이유를 알려 줌', r.success === true && e.sheets['기본설정'].rows[3][1] === `${A}, ${B}` && r.topicRows && r.topicRows.error && r.topicRows.added === 0, r);
   const gp = e.ctx.getProfiles();
   ok('그 상태에서도 연결 화면은 열리고(옛 설정으로 동작) 예외가 나지 않음', gp.success === true && gp.fallback === true, gp);
   const e2 = fresh(`${A}`);
   e2.ctx.LockService = { getScriptLock: () => ({ waitLock() { throw new Error('Lock timeout'); }, releaseLock() {} }) }; // 다른 저장이 오래 걸리는 경우
   const r2 = save(e2, { topicList: `${A}, ${B}` });
-  ok('락을 못 잡아도 목록 저장은 성공하고, 줄 맞추기 실패만 알려 줌', r2.success && e2.sheets['기본설정'].rows[12][1] === `${A}, ${B}` && r2.topicRows.error && !rowOf(e2, B), r2);
+  ok('락을 못 잡아도 목록 저장은 성공하고, 줄 맞추기 실패만 알려 줌', r2.success && e2.sheets['기본설정'].rows[3][1] === `${A}, ${B}` && r2.topicRows.error && !rowOf(e2, B), r2);
   const gp2 = e2.ctx.getProfiles();
   ok('락 실패 때 연결 화면은 열리고 경고를 한 줄 보여 줌', gp2.success && gp2.warnings.some((w) => /주제 세부설정.*맞추지 못했어요/.test(w)), gp2.warnings);
   const sync = e2.ctx.syncTopicRows_();
@@ -159,7 +159,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
   const menuItems = em.ui.menus[0].items;
   ok('시트 메뉴에 🔄 주제 세부설정 맞추기 → syncTopicRowsFromMenu 가 등록돼 있고 함수도 있음', menuItems.some((i) => i.label === '🔄 주제 세부설정 맞추기' && i.fn === 'syncTopicRowsFromMenu') && typeof em.ctx.syncTopicRowsFromMenu === 'function', menuItems);
   const e = fresh('');
-  e.sheets['기본설정'].rows[12][1] = `${A}, ${B}`;
+  e.sheets['기본설정'].rows[3][1] = `${A}, ${B}`;
   const alerts = [];
   e.ctx.SpreadsheetApp.getUi = () => ({ ButtonSet: { OK: 'OK' }, alert: (t, m) => { alerts.push([t, String(m)]); } });
   const others = () => JSON.stringify([e.sheets['환경설정'].rows, e.sheets['기본설정'].rows, e.sheets['채팅기록'].rows, [...e.props.entries()]]);
@@ -169,7 +169,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
   ok('메뉴: 다른 탭·설정·비밀번호는 바꾸지 않음(주제 세부설정 탭만)', others() === before, '');
   e.ctx.syncTopicRowsFromMenu();
   ok('메뉴: 이미 맞으면 바꿀 것이 없다고 알려 줌', /이미 주제 목록과 맞아요/.test(alerts[1][1]), alerts[1]);
-  e.sheets['기본설정'].rows[12][1] = `${A}`;
+  e.sheets['기본설정'].rows[3][1] = `${A}`;
   e.ctx.syncTopicRowsFromMenu();
   ok('메뉴: 목록에서 빠진 빈 줄을 지웠다고 알려 줌', /빈 줄 1개를 지웠어요/.test(alerts[2][1]) && !rowOf(e, B), alerts[2]);
   const e2 = fresh(`${A}`); e2.ctx.LockService = { getScriptLock: () => ({ waitLock() { throw new Error('Lock timeout'); }, releaseLock() {} }) };
@@ -192,7 +192,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
   const after = e.ctx.inspectSheetStructure_();
   ok('줄을 맞추면 그 안내가 사라짐', !after.items.some((i) => /줄이 없는 주제/.test(i.text)), after.items.filter((i) => i.level !== 'ok'));
   e.ctx.resetSheetToDefaults_();
-  ok('설정·기록 초기화 뒤에는 (기본) 줄만 남음(목록도 비워지므로)', names(e).join() === '(기본)' && e.sheets['기본설정'].rows[12][1] === '', [names(e), e.sheets['기본설정'].rows[12]]);
+  ok('설정·기록 초기화 뒤에는 (기본) 줄만 남음(목록도 비워지므로)', names(e).join() === '(기본)' && e.sheets['기본설정'].rows[3][1] === '', [names(e), e.sheets['기본설정'].rows[3]]);
 }
 
 // ───────── 12) 큰 목록 ─────────

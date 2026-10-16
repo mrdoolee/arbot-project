@@ -18,9 +18,9 @@ const TEST_ACCESS_CODE = 'FAKE42';
 // --no-pin: 비밀번호·코드가 아직 없는 새 시트처럼 시작한다 (콘솔의 "먼저 비밀번호를 정해 주세요" 안내를 볼 때)
 const NO_PIN = process.argv.includes('--no-pin');
 const env = makeEnv(NO_PIN ? { templateKey: 'socratic' } : { templateKey: 'socratic', pin: TEST_PIN, accessCode: TEST_ACCESS_CODE });
-env.sheets['기본설정'].rows[12][1] = '전류와 전압의 관계, 온도와 반응 속도, 원자력 발전은 앞으로 늘려야 한다';
-env.sheets['기본설정'].rows[10][1] = '1반, 2반';
-env.sheets['기본설정'].rows[11][1] = '1모둠, 2모둠';
+env.sheets['기본설정'].rows[3][1] = '전류와 전압의 관계, 온도와 반응 속도, 원자력 발전은 앞으로 늘려야 한다';
+env.sheets['기본설정'].rows[1][1] = '1반, 2반';
+env.sheets['기본설정'].rows[2][1] = '1모둠, 2모둠';
 env.sheets['환경설정'].rows[0][1] = 'AIzaFakeKeyForLocalTestingOnly0000';
 
 const PUBLIC = path.join(__dirname, '..', 'public');

@@ -55,14 +55,14 @@ const cases = [
   ['핵심 탭이 없음 → 오류', (e) => { delete e.sheets['채팅기록']; }, 'error', /'채팅기록' 탭이 없어요/],
   ['API 키가 비어 있음', (e) => { e.sheets['환경설정'].rows[0][1] = ''; }, 'warn', /B1.*비어 있어요/],
   ['API 키 모양이 이상함(공백 섞임)', (e) => { e.sheets['환경설정'].rows[0][1] = 'AIza bad key'; }, 'warn', /API 키 모양이 이상/],
-  ['백업 시트 ID 모양이 이상함', (e) => { e.sheets['환경설정'].rows[2][1] = 'https://docs.google.com/x'; }, 'warn', /B3/],
-  ['모델 이름이 모델 모양이 아님', (e) => { e.sheets['환경설정'].rows[4][1] = 'my model!'; }, 'warn', /B5/],
-  ['학급 목록이 비어 있음', (e) => { e.sheets['기본설정'].rows[10][1] = ''; }, 'warn', /학급 목록.*비어/],
-  ['모둠 이름이 겹침', (e) => { e.sheets['기본설정'].rows[11][1] = '1모둠, 2모둠, 1모둠'; }, 'warn', /모둠 목록에 같은 이름/],
-  ['주제 이름이 100자를 넘음 → 오류', (e) => { e.sheets['기본설정'].rows[12][1] = '가'.repeat(101); }, 'error', /100자를 넘어요/],
+  ['백업 시트 ID 모양이 이상함', (e) => { e.sheets['환경설정'].rows[1][1] = 'https://docs.google.com/x'; }, 'warn', /B2/],
+  ['모델 이름이 모델 모양이 아님', (e) => { e.sheets['환경설정'].rows[2][1] = 'my model!'; }, 'warn', /B3/],
+  ['학급 목록이 비어 있음', (e) => { e.sheets['기본설정'].rows[1][1] = ''; }, 'warn', /학급 목록.*비어/],
+  ['모둠 이름이 겹침', (e) => { e.sheets['기본설정'].rows[2][1] = '1모둠, 2모둠, 1모둠'; }, 'warn', /모둠 목록에 같은 이름/],
+  ['주제 이름이 100자를 넘음 → 오류', (e) => { e.sheets['기본설정'].rows[3][1] = '가'.repeat(101); }, 'error', /100자를 넘어요/],
   ["'기본' 페르소나 줄이 없음", (e) => { e.sheets[P].rows.splice(1, 1); }, 'warn', /기본.*줄이 없어요/],
   ["'기본' 페르소나의 역할이 비어 있음 → 오류", (e) => { e.sheets[P].rows[1][2] = ''; }, 'error', /역할이 비어/],
-  ["'기본' 루브릭의 판정 기준이 비어 있음 → 오류", (e) => { e.sheets[R].rows[1][3] = ''; }, 'error', /판정 기준이 비어/],
+  ["'기본' 루브릭의 판정 기준이 비어 있음 → 오류", (e) => { e.sheets[R].rows[1][2] = ''; }, 'error', /판정 기준이 비어/],
   ['페르소나 이름이 겹침', (e) => { e.sheets[P].rows.push(['기본', 'socratic', 'dup']); }, 'warn', /같은 이름의 줄이 여러 개/],
   ['알 수 없는 템플릿 값', (e) => { e.sheets[P].rows[1][1] = 'weird'; }, 'warn', /템플릿 값 'weird'/],
   ['페르소나 머리글 열 순서가 바뀜', (e) => { const h = e.sheets[P].rows[0]; [h[2], h[3]] = [h[3], h[2]]; }, 'warn', /머리글이 달라요/],
@@ -95,7 +95,7 @@ for (const [name, mutate, level, re] of cases) {
 // ───────── 4) 읽기 전용·웹 비공개·메뉴 ─────────
 env = fresh();
 env.sheets['채팅기록'].rows.push(['2026-10-15', '10:00', '옛반', '', '', '질문', '답']);
-env.sheets['기본설정'].rows[11][1] = '1모둠, 1모둠';
+env.sheets['기본설정'].rows[2][1] = '1모둠, 1모둠';
 const before = snapshot(env);
 inspect(env);
 ok('구조 점검은 시트·탭·Script Properties 를 하나도 바꾸지 않음', snapshot(env) === before, '');
@@ -114,7 +114,7 @@ env = fresh(); env.sheets['채팅기록'].rows[0] = ['날짜', '시간', '학급
 env.ctx.syncTopicRows_(); // 콘솔에서 주제 목록을 저장해 주제 줄이 맞춰진 시트
 log = fakeUi(env); env.ctx.checkSheetStructureFromMenu();
 ok('메뉴: 문제가 없으면 문제가 없다고 알려 줌', /문제가 발견되지 않았어요/.test(log[0].msg), log[0].msg);
-env = fresh(); for (let i = 0; i < 30; i++) env.sheets['기본설정'].rows[12][1] += ', ' + T1.slice(0, 5) + i; env.sheets['주제 세부설정'].rows.push(...Array.from({ length: 30 }, (_, i) => ['orphan' + i, '', '', 5, '']));
+env = fresh(); for (let i = 0; i < 30; i++) env.sheets['기본설정'].rows[3][1] += ', ' + T1.slice(0, 5) + i; env.sheets['주제 세부설정'].rows.push(...Array.from({ length: 30 }, (_, i) => ['orphan' + i, '', '', 5, '']));
 log = fakeUi(env); env.ctx.checkSheetStructureFromMenu();
 ok('메뉴: 항목이 많으면 20건만 보여 주고 나머지는 개수로 알려 줌', /외 \d+건/.test(log[0].msg), log[0].msg.slice(-120));
 
@@ -132,7 +132,7 @@ env.sheets['채팅기록'].rows.push([], ['', '', '', '', '', '', ''], ['2026-10
 const a1 = env.ctx.routeAction('processChatMessage', req()), a2 = teacher(env, 'teacherAnalyze', { classValue: '1반', groupValue: '1모둠', topicValue: T1 });
 ok('채팅기록에 빈 줄·짧은 줄이 섞여도 채팅·분석이 동작', a1.success && a2.success, [a1.error, a2.error]);
 env = fresh();
-env.sheets['기본설정'].rows[10][1] = ' 1반 , ,2반,, 1반 '; env.sheets['기본설정'].rows[11][1] = '1모둠,,'; env.sheets['기본설정'].rows[12][1] = T1 + ', ' + T1 + ' ,  ,온도와 반응 속도,';
+env.sheets['기본설정'].rows[1][1] = ' 1반 , ,2반,, 1반 '; env.sheets['기본설정'].rows[2][1] = '1모둠,,'; env.sheets['기본설정'].rows[3][1] = T1 + ', ' + T1 + ' ,  ,온도와 반응 속도,';
 const ini = env.ctx.routeAction('getInitialData', { accessCode: CODE });
 ok('목록 칸에 빈 항목·끝 쉼표가 있어도 입장 데이터가 정상(빈 항목은 걸러짐)', ini.success && ini.data.classList.every(Boolean) && ini.data.groupList.length === 1 && ini.data.topicList.every(Boolean), ini.data);
 env = fresh();
