@@ -106,10 +106,10 @@ const once = snap(env, [P, R, T, '기본설정']);
 env.ctx.resetSheetToDefaults_();
 ok('두 번 실행해도 같은 상태(멱등)', snap(env, [P, R, T, '기본설정']) === once, '');
 
-// ── 세부설정 탭이 없는 새 시트: 옛 칸(기본설정 1~17행·논증평가설정)이 남아 있어도 읽지 않고 기본 템플릿 내용으로 만든다 ──
+// ── 세부설정 탭이 없는 새 시트: 옛 '논증평가설정' 탭이 남아 있어도 읽지 않고 기본 템플릿 내용으로 만든다 ──
 env = makeEnv({ templateKey: 'socratic', noProfileTabs: true });
 env.ctx.ensureProfileTabs_();
-ok('기본 줄은 옛 칸이 아니라 소크라테스 템플릿 내용(옛 칸 값은 쓰이지 않음)', env.sheets[P].rows[1][2] === soc.persona.role && env.sheets[R].rows[1][2] === soc.rubric.criteria && env.sheets[P].rows[1][2] !== 'role-text', env.sheets[P].rows[1].map((v) => String(v).slice(0, 12)));
+ok('기본 줄은 옛 탭이 아니라 소크라테스 템플릿 내용(옛 논증평가설정 값은 쓰이지 않음)', env.sheets[P].rows[1][2] === soc.persona.role && env.sheets[R].rows[1][2] === soc.rubric.criteria && env.sheets[P].rows[1][2] !== 'role-text', env.sheets[P].rows[1].map((v) => String(v).slice(0, 12)));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

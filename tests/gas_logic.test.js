@@ -4,7 +4,7 @@ let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { (cond ? pass++ : fail++); console.log((cond ? 'PASS ' : 'FAIL ') + name + (cond ? '' : '  → ' + JSON.stringify(extra))); };
 const chat = (env, over) => env.ctx.processChatMessage(Object.assign({ classValue: '1반', groupValue: '1모둠', topicValue: '전류와 전압의 관계', userQuestion: '전압계는 어디에 연결해요?', history: [] }, over || {}));
 const lastRow = (env) => env.sheets['채팅기록'].rows[env.sheets['채팅기록'].rows.length - 1];
-// 세부설정 탭을 직접 고친 것처럼 흉내 낸다(시트를 손으로 편집). 첫 호출 때 옛 칸에서 탭이 만들어진다.
+// 세부설정 탭을 직접 고친 것처럼 흉내 낸다(시트를 손으로 편집). 첫 호출 때 기본 상태(소크라테스 발문형 + 템플릿 원본)로 탭이 만들어진다.
 const P = '페르소나 세부설정', R = '루브릭 세부설정', T = '주제 세부설정';
 const setTemplate = (env, key) => { env.ctx.ensureProfileTabs_(); env.sheets[P].rows[1][1] = key; env.cache.clear(); };
 

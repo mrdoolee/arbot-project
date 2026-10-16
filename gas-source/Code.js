@@ -752,7 +752,7 @@ function resetSheetToDefaultsFromMenu() {
     '· 학급·모둠·탐구 주제 목록, 금지어\n' +
     '· 탐구 자료 전체\n' +
     '· 채팅기록(학생 대화) 전체\n' +
-    '· 쓰이지 않는 옛 설정 칸, \'논증평가설정\'·\'대시보드\' 탭\n\n' +
+    '· 옛 버전이 만든 \'논증평가설정\'·\'대시보드\' 탭(있을 때만)\n\n' +
     'Gemini API 키·모델·백업 시트(환경설정), API키 탭, 교사 비밀번호는 그대로 둡니다.\n' +
     '(환경설정에 적어 둔 백업 스프레드시트의 사본도 지우지 않습니다)\n\n계속할까요?';
   if (ui.alert('⚠️ 설정·기록 초기화', warn, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
@@ -856,7 +856,7 @@ function readBaseValues_() {
 // [API] 교사 콘솔: 페르소나·루브릭·주제 연결 목록 (교사 전용)
 // ---------------------------------------------------------
 function getProfiles() {
-  // 탭을 못 만드는 상태여도 화면이 '옛 설정으로 동작 중'을 알릴 수 있게 오류로 끝내지 않는다 (readCoreConfig_ 가 옛 칸으로 대체한다)
+  // 탭을 못 만드는 상태여도 화면이 '기본 상태로 동작 중'을 알릴 수 있게 오류로 끝내지 않는다 (readCoreConfig_ 가 기본 상태(소크라테스 발문형)로 대신한다)
   // 목록에 있는데 '주제 세부설정' 줄이 없는 주제(시트에서 목록을 직접 고친 경우 등)는 여기서 줄을 만들어 준다. 실패해도 화면은 계속된다.
   var sync = syncTopicRows_();
   var core = readCoreConfig_(true), rubrics = readRubricTable_();
