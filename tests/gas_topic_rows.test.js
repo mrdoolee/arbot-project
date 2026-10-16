@@ -1,4 +1,4 @@
-// 주제 목록 ↔ '주제 세부설정' 탭 연동: 주제 목록(기본설정 B13)에 주제를 저장하면 그 주제의 줄이 '주제 세부설정' 탭에도 생기는지,
+// 주제 목록 ↔ '주제 세부설정' 탭 연동: 주제 목록(기본설정 B4)에 주제를 저장하면 그 주제의 줄이 '주제 세부설정' 탭에도 생기는지,
 // 줄을 지우거나 덮어쓰지 않는지, 학생 화면 경로는 시트를 건드리지 않는지, 실패해도 목록 저장은 성공으로 남는지 시험한다.
 //   node tests/gas_topic_rows.test.js
 const { makeEnv } = require('./gas_harness.js');
@@ -29,7 +29,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
   ok('새 주제마다 한 줄씩 생기고 순서는 목록 순서(기본 줄 다음)', names(e).join('|') === ['(기본)', A, B, C].join('|'), names(e));
   ok('새 줄의 페르소나·루브릭·제한 시간·기억 쌍 칸은 빈 칸(= (기본) 줄을 따름)', [A, B, C].every((t) => isBlank(rowOf(e, t))), dataRows(e));
   ok('(기본) 줄은 건드리지 않음(기본·기본·20·3)', JSON.stringify(rowOf(e, '(기본)')) === JSON.stringify(['(기본)', '기본', '기본', 20, 3]), rowOf(e, '(기본)'));
-  ok('주제 목록 칸(B13)에는 입력한 그대로 저장됨', e.sheets['기본설정'].rows[3][1] === `${A}, ${B}, ${C}`, e.sheets['기본설정'].rows[3]);
+  ok('주제 목록 칸(B4)에는 입력한 그대로 저장됨', e.sheets['기본설정'].rows[3][1] === `${A}, ${B}, ${C}`, e.sheets['기본설정'].rows[3]);
   const again = save(e, { topicList: `${A}, ${B}, ${C}` });
   ok('같은 목록을 다시 저장해도 줄이 늘거나 줄지 않음(멱등)', again.success && again.topicRows.added === 0 && again.topicRows.removed === 0 && names(e).length === 4, [again, names(e)]);
 }
@@ -88,7 +88,7 @@ const snapshot = (e) => JSON.stringify([Object.keys(e.sheets), Object.values(e.s
 // ───────── 5) 연결 화면(getProfiles)이 줄을 맞춤: 시트에서 목록을 직접 고친 경우 ─────────
 {
   const e = fresh(`${A}`);
-  e.sheets['기본설정'].rows[3][1] = `${A}, 새로 적은 주제, 또 다른 주제`; // 시트에서 B13 을 직접 편집
+  e.sheets['기본설정'].rows[3][1] = `${A}, 새로 적은 주제, 또 다른 주제`; // 시트에서 B4 를 직접 편집
   ok('(준비) 시트에서만 고치면 주제 세부설정 탭에는 아직 줄이 없음', !rowOf(e, '새로 적은 주제'), names(e));
   const gp = e.ctx.getProfiles();
   ok('연결 화면을 불러오면 목록의 모든 주제 줄이 만들어짐', gp.success && ['새로 적은 주제', '또 다른 주제'].every((t) => !!rowOf(e, t)) && gp.topics.filter((t) => !t.orphan).length === 3, [names(e), gp.topics.map((t) => t.topic)]);
