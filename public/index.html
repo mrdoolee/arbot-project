@@ -664,6 +664,7 @@
 <script src="js/gasClient.js"></script>
 <script src="js/argu-shared.js"></script>
 <script src="js/pick-logic.js"></script>
+<script src="js/material-samples.js"></script>
 <script src="js/credit-footer.js"></script>
 <script>
   const $ = (id) => document.getElementById(id);
@@ -1595,12 +1596,7 @@
   // 안전장치: 시트의 자료를 불러온 뒤에만 저장할 수 있고, 내용이 모두 빈 저장은 서버가 거부한다. 삭제는 별도 버튼 + 확인창으로만 가능하다.
   const normTopic = (t) => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase();
   const MAT_FIELDS = { procedure: 'm_procedure', materials: 'm_materials', safety: 'm_safety', notes: 'm_notes' };
-  const MAT_SAMPLE = {
-    procedure: '1) 전원장치, 저항(니크롬선), 전류계를 직렬로 연결한다.\n2) 전압계를 저항 양쪽에 병렬로 연결한다.\n3) 전압을 1V씩 높이며 전류계의 값을 읽어 표에 기록한다.\n4) 전압-전류 그래프를 그리고, 저항을 바꿔 같은 방법으로 반복한다.',
-    materials: '전원장치(또는 건전지), 니크롬선 저항 2종, 전류계, 전압계, 스위치, 도선, 그래프용지',
-    safety: '전류계는 회로에 직렬로, 전압계는 병렬로 연결한다. 전류계를 전원에 바로 연결하면 안 된다. 도선과 저항이 뜨거워질 수 있으니 측정 외에는 스위치를 끄고, 회로를 고칠 때는 반드시 전원을 끈다.',
-    notes: '예상 결과: 저항이 일정하면 전압과 전류가 비례하고, 그래프 기울기로 저항을 비교할 수 있다. 학생이 먼저 말하기 전에는 비례 관계나 V=IR을 알려 주지 말 것. 흔한 오개념: 전류가 전압을 만든다, 전류가 저항을 지나며 소모된다.',
-  };
+  // '예시 채우기'의 내용은 주제마다 다르다. 예시 주제 하나에 자료 예시 하나가 js/material-samples.js(ArguMaterials)에 있다.
   let matLoaded = false, matData = new Map(), matSel = '', matLimits = { field: 1500, total: 3000 };
 
   // 같은 주제를 두 번 적었거나 공백만 다른 이름은 하나로 본다
@@ -1692,10 +1688,15 @@
   });
   $('btnSampleMaterial').addEventListener('click', () => {
     if (!matSel) { setStatus($('matStatus'), 'info', '먼저 왼쪽에서 주제를 선택해 주세요.'); return; }
+    // 선택한 주제에 알맞은 예시만 채운다. 예시 주제가 아닌(교사가 직접 만든) 주제는 엉뚱한 예시를 넣지 않는다.
+    const sample = ArguMaterials.sampleFor(matSel);
+    if (!sample) { setStatus($('matStatus'), 'info', `'${matSel}' 주제에는 준비된 예시가 없어요`, "탐구 주제 목록의 '예시 주제'에서 고른 주제에는 예시가 준비돼 있어요. 이 주제는 아래 칸에 직접 입력해 주세요."); return; }
     if (Object.values(matEditorValues()).some((x) => x.trim()) && !confirm('입력한 내용이 예시로 바뀌어요. 계속할까요?')) return;
-    Object.entries(MAT_FIELDS).forEach(([k, id]) => { $(id).value = MAT_SAMPLE[k]; });
+    Object.entries(MAT_FIELDS).forEach(([k, id]) => { $(id).value = sample[k]; });
     updateMatCount();
-    setStatus($('matStatus'), 'info', "'전류와 전압의 관계' 예시를 채웠어요. 수업에 맞게 고친 뒤 저장해 주세요.", '아직 저장되지 않았어요.');
+    setStatus($('matStatus'), 'info', `'${matSel}' 예시를 채웠어요. 수업에 맞게 고친 뒤 저장해 주세요.`, sample.kind === 'debate'
+      ? '아직 저장되지 않았어요. 찬반 토론 주제라 실험 과정 칸에는 토론 진행 순서, 교사용 메모 칸에는 AI가 반론을 만들 때 쓸 쟁점 재료가 들어가요.'
+      : '아직 저장되지 않았어요. 준비물과 안전 안내는 우리 학교 실험 기구와 수업 방식에 맞게 고쳐 주세요.');
   });
 
   // ---- 탐구 도우미: 주제 단위 ----
@@ -1738,16 +1739,8 @@
   $('btnQnaGo').addEventListener('click', () => guideToMaterials());
 
   // ---- 탐구 주제 예시 (드롭박스에서 고르면 주제 목록에 추가) ----
-  // 주제 목록은 쉼표로 구분하므로 예시에는 쉼표를 넣지 않는다.
-  const TOPIC_EXAMPLES = [
-    { group: '실험 탐구 · 물리', items: ['전류와 전압의 관계', '단진자의 주기에 영향을 주는 요인', '빗면의 경사각과 물체의 속력', '볼록 렌즈와 상의 크기', '물질에 따른 비열의 차이'] },
-    { group: '실험 탐구 · 화학', items: ['온도와 반응 속도', '농도와 반응 속도', '표면적과 반응 속도', '온도에 따른 용해도 변화', '산과 염기의 중화 반응', '소금물의 농도와 달걀의 부력'] },
-    { group: '실험 탐구 · 생명·지구', items: ['빛의 세기와 광합성', '온도와 효소의 작용', '식물의 증산 작용과 환경 조건', '낙엽의 분해와 토양 속 미생물'] },
-    { group: '찬반 토론 주제 (찬반형 템플릿에 잘 맞아요)', items: [
-      '온도가 높을수록 반응은 항상 빨라진다', '무거운 물체는 가벼운 물체보다 항상 더 빨리 떨어진다', '원자력 발전은 앞으로 더 늘려야 한다',
-      '유전자 변형 식품은 안전하므로 널리 판매해도 된다', '일회용 플라스틱 사용을 법으로 금지해야 한다', '전기차는 내연기관차보다 환경에 더 이롭다',
-      '인류의 건강을 위해 동물 실험은 계속되어야 한다', '과학 수업에서 인공지능 챗봇을 적극 활용해야 한다'] },
-  ];
+  // 예시 주제는 js/material-samples.js 에 있다(주제마다 탐구 자료 예시가 하나씩 짝). 주제 목록은 쉼표로 구분하므로 예시에는 쉼표를 넣지 않는다.
+  const TOPIC_EXAMPLES = ArguMaterials.TOPIC_EXAMPLES;
   const topicListNow = () => $('s_topicList').value.split(',').map((t) => t.trim()).filter(Boolean);
   function renderTopicExamples() {
     const sel = $('topicExamples'); if (!sel) return;
