@@ -172,8 +172,39 @@ const find = (r, c, t, g) => (r.data.combos || []).find((x) => x.classValue === 
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'pick-logic.js'), 'utf8'), win);
   const idx = win.ArguPick.build({ classes: ['1반'], topics: [T3], groups: ['A1모둠'] }, overview(e).data.combos);
   const opts = win.ArguPick.dateOptions(idx, '1반', T3, 'A1모둠');
-  const mism = opts.filter((o) => !o.all).filter((o) => { const r = an(o.value); return win.ArguPick.selectable(o) ? r.success !== true : r.success !== false; }).map((o) => o.value);
-  ok('날짜 단추의 상태와 그 날짜 분석 결과가 모든 날짜에서 맞음(평가 제외뿐인 10/23 은 단추도 막히고 분석도 비어 있음)', opts.length === 4 && mism.length === 0 && opts.find((o) => o.value === '2026-10-23').state === 'excluded', { opts: JSON.parse(JSON.stringify(opts)).map((o) => [o.value, o.state]), mism });
+  const mism = opts.filter((o) => !o.all).filter((o) => { const r = an(o.value); return win.ArguPick.analyzable(o) ? r.success !== true : r.success !== false; }).map((o) => o.value);
+  ok('날짜 단추의 상태와 그 날짜 분석 결과가 모든 날짜에서 맞음(평가 제외뿐인 10/23 은 분석 대상이 아니고 분석도 비어 있음)', opts.length === 4 && mism.length === 0 && opts.find((o) => o.value === '2026-10-23').state === 'excluded', { opts: JSON.parse(JSON.stringify(opts)).map((o) => [o.value, o.state]), mism });
+}
+
+// ───────── 대화 기록 보기(getChatLog): 평가 제외 대화도 그대로, 교사 전용, 읽기 전용 ─────────
+{
+  const e = fresh();
+  const DateCtor = vm.runInContext('Date', e.ctx);
+  rec(e, '2026-10-20', '10:00', '3반', 'B1모둠', T3, 'qna', '-');          // 평가 제외(탐구 도우미)
+  rec(e, new DateCtor(2026, 9, 20, 0, 0), new DateCtor(1899, 11, 30, 10, 5), '3반', 'B1모둠', T3, 'qna', '-'); // 실제 시트처럼 Date 칸
+  rec(e, '2026-10-21', '09:00', '3반', 'B1모둠', T3, '기본', '기본');        // 평가 대상
+  rec(e, '2026-10-21', '09:01', '3반', 'A1모둠', T3, '기본', '기본');        // 다른 모둠
+  const log = (extra) => e.ctx.routeAction('getChatLog', Object.assign({ pin: PIN, classValue: '3반', groupValue: 'B1모둠', topicValue: T3 }, extra || {}));
+  ok('getChatLog 는 교사 전용 목록에 있고 학생 입구 목록에는 없음', e.ctx.TEACHER_ACTIONS_.includes('getChatLog') && !e.ctx.STUDENT_ACTIONS_.includes('getChatLog'), '');
+  const noPin = e.ctx.routeAction('getChatLog', { classValue: '3반', groupValue: 'B1모둠', topicValue: T3 }), byCode = e.ctx.routeAction('getChatLog', { accessCode: CODE, classValue: '3반', groupValue: 'B1모둠', topicValue: T3 });
+  ok('비밀번호 없이·수업 입장 코드만으로는 기록을 볼 수 없음', [noPin, byCode].every((r) => r.success === false && !r.rows), [noPin, byCode]);
+  const before = snapshot(e);
+  const all = log();
+  ok('평가 제외 대화까지 모든 날짜의 기록을 시간 순서로 돌려줌(다른 모둠은 섞이지 않음)', all.success === true && all.total === 3 && all.excluded === 2 && all.rows.length === 3 && all.rows.map((r) => r.evaluated).join() === 'false,false,true', all);
+  ok('Date 로 된 날짜·시간 칸도 글자로 바꿔 줌', all.rows[1].date === '2026-10-20' && all.rows[1].time === '10:05', all.rows[1]);
+  ok('학생 글·AI 답·페르소나·루브릭을 함께 줌', all.rows[0].text === '학생 말' && all.rows[0].aiReply === 'AI 말' && all.rows[0].persona === 'qna' && all.rows[0].rubric === '-', all.rows[0]);
+  ok('시트·설정·캐시를 바꾸지 않고 Gemini 도 부르지 않음(읽기 전용)', snapshot(e) === before, '');
+  const d20 = log({ dateValue: '2026-10-20' });
+  ok('날짜를 고르면 그날 기록만', d20.success === true && d20.total === 2 && d20.rows.every((r) => r.date === '2026-10-20') && d20.dateValue === '2026-10-20', d20);
+  const none = log({ dateValue: '2026-10-30' }), bad = log({ dateValue: '10/20' }), miss = log({ groupValue: '' });
+  ok('기록 없는 날짜·잘못된 날짜·빠진 모둠은 알기 쉬운 오류', none.success === false && none.empty === true && /2026-10-30/.test(none.error) && bad.success === false && /날짜 형식/.test(bad.error) && miss.success === false && !RAW.test(miss.error), [none, bad, miss]);
+  // 단추(pick-logic)와 같은 답: 평가 제외뿐인 날짜는 분석은 비어 있지만 기록은 보인다
+  const win2 = { console }; vm.createContext(win2); win2.window = win2;
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'pick-logic.js'), 'utf8'), win2);
+  const idx2 = win2.ArguPick.build({ classes: ['3반'], topics: [T3], groups: ['B1모둠'] }, overview(e).data.combos);
+  const sel = { cls: '3반', topic: T3, group: 'B1모둠', date: '2026-10-20' };
+  const an20 = e.ctx.routeAction('teacherAnalyze', { pin: PIN, classValue: '3반', groupValue: 'B1모둠', topicValue: T3, dateValue: '2026-10-20' });
+  ok('평가 제외뿐인 날짜: 단추는 기록 보기만 켜지고(분석 꺼짐), 서버도 분석은 비고 기록은 보여 줌', win2.ArguPick.canView(idx2, sel) && !win2.ArguPick.canAnalyze(idx2, sel) && an20.success === false && d20.success === true, [an20.error]);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
