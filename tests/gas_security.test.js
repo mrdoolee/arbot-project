@@ -99,6 +99,28 @@ ok('setTeacherPin_ 는 7자를 거부, 8자는 허용, 초기 비밀번호(12345
   ok('비밀번호·초기 비밀번호 원문은 저장되지 않음', !JSON.stringify([...e.props]).includes('my-new-pass-1') && !JSON.stringify([...e.props]).includes(INIT), '');
 }
 
+// ───────────────────────── 1c) 시트 메뉴 '♻️ 교사 비밀번호 초기화' ─────────────────────────
+{
+  const e = makeEnv({ pin: PIN, accessCode: 'K7M2QX' });
+  const dlg = [];
+  const fakeYesNo = (answer) => { e.ctx.SpreadsheetApp.getUi = () => ({ ButtonSet: { YES_NO: 'YES_NO', OK: 'OK' }, Button: { YES: 'YES', NO: 'NO', OK: 'OK' },
+    alert: (title, msg, btn) => { dlg.push({ title, msg: String(msg || ''), btn }); return btn === 'YES_NO' ? answer : 'OK'; } }); };
+  e.ctx.onOpen();
+  const items = (e.ui.menus[0] || { items: [] }).items.filter((i) => !i.separator);
+  ok('시트 메뉴에 ♻️ 교사 비밀번호 초기화가 🔐 교사 비밀번호 설정 바로 다음에 있음', items.findIndex((i) => i.fn === 'resetTeacherPinFromMenu') === items.findIndex((i) => i.fn === 'setTeacherPinFromMenu') + 1, items.map((i) => i.label));
+  ok('웹으로는 부를 수 없음(routeAction 에 없음)', /알 수 없는 action/.test(route(e, 'resetTeacherPinFromMenu', { pin: PIN }).error || '') && !e.ctx.TEACHER_ACTIONS_.includes('resetTeacherPinFromMenu'), '');
+  fakeYesNo('NO');
+  e.ctx.resetTeacherPinFromMenu();
+  ok('아니오를 누르면 비밀번호가 그대로', e.ctx.isTeacherPinSet_() && route(e, 'getTeacherSettings', { pin: PIN }).success === true && dlg.length === 1 && /12345678/.test(dlg[0].msg), dlg);
+  fakeYesNo('YES');
+  e.ctx.resetTeacherPinFromMenu();
+  ok('예를 누르면 비밀번호가 지워지고 교사 기능이 다시 잠김(needSetup)', !e.ctx.isTeacherPinSet_() && route(e, 'getTeacherSettings', { pin: PIN }).needSetup === true, '');
+  ok('완료 안내에 초기 비밀번호가 나옴', /12345678/.test(dlg[dlg.length - 1].msg), dlg[dlg.length - 1]);
+  ok('수업 입장 코드는 그대로(학생 대화는 계속)', e.props.get(CODE_PROP) === 'K7M2QX' && route(e, 'getInitialData', { accessCode: 'K7M2QX' }).success === true, '');
+  ok('초기화 뒤 초기 비밀번호로는 새 비밀번호 정하기만 되고, 정하면 다시 열림', route(e, 'getTeacherSettings', { pin: '12345678' }).needSetup === true
+    && route(e, 'setTeacherPin', { pin: '12345678', newPin: 'after-reset-77' }).success === true && route(e, 'getTeacherSettings', { pin: 'after-reset-77' }).success === true, '');
+}
+
 // ───────────────────────── 2) 수업 입장 코드 ─────────────────────────
 env = makeEnv({ pin: PIN }); // 비밀번호만 있고 코드는 아직 없음
 ok('코드가 아직 없으면 학생 입구는 닫혀 있음(코드를 만들어 주지 않음)',

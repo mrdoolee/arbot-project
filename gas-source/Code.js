@@ -373,6 +373,7 @@ function onOpen() {
     .addItem('ℹ️ 정보', 'showAbout_')
     .addSeparator()
     .addItem('🔐 교사 비밀번호 설정', 'setTeacherPinFromMenu')
+    .addItem('♻️ 교사 비밀번호 초기화', 'resetTeacherPinFromMenu')
     .addItem('🔑 수업 입장 코드 보기', 'showAccessCodeFromMenu')
     .addItem('🔄 주제 세부설정 맞추기', 'syncTopicRowsFromMenu')
     .addItem('🩺 시트 구조 점검', 'checkSheetStructureFromMenu')
@@ -400,6 +401,23 @@ function setTeacherPinFromMenu() {
   var code = ensureAccessCode_();
   ui.alert('비밀번호를 정했어요',
     '이제 교사 콘솔에서 이 비밀번호로 들어갈 수 있어요. 잊어버리지 않게 적어 두세요.\n\n학생이 대화방에 들어갈 때 쓰는 수업 입장 코드는 ' + code + ' 예요. (교사 콘솔의 "학생 배부 링크 & QR"에서 바꿀 수 있어요)', ui.ButtonSet.OK);
+}
+
+// 시트 메뉴: 교사 비밀번호를 처음 상태로 되돌린다(정해 둔 비밀번호를 지운다). 이 시트를 열 수 있는 사람만 실행할 수 있다.
+// 되돌리면 교사 콘솔에서 초기 비밀번호(DEFAULT_PIN_)로 새 비밀번호를 정해야 하고, 그 전까지 설정·분석은 잠긴다.
+// 초기 비밀번호를 계속 쓰는 비밀번호로 두지는 않는다(공개된 값이라 누구나 열 수 있게 되므로). 수업 입장 코드와 학생 대화는 그대로다.
+function resetTeacherPinFromMenu() {
+  var ui = SpreadsheetApp.getUi();
+  var ans = ui.alert('♻️ 교사 비밀번호 초기화',
+    '교사 비밀번호를 처음 상태로 되돌릴까요?\n\n' +
+    '되돌리면 교사 콘솔에 초기 비밀번호 "' + DEFAULT_PIN_ + '"로 들어가 새 비밀번호(' + PIN_MIN_LENGTH_ + '자 이상)를 정해야 해요. ' +
+    '새 비밀번호를 정하기 전까지 교사 콘솔의 설정·분석은 잠겨요.\n' +
+    '학생 대화와 수업 입장 코드는 그대로예요.', ui.ButtonSet.YES_NO);
+  if (ans !== ui.Button.YES) return;
+  resetTeacherPin();
+  ui.alert('♻️ 교사 비밀번호 초기화',
+    '교사 비밀번호를 처음 상태로 되돌렸어요.\n\n초기 비밀번호는 "' + DEFAULT_PIN_ + '"입니다. 교사 콘솔의 1. GAS 연동에서 [연결 테스트]를 누르고, 초기 비밀번호와 새 비밀번호를 넣어 주세요. ' +
+    '(이 메뉴 위의 🔐 교사 비밀번호 설정에서 바로 새 비밀번호를 정해도 돼요)', ui.ButtonSet.OK);
 }
 
 // 시트 메뉴: 주제 목록(기본설정 B4)에 맞춰 '주제 세부설정' 탭에 주제별 줄을 만든다.
