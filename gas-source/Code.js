@@ -75,14 +75,14 @@ function requireSheet_(name) {
 //  2) 학생 입구(getInitialData·processChatMessage): 교사가 정한 '수업 입장 코드'(accessCode)가 맞아야 한다.
 //     주소만 아는 외부인이 대화방을 쓰거나 학급·모둠 목록을 보지 못하게 하고, 코드를 바꾸면 이미 퍼진 링크도 무효가 된다.
 // ---------------------------------------------------------------------------
-var TEACHER_ACTIONS_ = ["teacherAnalyze", "getChatOverview", "listGeminiModels", "testGeminiModel", "getTeacherSettings",
+var TEACHER_ACTIONS_ = ["teacherAnalyze", "getChatOverview", "getChatLog", "listGeminiModels", "testGeminiModel", "getTeacherSettings",
   "getTopicMaterials", "saveTopicMaterial", "saveTeacherSettings", "setTeacherPin", "getApiKeys", "saveApiKeys", "resetApiKeyStatus",
   "getProfiles", "saveProfile", "deleteProfile", "saveTopicSetting", "getAccessCode", "setAccessCode"];
 var STUDENT_ACTIONS_ = ["getInitialData", "processChatMessage", "getSessionFeedback"]; // 수업 입장 코드가 필요한 공개 action
 // 이 GAS 코드의 API 버전. testConnection 이 알려 주고, 교사 콘솔은 자기가 요구하는 버전(REQUIRED_API_VERSION)보다 낮으면
 // "시트의 GAS 가 옛 버전이에요"를 안내한다 (콘솔은 모두가 공유하지만 GAS 는 시트마다 따로 배포되기 때문).
 // 콘솔이 새 action 을 쓰기 시작하면 이 숫자와 콘솔의 REQUIRED_API_VERSION 을 함께 올린다. (버전 1 = 이 값이 없던 옛 코드)
-var API_VERSION_ = 4; // 3: getChatOverview (결과 분석의 학급 → 주제 → 모둠 단추가 기록 유무를 표시), 4: getSessionFeedback (탐구 시간이 끝나면 학생에게 100자 피드백) + 날짜별 분석 (getChatOverview 의 dates, teacherAnalyze 의 dateValue)
+var API_VERSION_ = 5; // 5: getChatLog (평가 제외 대화도 기록 보기) · 3: getChatOverview (결과 분석의 학급 → 주제 → 모둠 단추가 기록 유무를 표시), 4: getSessionFeedback (탐구 시간이 끝나면 학생에게 100자 피드백) + 날짜별 분석 (getChatOverview 의 dates, teacherAnalyze 의 dateValue)
 var PIN_HASH_PROP_ = "TEACHER_PIN_HASH";
 var PIN_SALT_PROP_ = "TEACHER_PIN_SALT";
 var PIN_MIN_LENGTH_ = 8;
@@ -300,6 +300,8 @@ function routeAction(action, params) {
         return apiAnalyze(params.classValue, params.groupValue, params.topicValue, params.useMaterial, params.rubricName, params.dateValue);
       case "getChatOverview":
         return apiChatOverview();
+      case "getChatLog":
+        return apiChatLog(params.classValue, params.groupValue, params.topicValue, params.dateValue);
       case "listGeminiModels":
         return listGeminiModels(params);
       case "testGeminiModel":
@@ -1747,6 +1749,39 @@ function apiChatOverview() {
       last: (stamp(r[0], "yyyy-MM-dd") + " " + stamp(r[1], "HH:mm")).trim(), dates: dates };
   });
   return { success: true, data: { combos: combos } };
+}
+
+// ---------------------------------------------------------
+// [JSON API 전용] 결과 분석 화면의 '대화 기록 보기': 고른 학급·모둠·주제(·날짜)의 채팅기록을 평가 제외 대화까지 그대로 돌려준다.
+// 읽기만 한다(쓰기·Gemini 호출 없음). 이름 규칙(앞뒤 공백만 뺀 정확 일치)과 평가 제외 기준(H열 'qna' 또는 I열 '-')은 apiAnalyze·apiChatOverview 와 같다.
+//   rows: [{ date, time, text(학생 글), aiReply(그 뒤 AI 답 또는 상태), persona, rubric, evaluated }] (시트 순서 = 시간 순서)
+var CHAT_LOG_MAX_ROWS_ = 2000;
+function apiChatLog(targetClass, targetGroup, targetTopic, targetDate) {
+  targetClass = (targetClass || "").toString().trim();
+  targetGroup = (targetGroup || "").toString().trim();
+  targetTopic = (targetTopic || "").toString().trim();
+  targetDate = (targetDate || "").toString().trim();
+  if (!targetClass || !targetGroup || !targetTopic) return { success: false, error: "학급, 모둠, 탐구 주제를 모두 선택해 주세요." };
+  if (targetDate && !/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) return { success: false, error: "날짜 형식이 올바르지 않아요." };
+  var all = requireSheet_('채팅기록').getDataRange().getValues();
+  var cell = function(r, i) { return r[i] == null ? "" : String(r[i]).trim(); };
+  var stamp = function(v, fmt) { return (v instanceof Date) ? Utilities.formatDate(v, "Asia/Seoul", fmt) : String(v == null ? "" : v).trim(); };
+  var rows = [], total = 0, excluded = 0;
+  for (var i = 1; i < all.length; i++) {
+    var r = all[i];
+    if (cell(r, 2) !== targetClass || cell(r, 3) !== targetGroup || cell(r, 4) !== targetTopic) continue;
+    if (targetDate && chatDateKey_(r[0]) !== targetDate) continue;
+    var evaluated = cell(r, 7) !== "qna" && cell(r, 8) !== NO_RUBRIC_;
+    total++;
+    if (!evaluated) excluded++;
+    if (rows.length < CHAT_LOG_MAX_ROWS_) {
+      rows.push({ date: chatDateKey_(r[0]), time: stamp(r[1], "HH:mm"), text: cell(r, 5), aiReply: cell(r, 6), persona: cell(r, 7), rubric: cell(r, 8), evaluated: evaluated });
+    }
+  }
+  if (!total) {
+    return { success: false, empty: true, error: targetClass + " " + targetGroup + " · " + targetTopic + (targetDate ? " (" + targetDate + ")" : "") + "의 대화 기록이 없습니다." };
+  }
+  return { success: true, rows: rows, total: total, excluded: excluded, truncated: total > rows.length, dateValue: targetDate };
 }
 
 // ---------------------------------------------------------

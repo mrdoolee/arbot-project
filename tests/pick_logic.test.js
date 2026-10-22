@@ -51,7 +51,8 @@ ok('아무것도 안 고르면 분석 버튼은 꺼짐', P.canAnalyze(idx, {}) =
   const g = P.groupOptions(idx, '1반', '전류와 전압'), s = st(g), by = Object.fromEntries(g.map((o) => [o.value, o]));
   ok('A1모둠은 ok(5건), A2모둠은 평가 제외, B1모둠은 기록 없음', s['A1모둠'] === 'ok' && s['A2모둠'] === 'excluded' && s['B1모둠'] === 'empty', s);
   ok('ok 모둠은 평가 대상 건수와 마지막 대화 시각을 가짐', by['A1모둠'].analyzable === 5 && by['A1모둠'].last === '2026-10-15 10:20', plain(by['A1모둠']));
-  ok('평가 제외 모둠은 기록 건수(2)는 알려 주되 누를 수 없음', by['A2모둠'].total === 2 && by['A2모둠'].analyzable === 0 && P.selectable(by['A2모둠']) === false, plain(by['A2모둠']));
+  ok('평가 제외 모둠은 기록 건수(2)를 알려 주고, 누를 수는 있지만(기록 보기) 분석 대상은 아님', by['A2모둠'].total === 2 && by['A2모둠'].analyzable === 0 && P.selectable(by['A2모둠']) === true && P.analyzable(by['A2모둠']) === false, plain(by['A2모둠']));
+  ok('기록 없는 모둠은 누를 수도 분석할 수도 없음', P.selectable(by['B1모둠']) === false && P.analyzable(by['B1모둠']) === false, plain(by['B1모둠']));
   ok('기록 없음 모둠은 누를 수 없음', P.selectable(by['B1모둠']) === false && by['B1모둠'].total === 0, plain(by['B1모둠']));
   const other = st(P.groupOptions(idx, '1반', '온도와 반응 속도'));
   ok('같은 학급이라도 주제가 다르면 모둠 상태가 따로임(온도 주제는 B1모둠만 ok)', other['B1모둠'] === 'ok' && other['A1모둠'] === 'empty' && other['A2모둠'] === 'empty', other);
@@ -83,7 +84,7 @@ ok('아무것도 안 고르면 분석 버튼은 꺼짐', P.canAnalyze(idx, {}) =
   const noGroup = P.build(lists, combos.filter((c) => c.groupValue !== 'A1모둠' || c.classValue !== '1반').concat([{ classValue: '1반', topicValue: '전류와 전압', groupValue: 'B1모둠', total: 1, analyzable: 1, last: '' }]));
   ok('고른 모둠의 기록이 사라지면 모둠만 비워지고 학급·주제는 유지', JSON.stringify(plain(P.reconcile(noGroup, sel))) === JSON.stringify({ cls: '1반', topic: '전류와 전압', group: '' }), plain(P.reconcile(noGroup, sel)));
   const onlyExcluded = P.build(lists, combos.filter((c) => !(c.classValue === '1반' && c.topicValue === '전류와 전압' && c.groupValue === 'A1모둠')));
-  ok('주제에 평가 제외 모둠만 남으면 그 주제도 평가 제외가 되어 선택이 주제부터 비워짐', JSON.stringify(plain(P.reconcile(onlyExcluded, sel))) === JSON.stringify({ cls: '1반', topic: '', group: '' }) && P.topicOptions(onlyExcluded, '1반').find((o) => o.value === '전류와 전압').state === 'excluded', plain(P.topicOptions(onlyExcluded, '1반')));
+  ok('고른 모둠의 기록이 평가 제외만 남으면, 선택은 기록 보기용으로 남되(주제 단추는 평가 제외 표시) 분석 버튼은 꺼짐', JSON.stringify(plain(P.reconcile(onlyExcluded, sel))) === JSON.stringify({ cls: '1반', topic: '전류와 전압', group: '' }) && P.topicOptions(onlyExcluded, '1반').find((o) => o.value === '전류와 전압').state === 'excluded' && !P.canAnalyze(onlyExcluded, { cls: '1반', topic: '전류와 전압', group: 'A2모둠' }) && P.canView(onlyExcluded, { cls: '1반', topic: '전류와 전압', group: 'A2모둠' }), plain(P.reconcile(onlyExcluded, sel)));
   const noTopic = P.build(lists, combos.filter((c) => !(c.classValue === '1반' && c.topicValue === '전류와 전압')));
   ok('고른 주제의 기록이 사라지면 주제·모둠이 비워지고 학급은 유지', JSON.stringify(plain(P.reconcile(noTopic, sel))) === JSON.stringify({ cls: '1반', topic: '', group: '' }), plain(P.reconcile(noTopic, sel)));
   const noClass = P.build(lists, combos.filter((c) => c.classValue !== '1반'));
@@ -154,7 +155,7 @@ ok('아무것도 안 고르면 분석 버튼은 꺼짐', P.canAnalyze(idx, {}) =
   ok('모든 날짜 함께를 고르면 서버에는 빈 날짜(전체)가 감', P.canAnalyze(di, { cls: '1반', topic: '원자력 발전', group: 'A1모둠', date: P.ALL_DATES }) && P.dateParam({ date: P.ALL_DATES }) === '' && P.dateParam({}) === '', '');
   ok('하루만 한 모둠은 날짜가 저절로 골라져 세 단계만으로 분석 버튼이 켜짐', P.canAnalyze(di, { cls: '1반', topic: '원자력 발전', group: 'A2모둠' }) && plainAll(P.reconcile(di, { cls: '1반', topic: '원자력 발전', group: 'A2모둠' })).date === '2026-10-15' && P.dateOptions(di, '1반', '원자력 발전', 'A2모둠').length === 1, P.dateOptions(di, '1반', '원자력 발전', 'A2모둠').map((o) => o.value));
   const b1 = P.dateOptions(di, '1반', '원자력 발전', 'B1모둠');
-  ok('평가 제외 대화뿐인 날짜는 누를 수 없음(나머지 하루와 모든 날짜 함께는 누를 수 있음)', b1.find((o) => o.value === '2026-10-15').state === 'excluded' && !P.selectable(b1[0]) && P.selectable(b1[1]) && P.selectable(b1[2]), plainAll(b1).map((o) => [o.value, o.state]));
+  ok('평가 제외 대화뿐인 날짜도 누를 수 있지만(기록 보기) 분석 대상은 아님, 나머지 하루와 모든 날짜 함께는 분석 가능', b1.find((o) => o.value === '2026-10-15').state === 'excluded' && P.selectable(b1[0]) && !P.analyzable(b1[0]) && P.analyzable(b1[1]) && P.analyzable(b1[2]), plainAll(b1).map((o) => [o.value, o.state]));
   ok('고를 수 있는 단추가 둘이면(하루 + 전체) 저절로 고르지 않음', plainAll(P.reconcile(di, { cls: '1반', topic: '원자력 발전', group: 'B1모둠' })).date === '', '');
   ok('평가 제외 날짜를 억지로 넣어도 분석 버튼은 꺼짐', !P.canAnalyze(di, { cls: '1반', topic: '원자력 발전', group: 'B1모둠', date: '2026-10-15' }), '');
   ok('없는 날짜는 비워지고 학급·주제·모둠은 유지', JSON.stringify(plainAll(P.reconcile(di, { cls: '1반', topic: '원자력 발전', group: 'A1모둠', date: '2026-01-01' }))) === JSON.stringify({ cls: '1반', topic: '원자력 발전', group: 'A1모둠', date: '' }), '');
@@ -166,6 +167,16 @@ ok('아무것도 안 고르면 분석 버튼은 꺼짐', P.canAnalyze(idx, {}) =
   const unk = P.build(lists, null);
   ok('기록 유무를 모를 때도 모든 날짜 하나로 분석 가능', P.dateOptions(unk, '2반', '원자력 발전', 'B1모둠')[0].state === 'unknown' && P.canAnalyze(unk, { cls: '2반', topic: '원자력 발전', group: 'B1모둠' }), '');
   ok('날짜 칸이 이상한 값이면 건너뜀(깨지지 않음)', P.dateOptions(P.build(lists, [{ classValue: '1반', topicValue: 't', groupValue: 'g', total: 1, analyzable: 1, dates: [null, { date: '', total: 1 }, { date: '2026-10-15', total: 1, analyzable: 1 }] }]), '1반', 't', 'g').map((o) => o.value).join() === '2026-10-15', '');
+}
+
+// ───────── 8) 대화 기록 보기: 평가 제외 대화도 볼 수 있고, 분석은 평가할 대화가 있을 때만 ─────────
+{
+  const sel = { cls: '1반', topic: '전류와 전압', group: 'A2모둠' }; // 탐구 도우미 대화뿐(평가 제외 2건)
+  ok('평가 제외 모둠을 고르면 기록 보기는 켜지고 분석은 꺼짐', P.canView(idx, sel) && !P.canAnalyze(idx, sel), plainAll(P.reconcile(idx, sel)));
+  ok('평가 대상 모둠은 기록 보기와 분석 모두 켜짐', P.canView(idx, { cls: '1반', topic: '전류와 전압', group: 'A1모둠' }) && P.canAnalyze(idx, { cls: '1반', topic: '전류와 전압', group: 'A1모둠' }), '');
+  ok('기록 없는 모둠은 기록 보기도 꺼짐', !P.canView(idx, { cls: '1반', topic: '전류와 전압', group: 'B1모둠' }), '');
+  const only = P.build(lists, [{ classValue: '3반', topicValue: '원자력 발전', groupValue: 'B1모둠', total: 7, analyzable: 0, last: '', dates: [{ date: '2026-10-20', total: 7, analyzable: 0 }] }]);
+  ok('평가 제외 대화뿐인 학급·주제도 단추로 끝까지 고를 수 있음(스크린샷의 "평가 제외 7건")', P.selectable(P.classOptions(only).find((o) => o.value === '3반')) && P.selectable(P.topicOptions(only, '3반').find((o) => o.value === '원자력 발전')) && P.canView(only, { cls: '3반', topic: '원자력 발전', group: 'B1모둠' }) && !P.canAnalyze(only, { cls: '3반', topic: '원자력 발전', group: 'B1모둠' }), P.topicOptions(only, '3반').map((o) => [o.value, o.state]));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

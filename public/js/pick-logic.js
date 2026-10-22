@@ -11,7 +11,7 @@
  * 단추 상태(state):
  *   ok       기록이 있고 평가할 수 있음 — 누를 수 있음
  *   empty    기록 없음 — 누를 수 없음
- *   excluded 기록은 있지만 모두 평가 제외(탐구 도우미 등) — 누를 수 없음
+ *   excluded 기록은 있지만 모두 평가 제외(탐구 도우미 등) — 누를 수 있지만(대화 기록 보기) 분석은 안 됨
  *   unknown  기록 유무를 모름(combos 가 null) — 누를 수 있음
  */
 (function (global) {
@@ -70,7 +70,9 @@
 
   function option(idx, value, offList, rows) { return Object.assign({ value, offList }, summarize(idx, rows)); }
 
-  const selectable = (o) => !!o && (o.state === 'ok' || o.state === 'unknown');
+  // 누를 수 있는 단추: 기록이 있으면 평가 제외여도 누를 수 있다(기록 보기). 분석할 수 있는지는 analyzable 로 따로 본다.
+  const selectable = (o) => !!o && (o.state === 'ok' || o.state === 'unknown' || o.state === 'excluded');
+  const analyzable = (o) => !!o && (o.state === 'ok' || o.state === 'unknown');
 
   function classOptions(idx) {
     const found = idx.rows.map((r) => r.cls);
@@ -128,13 +130,19 @@
     return s;
   }
 
-  // 분석 버튼은 네 단계(학급·주제·모둠·날짜)를 모두 고르고, 그 선택이 지금도 유효할 때만 켠다
-  function canAnalyze(idx, sel) {
+  // '대화 기록 보기'는 네 단계(학급·주제·모둠·날짜)를 모두 고르고 그 선택이 지금도 유효하면 켠다 (평가 제외 대화도 볼 수 있다)
+  function canView(idx, sel) {
     const r = reconcile(idx, sel);
     return !!(r.cls && r.topic && r.group && r.date);
+  }
+  // 분석 버튼은 거기에 더해, 고른 날짜(또는 모든 날짜)에 평가할 대화가 있을 때만 켠다
+  function canAnalyze(idx, sel) {
+    if (!canView(idx, sel)) return false;
+    const r = reconcile(idx, sel);
+    return analyzable(dateOptions(idx, r.cls, r.topic, r.group).find((o) => o.value === r.date));
   }
   // 서버(teacherAnalyze)에 보낼 날짜: 모든 날짜면 빈 문자열
   const dateParam = (sel) => { const d = norm(sel && sel.date); return d === ALL_DATES ? '' : d; };
 
-  global.ArguPick = { build, classOptions, topicOptions, groupOptions, dateOptions, reconcile, canAnalyze, selectable, dateParam, ALL_DATES };
+  global.ArguPick = { build, classOptions, topicOptions, groupOptions, dateOptions, reconcile, canAnalyze, canView, selectable, analyzable, dateParam, ALL_DATES };
 })(typeof window !== 'undefined' ? window : globalThis);

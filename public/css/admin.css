@@ -532,3 +532,14 @@ td.say .tq .who { color: #0e8c76; }
 td.say .tq.start { background: transparent; border-left-style: dashed; color: var(--ink-3); }
 td.say .sa { white-space: pre-wrap; }
 td.say .sa .who { color: var(--blue-strong); }
+
+/* 결과 분석 · 대화 기록 보기 (평가 없이 채팅기록만) */
+.chatlog { display: flex; flex-direction: column; gap: 10px; max-height: 640px; overflow-y: auto; padding: 4px 2px; }
+.cl-day { align-self: center; margin: 6px 0 2px; padding: 3px 12px; border-radius: 999px; background: var(--canvas); color: var(--ink-3); font-size: 12px; font-weight: 700; }
+.cl-turn { display: flex; flex-direction: column; gap: 4px; }
+.cl-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-3); }
+.cl-tag { padding: 1px 7px; border-radius: 999px; background: rgba(245,158,11,.14); color: #a15c07; font-weight: 700; }
+.cl-persona { color: var(--ink-3); }
+.cl-msg { max-width: 82%; padding: 8px 12px; border-radius: 14px; font-size: 14px; line-height: 22px; white-space: pre-wrap; word-break: break-word; }
+.cl-student { align-self: flex-end; background: rgba(59,125,216,.12); border-bottom-right-radius: 4px; }
+.cl-ai { align-self: flex-start; background: var(--canvas); border-left: 3px solid #22c1a3; border-bottom-left-radius: 4px; color: var(--ink-2); }
