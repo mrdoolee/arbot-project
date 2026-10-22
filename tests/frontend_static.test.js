@@ -304,7 +304,15 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
 
   ok('캐릭터는 5명이고 대화 방식(템플릿) 5종과 하나씩 짝(1:1)', chars.length === 5 && keys.length === 5 && new Set(chars.map((c) => c.id)).size === 5 && new Set(chars.map((c) => c.template)).size === 5 && keys.every((k) => chars.filter((c) => c.template === k).length === 1), chars.map((c) => [c.id, c.template]));
   ok('찬반 토론형의 짝은 토론 파트너, 탐구 도우미의 짝은 로봇 (옛 짝 비판적 사고 코치·실험 가운 선생님이 아님)', AS.characterFor('debate').id === 'debater' && AS.characterFor('debate').name === '토론 파트너' && AS.characterFor('qna').id === 'robot' && AS.characterFor('socratic').id === 'socrates' && AS.characterFor('cer').id === 'labcoat' && AS.characterFor('advanced').id === 'coach', keys.map((k) => AS.characterFor(k).id));
-  ok('모든 캐릭터에 그림이 있고 세 가지 입 모양(질문·생각·칭찬)을 갖춤', chars.every((c) => { const h = AS.avatarHtml(c.id, 'asking'); return /<svg/.test(h) && h.includes('m-ask') && h.includes('m-think') && h.includes('m-happy'); }), '');
+  // 캐릭터 그림: 캐릭터마다 표정 3장(질문·생각·칭찬) PNG. 화면은 세 장을 겹쳐 두고 data-state 로 하나만 보인다.
+  const imgInfo = (id, st) => { const p = path.join(ROOT, 'public', 'img', 'characters', id + '-' + st + '.png'); if (!fs.existsSync(p)) return null; const b = fs.readFileSync(p); return { png: b.slice(1, 4).toString() === 'PNG', w: b.readUInt32BE(16), h: b.readUInt32BE(20), alpha: b[25] === 6, kb: b.length / 1024 }; };
+  const imgBad = [];
+  chars.forEach((c) => ['asking', 'thinking', 'praising'].forEach((st) => { const i = imgInfo(c.id, st); if (!i || !i.png || i.w !== 320 || i.h !== 320 || !i.alpha || i.kb > 160) imgBad.push([c.id, st, i]); }));
+  ok('모든 캐릭터에 표정 그림 3장(질문·생각·칭찬)이 있고, 320px 투명 PNG·160KB 이하', imgBad.length === 0, imgBad);
+  ok('avatarHtml 은 표정 3장을 같은 폴더에서 겹쳐 넣고, 지금 상태와 캐릭터 이름(aria-label)을 붙임', chars.every((c) => { const h = AS.avatarHtml(c.id, 'thinking'); return /data-state="thinking"/.test(h) && h.includes('aria-label="' + c.name + '"') && ['asking', 'thinking', 'praising'].every((st) => h.includes('<img class="av-' + st + '" src="img/characters/' + c.id + '-' + st + '.png"')) && (h.match(/<img /g) || []).length === 3; }), AS.avatarHtml('socrates', 'thinking'));
+  ok('모르는 상태는 질문 표정, 모르는 캐릭터는 첫 캐릭터 그림(깨지지 않음)', /data-state="asking"/.test(AS.avatarHtml('robot', 'zzz')) && AS.avatarHtml('없는캐릭터', 'asking').includes('img/characters/socrates-asking.png'), '');
+  const tokensCss = read('public/css/tokens.css');
+  ok('CSS: 표정 그림은 겹쳐 두고 data-state 에 맞는 한 장만 보임(옛 SVG 입 모양 규칙 없음)', /\.avatar img \{[^}]*position: absolute[^}]*opacity: 0/.test(tokensCss) && /\.avatar\[data-state="thinking"\] \.av-thinking/.test(tokensCss) && !/m-ask|\.avatar svg/.test(tokensCss) && !/<svg/.test(read('public/js/argu-shared.js')), '');
   ok("옛 '추천 템플릿(recommend)' 목록은 없어지고 캐릭터마다 template 하나", chars.every((c) => !('recommend' in c) && typeof c.template === 'string' && c.tagline), '');
   ok('Templates.js 의 템플릿 원본이 같은 짝·이름·인사말을 씀(새 시트에 처음부터 맞게 들어감)', TP.length === 5 && TP.every((t) => t.persona.characterId === AS.characterFor(t.key).id && t.persona.characterName === AS.characterFor(t.key).name && t.persona.greeting === AS.GREETINGS[t.key]), TP.map((t) => [t.key, t.persona.characterId, t.persona.characterName]));
 

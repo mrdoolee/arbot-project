@@ -13,3 +13,6 @@ Thumbs.db
 
 .vercel
 .env*
+
+# 캐릭터 그림 원본·시안·참고 그림 (tools/generate-characters.js 결과). 사이트에 쓰는 것은 public/img/characters 에 따로 둔다
+assets/
