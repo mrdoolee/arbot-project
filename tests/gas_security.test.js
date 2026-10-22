@@ -338,7 +338,7 @@ ok('소스에 키를 주소(?key= / &key=)로 붙이는 코드가 없음', !/[?&
 ok('모든 Gemini 호출이 x-goog-api-key 헤더를 씀', (code.match(/UrlFetchApp\.fetch\(/g) || []).length === (code.match(/headers: geminiHeaders_\(apiKey\)/g) || []).length, [(code.match(/UrlFetchApp\.fetch\(/g) || []).length, (code.match(/headers: geminiHeaders_\(apiKey\)/g) || []).length]);
 ok('디버그 응답 코드가 남아 있지 않음', !/payload\.debug/.test(code) && !/GEMINI_TRACE_/.test(code) && !/timing:/.test(code), '');
 ok('교사 전용 action 목록에 getAccessCode·setAccessCode 포함', env.ctx.TEACHER_ACTIONS_.includes('getAccessCode') && env.ctx.TEACHER_ACTIONS_.includes('setAccessCode'), env.ctx.TEACHER_ACTIONS_);
-ok('학생 입구 목록은 getInitialData·processChatMessage 둘뿐', JSON.stringify(env.ctx.STUDENT_ACTIONS_) === JSON.stringify(['getInitialData', 'processChatMessage']), env.ctx.STUDENT_ACTIONS_);
+ok('학생 입구 목록은 getInitialData·processChatMessage·getSessionFeedback 셋뿐', JSON.stringify(env.ctx.STUDENT_ACTIONS_) === JSON.stringify(['getInitialData', 'processChatMessage', 'getSessionFeedback']), env.ctx.STUDENT_ACTIONS_);
 ok('testConnection 만 교사 전용도 학생 입구도 아닌 공개 action(스스로 비밀번호를 확인)',
   (src.match(/case "([A-Za-z]+)":/g) || []).map((s) => s.replace(/case "|":/g, '')).filter((a) => !env.ctx.TEACHER_ACTIONS_.includes(a) && !env.ctx.STUDENT_ACTIONS_.includes(a)).join() === 'testConnection', '');
 

@@ -771,7 +771,7 @@
 
   // ================= 1. GAS 연동 =================
   // 콘솔이 요구하는 GAS 코드 버전 (gas-source/Code.js 의 API_VERSION_ 과 함께 올린다). 응답에 version 이 없으면 옛 코드(1)다.
-  const REQUIRED_API_VERSION = 3;
+  const REQUIRED_API_VERSION = 4;
   async function testConnection(url, quiet) {
     if (!GasClient.isValidGasUrl(url)) throw new Error('구글 Apps Script 웹 앱 주소(https://script.google.com/…/exec)만 연결할 수 있어요.');
     const prev = GasClient.getGasUrl();

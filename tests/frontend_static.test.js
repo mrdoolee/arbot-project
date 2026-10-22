@@ -50,7 +50,7 @@ const serverStudent = listOf(server, /var STUDENT_ACTIONS_ = \[([\s\S]*?)\];/, '
 ok('화면이 부르는 action 은 모두 서버에 있음', [...called].every((a) => routed.has(a)), [...called].filter((a) => !routed.has(a)));
 ok('서버 교사 전용 목록 = 클라이언트 교사 전용 목록 (testConnection 만 스스로 비밀번호를 확인해 클라이언트에만 있음)',
   [...serverTeacher].every((a) => clientTeacher.has(a)) && [...clientTeacher].filter((a) => !serverTeacher.has(a)).join() === 'testConnection', [[...serverTeacher], [...clientTeacher]]);
-ok('학생 입구(코드 필요)는 getInitialData·processChatMessage 둘뿐', [...serverStudent].sort().join() === 'getInitialData,processChatMessage', [...serverStudent]);
+ok('학생 입구(코드 필요)는 getInitialData·getSessionFeedback·processChatMessage 셋뿐', [...serverStudent].sort().join() === 'getInitialData,getSessionFeedback,processChatMessage', [...serverStudent]);
 ok('학생 입구 action 은 교사 전용 목록과 겹치지 않음', [...serverStudent].every((a) => !serverTeacher.has(a)), '');
 ok('getInitialData 는 학생 화면에서만, 수업 입장 코드와 함께 POST 로 부름', /callPost\('getInitialData', \{ accessCode/.test(pages['public/student.html']) && !/call(?:Get|Post)\('getInitialData'/.test(pages['public/index.html']) && !/callGet\('getInitialData'/.test(pages['public/student.html']), '');
 ok('채팅 요청에 수업 입장 코드를 실어 보냄', /callPost\('processChatMessage', \{[\s\S]*?accessCode: S\.code/.test(pages['public/student.html']), '');
@@ -321,12 +321,22 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('대화 방식마다 입장 화면 문구(인사 한 줄·튜터 설명·상태 글자)가 있고 서로 다름', sc.every((c) => c.hero && c.tutor && c.states.asking && c.states.thinking && c.states.praising) && new Set(sc.map((c) => c.tutor)).size === 5 && new Set(sc.map((c) => c.hero)).size === 5, sc.map((c) => c.tutor));
   ok('찬반 토론형의 튜터 설명은 반론·입장을 말하고, 소크라테스형 문구(질문으로 키워 줘요)가 아님', /반론/.test(AS.studentCopy('debate').tutor) && /입장/.test(AS.studentCopy('debate').tutor) && !/정답을 알려주는 대신/.test(AS.studentCopy('debate').tutor) && /반론/.test(AS.studentCopy('debate').states.asking), AS.studentCopy('debate'));
   ok('모르는 방식은 소크라테스형 문구로(깨지지 않음)', AS.studentCopy('모르는방식').tutor === AS.studentCopy('socratic').tutor, '');
+  ok('탐구 요약 카드의 마무리 안내(wrapUp)가 방식마다 있고 서로 다름', sc.every((c) => typeof c.wrapUp === 'string' && c.wrapUp.length > 20) && new Set(sc.map((c) => c.wrapUp)).size === 5, sc.map((c) => c.wrapUp));
+  ok('찬반 토론형·탐구 도우미의 마무리 안내에 실험보고서·가설이 없고, 토론은 입장·반론을 말함', !/실험보고서|가설/.test(AS.studentCopy('debate').wrapUp) && /입장/.test(AS.studentCopy('debate').wrapUp) && /반론/.test(AS.studentCopy('debate').wrapUp) && !/실험보고서|가설|논증/.test(AS.studentCopy('qna').wrapUp), [AS.studentCopy('debate').wrapUp, AS.studentCopy('qna').wrapUp]);
 
   // 화면이 이 규칙을 실제로 쓴다
   const stuScript = [...pages['public/student.html'].matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
   const idxScript = [...pages['public/index.html'].matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
   ok('학생 화면: 캐릭터를 resolveCharacter 로 정하고, 인사 한 줄·튜터 설명·상태 글자를 studentCopy 에서 가져옴', /AS\.resolveCharacter\(S\.templateKey, c\.id, c\.name\)/.test(stuScript) && /AS\.studentCopy\(S\.templateKey\)/.test(stuScript) && /\$\('heroLine'\)\.textContent = copy\.hero/.test(stuScript) && /\$\('tutorDesc'\)\.textContent = copy\.tutor/.test(stuScript) && /\.states\[state\]/.test(stuScript), '');
   ok('학생 화면 스크립트에 소크라테스형 튜터 문구가 모든 방식에 박혀 있지 않음', !/정답을 알려주는 대신/.test(stuScript), '');
+  ok('탐구 요약 카드는 방식별 wrapUp 을 escape 해서 쓰고, 실험보고서 고정 문구가 없음', /\$\{esc\(AS\.studentCopy\(S\.templateKey\)\.wrapUp\)\}/.test(stuScript) && !/실험보고서/.test(stuScript), '');
+  // 마무리 피드백: 시간이 끝나면(학생이 말한 게 있을 때만) 입장 코드와 함께 요청하고, AI 글은 textContent 로만 넣는다
+  const fbFn = (/async function requestFeedback\(\) \{([\s\S]*?)\n  \}/.exec(stuScript) || [])[1] || '';
+  ok('마무리 피드백: 시간 종료 때 학생이 말한 경우에만 요청', /lock\(reason, message\)[\s\S]*?reason === 'timeout'[\s\S]*?if \(S\.turns > 0\) requestFeedback\(\);[\s\S]*?\} else if \(reason === 'code'\)/.test(stuScript), '');
+  ok('마무리 피드백: 학급·모둠·주제·기록과 수업 입장 코드를 POST 로 보냄', /callPost\('getSessionFeedback', \{[\s\S]*?history: S\.sess\.history\.slice\(-40\), accessCode: S\.code/.test(fbFn), fbFn.slice(0, 200));
+  ok('마무리 피드백: AI 글을 innerHTML 이 아니라 텍스트 노드로 넣음', fbFn.length > 0 && /document\.createTextNode\(text\)/.test(fbFn) && !/innerHTML/.test(fbFn), '');
+  ok('마무리 피드백: 실패(옛 GAS 포함)하면 기다림 표시만 지우고 조용히 넘어감', /catch \(err\) \{\s*typing\.remove\(\);\s*\}/.test(fbFn), '');
+  ok('마무리 피드백: 보내던 글의 답을 기다린 뒤(inflight) 요청', /while|S\.inflight && i < \d+/.test(fbFn) && /S\.busy = true; S\.inflight = true;/.test(stuScript) && /S\.inflight = false;/.test(stuScript), '');
   ok('학생 화면: 캐릭터를 템플릿보다 먼저 정하지 않음(템플릿을 먼저 정한 뒤 짝을 구함)', stuScript.indexOf('S.templateKey = AS.STEPS[c.templateKey]') > -1 && stuScript.indexOf('S.templateKey = AS.STEPS[c.templateKey]') < stuScript.indexOf('AS.resolveCharacter(S.templateKey'), '');
   ok("콘솔: 캐릭터 카드는 template 짝을 보여 주고 recommend 는 더 이상 쓰지 않음", /c\.template === curTpl/.test(idxScript) && !/\.recommend/.test(idxScript), '');
   ok('콘솔: 대화 방식을 바꾸면 고르지 않은 캐릭터·이름이 새 짝으로 바뀌고 카드·미리보기를 다시 그림', /\$\('p_template'\)\.addEventListener\('change'[\s\S]*?AS\.characterFor\(tpl\)\.id[\s\S]*?renderCharGrid\(\); renderPreview\(\)/.test(idxScript), '');

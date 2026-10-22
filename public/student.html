@@ -346,7 +346,7 @@
   async function send() {
     const text = ta.value.trim();
     if (!text || S.busy || S.locked) return;
-    S.busy = true; setComposer(false);
+    S.busy = true; S.inflight = true; setComposer(false);
     ta.value = ''; autosize();
     const node = addMsg('user', text);
     const typing = addTyping();
@@ -372,6 +372,29 @@
       S.busy = false; if (!S.locked) { setComposer(true); ta.focus(); }
     } finally {
       clearTimeout(slowHint1); clearTimeout(slowHint2);
+      S.inflight = false; // lock() 이 busy 를 풀어도, 마무리 피드백은 이 값으로 답이 기록에 들어갔는지 안다
+    }
+  }
+  // 탐구 마무리 피드백: 시간이 끝나면 대화 전체를 보고 쓴 100자 이내 피드백을 채팅창에 올린다.
+  // 보내던 글의 답을 기다리는 중이면 그 답까지 기록에 들어간 뒤에 요청한다. 실패하거나(옛 GAS 포함) 빈 답이면 조용히 넘어간다.
+  async function requestFeedback() {
+    const typing = addTyping();
+    showWaitHint(typing, '오늘 대화를 돌아보며 피드백을 쓰고 있어요…');
+    for (let i = 0; S.inflight && i < 150; i++) await new Promise((r) => setTimeout(r, 300));
+    try {
+      const res = await GasClient.callPost('getSessionFeedback', {
+        classValue: S.sess.classValue, groupValue: S.sess.groupValue, topicValue: S.sess.topicValue,
+        history: S.sess.history.slice(-40), accessCode: S.code,
+      });
+      typing.remove();
+      const text = String((res && res.feedback) || '').trim();
+      if (!text) return;
+      const d = document.createElement('div'); d.className = 'msg ai feedback';
+      const head = document.createElement('b'); head.className = 'fb-head'; head.textContent = '💬 오늘의 피드백';
+      d.append(head, document.createTextNode(text));
+      thread.appendChild(d); scrollToNode(d);
+    } catch (err) {
+      typing.remove();
     }
   }
   function showWaitHint(typing, text) {
@@ -430,7 +453,8 @@
         <h3><span class="ms fill" style="color:var(--ok)">task_alt</span>오늘의 탐구 요약</h3>
         <p>${esc(S.sess.classValue)} ${esc(S.sess.groupValue)} · ${esc(S.sess.topicValue)}</p>
         <div class="end-stats"><div><b>${S.turns}</b><span>내가 말한 횟수</span></div><div><b>${S.sess.history.filter((m) => m.role === 'ai').length}</b><span>튜터의 질문·조언</span></div></div>
-        <p>지금까지 나눈 기록을 바탕으로 실험보고서를 작성해 주세요. 위로 스크롤하면 내 생각이 어떻게 자랐는지 다시 읽어 볼 수 있어요.</p></div>`);
+        <p>${esc(AS.studentCopy(S.templateKey).wrapUp)}</p></div>`);
+      if (S.turns > 0) requestFeedback(); // 학생이 말한 대화가 있으면 짧은 마무리 피드백을 받아 채팅창에 올린다
     } else if (reason === 'code') {
       pill.classList.add('end'); $('timerText').textContent = '코드 확인';
       ta.placeholder = '수업 입장 코드를 다시 확인해 주세요.';
