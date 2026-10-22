@@ -79,6 +79,8 @@ function makeEnv(opts) {
     showModelessDialog: (out, title) => { ui.dialogs.push({ kind: 'modeless', title, out }); },
     showModalDialog: (out, title) => { ui.dialogs.push({ kind: 'modal', title, out }); },
     alert: (...a) => { ui.alerts.push(a); },
+    ButtonSet: { OK: 'OK', OK_CANCEL: 'OK_CANCEL', YES_NO: 'YES_NO' },
+    Button: { OK: 'OK', CANCEL: 'CANCEL', YES: 'YES', NO: 'NO', CLOSE: 'CLOSE' },
   };
   // HtmlService: gas-source/<이름>.html 을 그대로 읽어 돌려준다 (없으면 실제처럼 예외)
   const HtmlService = {
