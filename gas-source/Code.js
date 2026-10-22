@@ -71,8 +71,10 @@ function requireSheet_(name) {
 // 접근 통제 (두 겹)
 //  1) 교사 전용 action: 교사 비밀번호(pin)가 맞아야 한다. 비밀번호가 아직 없으면 **모두 거부**한다(기본이 닫힌 상태).
 //     학생 링크에 이 웹앱 주소가 들어 있으므로, 비밀번호가 선택 사항이면 누구나 API 키·학생 대화를 읽을 수 있기 때문이다.
-//     최초 설정은 웹이 아니라 스프레드시트 메뉴(setTeacherPinFromMenu)에서만 한다 — 시트 편집 권한이 있는 사람만 할 수 있다.
-//  2) 학생 입구(getInitialData·processChatMessage): 교사가 정한 '수업 입장 코드'(accessCode)가 맞아야 한다.
+//     최초 설정은 스프레드시트 메뉴(setTeacherPinFromMenu, 시트 편집 권한이 있는 사람만) 또는 초기 비밀번호(DEFAULT_PIN_)로
+//     콘솔에서 한다(setInitialPin_). 초기 비밀번호는 공개된 값이라 '새 비밀번호 정하기'만 할 수 있고 다른 기능은 열지 않는다.
+//     (교사 콘솔은 비밀번호를 정해야 열리므로, 학생 링크·QR은 그 뒤에야 만들어진다)
+//  2) 학생 입구(getInitialData·processChatMessage·getSessionFeedback): 교사가 정한 '수업 입장 코드'(accessCode)가 맞아야 한다.
 //     주소만 아는 외부인이 대화방을 쓰거나 학급·모둠 목록을 보지 못하게 하고, 코드를 바꾸면 이미 퍼진 링크도 무효가 된다.
 // ---------------------------------------------------------------------------
 var TEACHER_ACTIONS_ = ["teacherAnalyze", "getChatOverview", "getChatLog", "listGeminiModels", "testGeminiModel", "getTeacherSettings",
@@ -100,7 +102,11 @@ function isTeacherPinSet_() {
   return !!PropertiesService.getScriptProperties().getProperty(PIN_HASH_PROP_);
 }
 
-var SETUP_NEEDED_MSG_ = "교사 비밀번호를 먼저 정해 주세요. 스프레드시트 상단 메뉴 '🗣️ 아르봇(ARBOT) → 🔐 교사 비밀번호 설정'에서 정할 수 있어요.";
+// 초기 비밀번호: 비밀번호를 아직 정하지 않은 시트에서 교사 콘솔로 '새 비밀번호 정하기'만 할 수 있게 하는 값.
+// 공개 저장소에 적혀 있으므로 이 값으로는 설정·대화 기록·API 키를 절대 열지 않는다(setInitialPin_ 만 받는다).
+// 새 비밀번호를 정하면 더 이상 쓸 수 없고, 이 값 자체를 비밀번호로 정할 수도 없다.
+var DEFAULT_PIN_ = "12345678";
+var SETUP_NEEDED_MSG_ = "교사 비밀번호를 먼저 정해 주세요. 초기 비밀번호 \"12345678\"로 교사 콘솔에서 새 비밀번호를 정하거나, 스프레드시트 상단 메뉴 '🗣️ 아르봇(ARBOT) → 🔐 교사 비밀번호 설정'에서 정할 수 있어요.";
 
 // 통과하면 null, 아니면 거부 응답을 돌려준다. 비밀번호가 아직 없으면 거부한다(needSetup).
 function checkTeacherAuth_(params) {
@@ -113,17 +119,40 @@ function checkTeacherAuth_(params) {
   return { success: false, needPin: true, error: pin ? "교사 비밀번호가 맞지 않아요." : "교사 비밀번호가 필요해요." };
 }
 
-// 비밀번호를 저장한다 (길이만 검사). 웹에서는 현재 비밀번호를 확인한 뒤에만(routeAction), 최초 설정은 시트 메뉴에서만 부른다.
+// 비밀번호를 저장한다 (길이·초기 비밀번호만 검사). 웹에서는 현재 비밀번호를 확인한 뒤에만(routeAction),
+// 최초 설정은 시트 메뉴 또는 초기 비밀번호를 확인한 setInitialPin_ 에서만 부른다.
 function setTeacherPin_(p) {
   var newPin = String((p && p.newPin) || "");
   if (newPin.length < PIN_MIN_LENGTH_) return { success: false, error: "비밀번호는 " + PIN_MIN_LENGTH_ + "자 이상으로 정해 주세요." };
+  if (newPin === DEFAULT_PIN_) return { success: false, error: "초기 비밀번호(12345678)와 다른 비밀번호로 정해 주세요." };
   var salt = Utilities.getUuid();
   PropertiesService.getScriptProperties().setProperties({ TEACHER_PIN_SALT: salt, TEACHER_PIN_HASH: hashPin_(newPin, salt) });
   return { success: true };
 }
 
+// [API] 비밀번호가 아직 없는 시트에서, 초기 비밀번호(DEFAULT_PIN_)를 확인하고 새 비밀번호를 정한다.
+// 이 경로는 '새 비밀번호 정하기'만 한다 — 초기 비밀번호로는 다른 교사 기능을 하나도 열지 않는다.
+// 비밀번호가 이미 있으면 여기로 오지 않는다(routeAction 이 일반 변경 경로로 보낸다).
+function setInitialPin_(p) {
+  var given = (p && p.pin != null) ? String(p.pin) : "";
+  if (given !== DEFAULT_PIN_) {
+    if (given) Utilities.sleep(800);
+    return { success: false, needSetup: true, error: given ? "초기 비밀번호가 맞지 않아요. 처음 비밀번호는 \"12345678\"이에요." : SETUP_NEEDED_MSG_ };
+  }
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  var r;
+  try {
+    // 그사이 누가 먼저 정했으면 초기 비밀번호는 더 이상 통하지 않는다
+    if (isTeacherPinSet_()) return { success: false, needPin: true, error: "이미 교사 비밀번호가 정해져 있어요. 정해 둔 비밀번호로 들어와 주세요." };
+    r = setTeacherPin_(p);
+  } finally { lock.releaseLock(); }
+  if (r.success) ensureAccessCode_(); // 시트 메뉴로 정할 때처럼 수업 입장 코드도 함께 만든다 (락을 풀고 부른다)
+  return r;
+}
+
 // 비밀번호를 잊었을 때: Apps Script 편집기에서 이 함수를 직접 실행하면 비밀번호가 해제된다 (스크립트 소유자만 가능).
-// 해제하면 교사 기능이 다시 잠기므로, 시트 메뉴 '🔐 교사 비밀번호 설정'으로 새로 정한다.
+// 해제하면 교사 기능이 다시 잠기므로, 시트 메뉴 '🔐 교사 비밀번호 설정'으로 새로 정한다(초기 비밀번호로 콘솔에서 정해도 된다).
 function resetTeacherPin() {
   var props = PropertiesService.getScriptProperties();
   props.deleteProperty(PIN_HASH_PROP_);
@@ -258,6 +287,8 @@ function isMaskedKey_(v) { return String(v == null ? "" : v).indexOf(KEY_MASK_) 
 function routeAction(action, params) {
   try {
     params = params || {};
+    // 비밀번호가 아직 없는 시트: 초기 비밀번호로 '새 비밀번호 정하기'만 받는다 (다른 교사 기능은 아래에서 모두 needSetup)
+    if (action === "setTeacherPin" && !isTeacherPinSet_()) return setInitialPin_(params);
     if (TEACHER_ACTIONS_.indexOf(action) !== -1) {
       var denied = checkTeacherAuth_(params);
       if (denied) return denied;
@@ -351,11 +382,13 @@ function onOpen() {
 }
 
 // 시트 메뉴: 교사 비밀번호 설정/재설정. 이 시트를 열 수 있는(편집 권한이 있는) 사람만 실행할 수 있다.
-// 웹 콘솔은 비밀번호가 정해지기 전에는 아무것도 열어 주지 않으므로, 처음에는 반드시 이 메뉴로 정한다.
+// 웹 콘솔은 비밀번호가 정해지기 전에는 설정·분석을 열어 주지 않는다. 처음에는 이 메뉴로 정하거나,
+// 초기 비밀번호(DEFAULT_PIN_)로 콘솔에 들어가 새 비밀번호를 정한다(setInitialPin_). 잊었을 때도 이 메뉴로 다시 정한다.
 function setTeacherPinFromMenu() {
   var ui = SpreadsheetApp.getUi();
   var first = ui.prompt('🔐 교사 비밀번호 설정',
-    '교사 콘솔에 들어갈 때 쓸 비밀번호를 정해 주세요. (' + PIN_MIN_LENGTH_ + '자 이상)\n이미 정해 둔 비밀번호가 있으면 새 비밀번호로 바뀝니다.', ui.ButtonSet.OK_CANCEL);
+    '교사 콘솔에 들어갈 때 쓸 비밀번호를 정해 주세요. (' + PIN_MIN_LENGTH_ + '자 이상)\n이미 정해 둔 비밀번호가 있으면 새 비밀번호로 바뀝니다.\n\n' +
+    '초기 비밀번호는 "' + DEFAULT_PIN_ + '"입니다. 아직 비밀번호를 정하지 않았다면 교사 콘솔에서 이 비밀번호로 들어가 바로 새 비밀번호를 정할 수도 있어요. (새 비밀번호를 정하면 초기 비밀번호는 더 이상 쓸 수 없어요)', ui.ButtonSet.OK_CANCEL);
   if (first.getSelectedButton() !== ui.Button.OK) return;
   var pin = String(first.getResponseText() || '');
   if (pin.length < PIN_MIN_LENGTH_) { ui.alert('다시 정해 주세요', '비밀번호는 ' + PIN_MIN_LENGTH_ + '자 이상이어야 해요.', ui.ButtonSet.OK); return; }
@@ -2612,7 +2645,7 @@ function inspectSheetStructure_() {
   }
 
   // 8) 접근 통제 (Script Properties)
-  if (!isTeacherPinSet_()) add("warn", "보안", "교사 비밀번호가 아직 없어요. 메뉴 '🔐 교사 비밀번호 설정'에서 정해야 교사 콘솔이 열려요.");
+  if (!isTeacherPinSet_()) add("warn", "보안", "교사 비밀번호가 아직 없어요. 메뉴 '🔐 교사 비밀번호 설정'에서 정하거나, 교사 콘솔에 초기 비밀번호 \"" + DEFAULT_PIN_ + "\"로 들어가 새 비밀번호를 정해야 설정·분석이 열려요.");
   else add("ok", "보안", "교사 비밀번호가 정해져 있어요.");
   if (!readAccessCode_()) add("warn", "보안", "수업 입장 코드가 아직 없어요. 교사 콘솔에 접속하거나 메뉴 '🔑 수업 입장 코드 보기'를 누르면 만들어져요. 그 전에는 학생이 입장할 수 없어요.");
   else add("ok", "보안", "수업 입장 코드가 있어요.");

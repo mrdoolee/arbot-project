@@ -142,7 +142,7 @@
       const err = new Error(oldBackend ? '이 시트의 GAS(Apps Script)가 옛 버전이라 이 기능을 아직 쓸 수 없어요. 최신 코드를 배포한 뒤 다시 시도해 주세요.' : (data.error || '요청 처리 중 오류가 발생했습니다.'));
       if (oldBackend) err.oldBackend = true;
       if (data.needPin) err.needPin = true; // 교사 비밀번호가 필요하거나 틀림
-      if (data.needSetup) err.needSetup = true; // 교사 비밀번호가 아직 정해지지 않음(시트 메뉴에서 먼저 정해야 함)
+      if (data.needSetup) err.needSetup = true; // 교사 비밀번호가 아직 정해지지 않음(초기 비밀번호로 콘솔에서, 또는 시트 메뉴에서 정함)
       if (data.needCode) err.needCode = true; // 수업 입장 코드가 없거나 틀림(학생 입구)
       err.data = data; // 오류 응답에 실린 추가 정보(예: 다른 루브릭으로 진행된 대화 목록)를 화면이 쓸 수 있게
       throw err;
