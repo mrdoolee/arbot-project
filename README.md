@@ -25,7 +25,6 @@
   - `css/` — 공통 토큰, 교사 콘솔, 학생 화면 스타일
 - `server.js` — `public/`을 서빙하는 아주 얇은 Express 정적 서버 (어떤 정적 호스팅에 올려도 무방)
 - `tests/` — 자동 테스트와 가짜 GAS 서버 (`npm test`)
-- `docs/` — 작업 인계 메모 등 개발용 문서 (사이트에는 올라가지 않아요. 지금은 `handoff-local-stash-review.md`)
 
 ## 1. 스프레드시트 준비 (선생님이 하는 일)
 

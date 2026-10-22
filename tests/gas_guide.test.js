@@ -131,5 +131,24 @@ ok('Guide.html 은 외부 주소·스크립트 파일·서버 호출이 없음(�
 ok('창 안에 제작자 크레딧이 있음', /Designed &amp; Developed by 두리쌤/.test(GUIDE), '');
 ok('API 키처럼 보이는 값이 안내문에 없음', !/AIza[0-9A-Za-z_-]{10,}/.test(GUIDE), '');
 
+// ───────── 정보 창(ℹ️ 정보): 버전과 데이터 안내 ─────────
+{
+  const e = makeEnv({ pin: PIN, accessCode: CODE });
+  e.ctx.ensureProfileTabs_();
+  const before = snapshot(e);
+  e.ctx.showAbout_();
+  const a = e.ui.alerts[0] || [], msg = String(a[1] || '');
+  ok('정보 창이 하나 뜨고 시트·속성·캐시를 건드리지 않음', e.ui.alerts.length === 1 && before === snapshot(e), e.ui.alerts.length);
+  ok('정보 창의 버전이 v2.0 이고 웹 앱 API 버전을 함께 보여 줌(옛 v1.0 아님)', /v2\.0 \(2026\.10\)/.test(msg) && msg.includes('API v' + e.ctx.API_VERSION_) && !/v1\.0/.test(msg), msg.slice(0, 60));
+  ok('데이터 안내: 대화가 Gemini API로 전달되고 무료 키는 서비스 개선에 쓰일 수 있음을 알림', /Gemini API로 전달/.test(msg) && /무료 등급/.test(msg) && /개인정보/.test(msg), msg);
+  ok('데이터 안내에 이 앱이 모으지 않는 옛 항목(학번·응시 기록)이 없음', !/학번|응시/.test(msg), msg);
+}
+
+// ───────── 옛 HtmlService 화면 파일 정리 ─────────
+{
+  const htmls = fs.readdirSync(path.join(__dirname, '..', 'gas-source')).filter((f) => /\.html$/i.test(f));
+  ok('gas-source 의 화면 파일은 사용 가이드(Guide.html) 하나뿐(옛 index.html 은 지움)', htmls.join() === 'Guide.html', htmls);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
