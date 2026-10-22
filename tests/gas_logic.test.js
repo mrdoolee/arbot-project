@@ -182,5 +182,25 @@ env.ctx.setTeacherPin_({ newPin: 'secret-123' });
 ok('비밀번호가 있으면 키 관리도 보호됨', env.ctx.routeAction('getApiKeys', {}).needPin === true && env.ctx.routeAction('saveApiKeys', { keys: [] }).needPin === true && env.ctx.routeAction('getApiKeys', { pin: 'secret-123' }).success === true, '');
 ok('모델 테스트가 한도 소진 키를 표시', (() => { const e = makeEnv({ keyHandler: () => DEPLETED }); e.ctx.testGeminiModel({ apiKey: SECOND, model: 'gemini-flash-latest' }); return e.ctx.getApiKeys().keys.length === 0 && e.ctx.describeKeyStatus_(SECOND).status === 'exhausted'; })(), '');
 
+// ───────── 교사용 지도 가이드: 결과 분석의 AI 총평(overallFeedback)은 교사가 읽는 지도 가이드 ─────────
+{
+  const e = makeEnv({ templateKey: 'socratic' });
+  e.ctx.processChatMessage({ classValue: '1반', groupValue: '1모둠', topicValue: '전류와 전압의 관계', userQuestion: '전압을 높이면 전류가 커질 것 같아요.', history: [] });
+  // 시트에 남아 있는 옛 지침이 학생에게 말하는 투여도 규칙이 붙는지 보려고, 기본 루브릭의 지침을 옛 문구로 바꿔 둔다
+  const R = e.sheets['루브릭 세부설정'];
+  const baseRow = R.rows.find((r) => r[0] === '기본');
+  baseRow[4] = '1. 잘한 점을 구체적 발화를 인용해 먼저 칭찬해\n300자 내외로 작성해.';
+  e.ctx.clearSettingsCache_();
+  const r = e.ctx.apiAnalyze('1반', '1모둠', '전류와 전압의 관계', true);
+  const sys = e.calls[e.calls.length - 1].systemInstruction.parts[0].text;
+  ok('(준비) 분석이 실행됨', r.success === true, r);
+  ok('분석 지시문에 교사용 지도 가이드 규칙이 들어감(옛 학생용 지침이 시트에 남아 있어도)', sys.includes('[교사용 지도 가이드 작성 규칙') && sys.includes('먼저 칭찬해') && sys.indexOf('[교사용 지도 가이드 작성 규칙') > sys.indexOf('먼저 칭찬해'), sys.slice(-600));
+  ok('규칙: 교사에게 쓰고 학생에게 직접 말하지 않음, 네 줄(진단·강점·지도 방향·추천 발문), 발화 번호, 정오 판단 금지',
+    ['학생에게 주는 말이 아니라', '■ 진단', '■ 강점', '■ 지도 방향', '■ 추천 발문', '발화 번호', '정답·정오', '400~600자'].every((w) => sys.includes(w)), '');
+  ok('JSON 예시의 overallFeedback 도 네 줄 형식', /"overallFeedback": "■ 진단: …\\n■ 강점: …\\n■ 지도 방향: …\\n■ 추천 발문: …"/.test(sys), '');
+  const tpl = e.ctx.TEMPLATE_PROFILES_.filter((t) => t.rubric);
+  ok('템플릿 원본의 피드백 작성 지침도 교사용(학생에게 칭찬하라는 말 없음, 지도 가이드로 작성)', tpl.length === 4 && tpl.every((t) => /지도 가이드/.test(t.rubric.guideline) && !/칭찬해/.test(t.rubric.guideline)), tpl.map((t) => t.rubric.guideline.slice(0, 40)));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

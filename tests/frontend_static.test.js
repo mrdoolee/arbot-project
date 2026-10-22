@@ -114,6 +114,8 @@ ok('콘솔의 URL 저장도 형식 검사 결과를 확인', /if \(!GasClient\.s
 ok('수업 입장 코드는 저장소(localStorage·sessionStorage)에 저장하지 않음', !/(localStorage|sessionStorage)\.setItem\([^)]*(code|Code)/.test(pages['public/student.html'] + gasClient), '');
 ok('학생 질문 입력칸에 글자 수 제한(1000자)', /<textarea id="userQuestion"[^>]*maxlength="1000"/.test(pages['public/student.html']), '');
 ok('학생 입장 화면에 개인정보 안내가 있음', /개인정보는 쓰지 말아요/.test(pages['public/student.html']), '');
+ok('API 키 안내: 한도는 프로젝트·모델마다 다르고 AI Studio 에서 확인, 추가 키는 다른 프로젝트에서(옛 "무료 키 20회" 문구 없음)', /하루·분당 요청 한도는 Google 프로젝트와 모델마다 달라요/.test(pages['public/index.html']) && /키가 아니라 프로젝트 단위/.test(pages['public/index.html']) && /다른 Google 프로젝트/.test(pages['public/index.html']) && !/예: 20회/.test(pages['public/index.html']), '');
+ok('결과 분석의 총평은 교사용 지도 가이드(화면·보고서·사용 가이드)', /교사용 지도 가이드 \(AI 총평\)<\/b><span id="overallFeedback"><\/span>/.test(pages['public/index.html']) && /<h2>교사용 지도 가이드<\/h2>/.test(pages['public/index.html']) && !/AI 총평 및 교사용 피드백/.test(pages['public/index.html']), '');
 ok('콘솔 화면이 API 키 원문을 요구·복원하지 않음(가린 값은 서버로 되돌려 보내도 무시됨)', /isMaskedKey/.test(pages['public/index.html']) && /가린 모양/.test(pages['public/index.html']), '');
 
 // ───────── 5) 화면 출력 이스케이프 (학생이 쓴 글·AI 응답·분석 결과가 코드로 해석되지 않게) ─────────

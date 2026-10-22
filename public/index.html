@@ -159,7 +159,7 @@
               <button id="btnResetKeys" class="btn ghost" type="button"><span class="ms">restart_alt</span>쉬는 중 해제</button>
             </div>
             <div id="keyStatus" class="status-slot"></div>
-            <p class="hint"><b>무료 키는 하루 요청 수가 매우 적어요(예: 20회).</b> 한 반이 몇 분만 써도 소진되고 응답도 느려질 수 있으니, 수업에는 <b>결제(Billing)를 연결한 키</b>를 쓰고 무료 키는 보조로만 두세요. 위의 <b>기본 키</b>가 먼저 쓰이고, 크레딧·한도가 다 떨어지거나 키에 문제가 생기면 <b>추가 키</b>가 위에서부터 차례로 쓰여요. 한도가 소진된 키는 잠시 쉬었다가(몇 시간) 저절로 다시 시도하고, 충전했다면 <b>쉬는 중 해제</b>를 눌러 바로 다시 쓸 수 있어요. 모든 키가 소진되면 학생에게는 "지금은 AI를 사용할 수 없어요"가 보여요. 추가 키도 스프레드시트의 <code>API키</code> 탭에 평문으로 저장되니 시트를 공유하지 마세요.</p>
+            <p class="hint"><b>하루·분당 요청 한도는 Google 프로젝트와 모델마다 달라요.</b> Google AI Studio(aistudio.google.com)의 사용량 · 요청 한도 화면에서 쓰는 모델의 <b>RPD(하루 요청 수)</b>를 확인해 주세요. 모델 칸을 비워 두면 한도가 넉넉한 Flash-Lite 계열이 자동으로 골라지고, 한 모둠의 20분 수업은 대략 12회(학생 메시지 약 10회 + 마무리 피드백 + 분석)를 써요. 한도는 <b>키가 아니라 프로젝트 단위</b>로 세므로, 대비용 추가 키는 <b>다른 Google 프로젝트</b>에서 만들어야 도움이 돼요. 무료 한도는 예고 없이 바뀔 수 있어요. 위의 <b>기본 키</b>가 먼저 쓰이고, 크레딧·한도가 다 떨어지거나 키에 문제가 생기면 <b>추가 키</b>가 위에서부터 차례로 쓰여요. 한도가 소진된 키는 잠시 쉬었다가(몇 시간) 저절로 다시 시도하고, 충전했다면 <b>쉬는 중 해제</b>를 눌러 바로 다시 쓸 수 있어요. 모든 키가 소진되면 학생에게는 "지금은 AI를 사용할 수 없어요"가 보여요. 추가 키도 스프레드시트의 <code>API키</code> 탭에 평문으로 저장되니 시트를 공유하지 마세요.</p>
           </div>
           <div class="field">
             <label for="s_geminiModel">AI 모델 <span class="opt">선택 · 기본은 자동</span></label>
@@ -301,7 +301,7 @@
             <div class="field"><label for="s_rubricRole">평가자 역할</label><textarea id="s_rubricRole" class="textarea" rows="2"></textarea></div>
             <div class="field"><label for="s_rubricCriteria">요소별 판정 기준</label><textarea id="s_rubricCriteria" class="textarea" rows="5"></textarea></div>
             <div class="field"><label for="s_rubricLevel">종합 평가 루브릭</label><textarea id="s_rubricLevel" class="textarea" rows="4"></textarea></div>
-            <div class="field"><label for="s_rubricGuideline">피드백 작성 지침</label><textarea id="s_rubricGuideline" class="textarea" rows="4"></textarea></div>
+            <div class="field"><label for="s_rubricGuideline">피드백 작성 지침 <span class="opt">결과 분석의 교사용 지도 가이드에서 무엇을 짚을지</span></label><textarea id="s_rubricGuideline" class="textarea" rows="4"></textarea></div>
             <div class="btn-row"><button id="btnSaveRubric" class="btn" type="button"><span class="ms">save</span>이 루브릭 저장</button></div>
           </div>
 
@@ -503,7 +503,7 @@
             <div class="ctx-summary" id="ctxSummary"></div>
             <div class="ctx-list" id="ctxList"></div>
           </div>
-          <div class="feedback"><b><span class="ms">psychology</span>AI 총평 및 교사용 피드백</b><span id="overallFeedback"></span></div>
+          <div class="feedback"><b><span class="ms">psychology</span>교사용 지도 가이드 (AI 총평)</b><span id="overallFeedback"></span></div>
           <div class="chip-filters" id="chipFilters"></div>
           <div class="table-wrap">
             <table class="data">
@@ -619,7 +619,7 @@
       <div class="body"><ul class="gd-list">
         <li><b>학급 → 탐구 주제 → 모둠 → 날짜</b> 순서로 단추를 눌러 골라요. 앞 단계를 고르기 전에는 뒤 단계 단추가 꺼져 있고, 대화 기록이 없는 학급·주제·모둠은 <b>기록 없음</b>으로 표시돼 누를 수 없어요. 같은 주제를 여러 날 나눠 했다면 <b>날짜</b>마다 단추가 생겨 그날의 대화만 분석할 수 있고(<b>모든 날짜 함께</b>도 고를 수 있어요), 하루만 했다면 날짜는 저절로 골라져요. 모두 고르면 <b>대화 불러오기 및 분석 실행</b> 버튼이 켜져요.</li>
         <li>이 메뉴에 들어올 때마다 목록과 기록을 새로 읽어요. 수업 중에 새 대화가 생겼다면 <b>목록·기록 새로고침</b>을 눌러 주세요. 탐구 도우미 대화처럼 평가하지 않는 대화만 있는 곳은 <b>평가 제외</b>로 표시돼요.</li>
-        <li>결과에는 <b>종합 논증 수준</b>, 대화에 나타난 논증 요소, <b>대화 흐름 차트</b>(점을 누르면 그때의 발언과 판정), 담화 맥락별 평가, <b>AI 총평 · 교사용 피드백</b>, 발언별 판정 표(판정 칩으로 걸러 보기)가 나와요. <b>HTML 보고서 · 인쇄 · CSV</b>로 내보낼 수 있어요.</li>
+        <li>결과에는 <b>종합 논증 수준</b>, 대화에 나타난 논증 요소, <b>대화 흐름 차트</b>(점을 누르면 그때의 발언과 판정), 담화 맥락별 평가, <b>교사용 지도 가이드</b>(진단 · 강점 · 지도 방향 · 추천 발문), 발언별 판정 표(판정 칩으로 걸러 보기)가 나와요. <b>HTML 보고서 · 인쇄 · CSV</b>로 내보낼 수 있어요.</li>
         <li>논증 수준은 <b>논증의 구조</b>를 보는 값이라 과학적으로 맞는지는 판단하지 않아요. 탐구 자료를 반영해도 코멘트에만 쓰여요.</li>
         <li>같은 대화를 다시 분석하면 판정이 조금 달라질 수 있어요(AI의 특성). 결과는 수업 참고 자료로 봐 주세요.</li>
         <li>탐구 도우미로 나눈 대화는 분석에서 빠져요. 다른 루브릭으로 나눈 대화가 있으면 그 루브릭으로 분석하는 버튼이 함께 보여요.</li>
@@ -2464,7 +2464,7 @@ table.d{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}tabl
 <table class="meta"><tr><td>학급</td><td>${escapeHtml(classValue)}</td></tr><tr><td>모둠</td><td>${escapeHtml(groupValue)}</td></tr><tr><td>탐구 주제</td><td>${escapeHtml(topicValue)}</td></tr><tr><td>대화 날짜</td><td>${escapeHtml(dateValue || '모든 날짜')}</td></tr><tr><td>분석 일시</td><td>${escapeHtml(dt)}</td></tr></table>
 <h2>종합 논증 수준: ${escapeHtml(overallLevel)}</h2>
 <h2>대화 흐름과 담화 맥락</h2><div style="overflow-x:auto">${buildFlowSvg(utterances, resultTemplate(), lastCtxs)}</div>${ctxReportHtml()}
-<h2>AI 총평</h2><div class="fb">${escapeHtml(overallFeedback)}</div>
+<h2>교사용 지도 가이드</h2><div class="fb">${escapeHtml(overallFeedback)}</div>
 <h2>발화별 상세 분석</h2><table class="d"><thead><tr><th>번호</th><th>일시</th><th>튜터 질문 → 학생 답</th><th>논증 판정</th><th>요소별 세부 평가</th></tr></thead><tbody>${rows}</tbody></table>
 </body></html>`;
   }
