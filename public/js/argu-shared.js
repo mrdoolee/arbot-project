@@ -1,4 +1,4 @@
-// 교사 콘솔과 학생 화면이 함께 쓰는 공통 데이터: 캐릭터 일러스트, 논증 단계, 판정 칩 규칙, 테마.
+// 교사 콘솔과 학생 화면이 함께 쓰는 공통 데이터: 캐릭터 그림(표정 3장), 논증 단계, 판정 칩 규칙, 테마.
 (function (global) {
   // ---------- 아이콘 폰트 로딩 감지 (로드 전에는 아이콘 이름 글자가 보이지 않게 숨김) ----------
   try {
@@ -8,118 +8,13 @@
     setTimeout(showIcons, 4000);
   } catch (e) { document.documentElement.classList.add('icons-ready'); }
 
-  // ---------- 캐릭터 일러스트 ----------
-  function mouths(cx, cy, c) {
-    return (
-      '<g class="m-ask"><ellipse cx="' + cx + '" cy="' + cy + '" rx="5" ry="3.6" fill="' + c + '"/></g>' +
-      '<g class="m-think"><path d="M' + (cx - 6) + ' ' + cy + ' L' + (cx + 6) + ' ' + cy + '" stroke="' + c + '" stroke-width="3" stroke-linecap="round" fill="none"/></g>' +
-      '<g class="m-happy"><path d="M' + (cx - 9) + ' ' + (cy - 3) + ' Q' + cx + ' ' + (cy + 9) + ' ' + (cx + 9) + ' ' + (cy - 3) + '" stroke="' + c + '" stroke-width="3" stroke-linecap="round" fill="none"/></g>'
-    );
-  }
-
-  function laurel() {
-    var out = '';
-    for (var i = 0; i < 9; i++) {
-      var deg = -165 + i * (150 / 8);
-      var rad = deg * Math.PI / 180;
-      var x = (100 + 41 * Math.cos(rad)).toFixed(1);
-      var y = (96 + 43 * Math.sin(rad)).toFixed(1);
-      out += '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="4" transform="rotate(' + (deg + 90) + ' ' + x + ' ' + y + ')" fill="' + (i % 2 ? '#4f9a4a' : '#6bbf5e') + '"/>';
-    }
-    return out;
-  }
-
-  var SVG = {
-    socrates:
-      '<path d="M18 200 C18 166 54 150 100 150 C146 150 182 166 182 200 Z" fill="#f5f0e6"/>' +
-      '<path d="M100 150 L138 200 L116 200 L88 156 Z" fill="#e4dac4"/>' +
-      '<rect x="88" y="126" width="24" height="30" rx="8" fill="#ebbe92"/>' +
-      '<ellipse cx="64" cy="98" rx="7" ry="9" fill="#ebbe92"/><ellipse cx="136" cy="98" rx="7" ry="9" fill="#ebbe92"/>' +
-      '<ellipse cx="62" cy="88" rx="8" ry="17" fill="#d9d9e0"/><ellipse cx="138" cy="88" rx="8" ry="17" fill="#d9d9e0"/>' +
-      '<ellipse cx="100" cy="98" rx="36" ry="40" fill="#f1c9a0"/>' +
-      '<path d="M65 106 C65 142 86 152 100 152 C114 152 135 142 135 106 C129 124 116 128 100 128 C84 128 71 124 65 106 Z" fill="#ececf1"/>' +
-      '<path d="M82 112 C90 105 96 107 100 112 C104 107 110 105 118 112 C110 119 104 117 100 114 C96 117 90 119 82 112 Z" fill="#ececf1"/>' +
-      laurel() +
-      '<path d="M78 84 Q86 79 94 84" stroke="#a8a8b4" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-      '<path d="M106 84 Q114 79 122 84" stroke="#a8a8b4" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-      '<circle cx="86" cy="97" r="3.2" fill="#2b2b3a"/><circle cx="114" cy="97" r="3.2" fill="#2b2b3a"/>' +
-      '<ellipse cx="78" cy="108" rx="6" ry="3.5" fill="#f4a8a0" opacity=".45"/><ellipse cx="122" cy="108" rx="6" ry="3.5" fill="#f4a8a0" opacity=".45"/>' +
-      mouths(100, 121, '#9a4a4a'),
-
-    labcoat:
-      '<ellipse cx="100" cy="94" rx="45" ry="48" fill="#4a3426"/>' +
-      '<path d="M18 200 C18 166 54 150 100 150 C146 150 182 166 182 200 Z" fill="#ffffff" stroke="#d7e0ec" stroke-width="2"/>' +
-      '<path d="M86 152 L100 180 L114 152 Z" fill="#22c1a3"/>' +
-      '<path d="M86 152 L72 176 M114 152 L128 176" stroke="#d7e0ec" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-      '<rect x="89" y="126" width="22" height="28" rx="8" fill="#f2c7a5"/>' +
-      '<ellipse cx="100" cy="98" rx="35" ry="39" fill="#f6d2b4"/>' +
-      '<path d="M64 88 C68 62 132 62 136 88 C124 76 112 73 100 73 C88 73 76 76 64 88 Z" fill="#4a3426"/>' +
-      '<path d="M66 70 Q100 56 134 70" stroke="#22c1a3" stroke-width="5" fill="none" stroke-linecap="round"/>' +
-      '<circle cx="84" cy="66" r="10" fill="rgba(255,255,255,.45)" stroke="#22c1a3" stroke-width="4"/>' +
-      '<circle cx="116" cy="66" r="10" fill="rgba(255,255,255,.45)" stroke="#22c1a3" stroke-width="4"/>' +
-      '<path d="M94 66 L106 66" stroke="#22c1a3" stroke-width="4"/>' +
-      '<path d="M76 90 Q84 85 92 90" stroke="#4a3426" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-      '<path d="M108 90 Q116 85 124 90" stroke="#4a3426" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-      '<circle cx="86" cy="100" r="3.2" fill="#2b2b3a"/><circle cx="114" cy="100" r="3.2" fill="#2b2b3a"/>' +
-      '<ellipse cx="76" cy="111" rx="6" ry="3.5" fill="#f4a8a0" opacity=".55"/><ellipse cx="124" cy="111" rx="6" ry="3.5" fill="#f4a8a0" opacity=".55"/>' +
-      mouths(100, 119, '#b05a5a'),
-
-    coach:
-      '<rect x="10" y="22" width="64" height="46" rx="6" fill="#1f4a3f" stroke="#8a6b3f" stroke-width="4"/>' +
-      '<text x="24" y="56" font-size="30" fill="#e8f3ef" font-family="Noto Sans KR, sans-serif" font-weight="700">?</text>' +
-      '<path d="M44 34 L66 34 M44 44 L60 44 M48 54 L66 54" stroke="#e8f3ef" stroke-width="2.5" stroke-linecap="round" opacity=".8"/>' +
-      '<path d="M18 200 C18 166 54 150 100 150 C146 150 182 166 182 200 Z" fill="#12304f"/>' +
-      '<path d="M86 152 L100 182 L114 152 Z" fill="#ffffff"/>' +
-      '<path d="M100 164 L95 174 L100 190 L105 174 Z" fill="#3b7dd8"/>' +
-      '<rect x="89" y="126" width="22" height="28" rx="8" fill="#e9b88c"/>' +
-      '<ellipse cx="100" cy="98" rx="35" ry="39" fill="#f0c49c"/>' +
-      '<path d="M61 96 C54 36 146 36 139 96 C134 78 120 66 100 66 C80 66 66 78 61 96 Z" fill="#23232d"/>' +
-      '<circle cx="85" cy="99" r="12" fill="rgba(255,255,255,.35)" stroke="#12304f" stroke-width="3.5"/>' +
-      '<circle cx="115" cy="99" r="12" fill="rgba(255,255,255,.35)" stroke="#12304f" stroke-width="3.5"/>' +
-      '<path d="M97 99 L103 99" stroke="#12304f" stroke-width="3.5"/>' +
-      '<path d="M74 86 Q84 80 94 85" stroke="#23232d" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
-      '<path d="M106 85 Q116 80 126 86" stroke="#23232d" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
-      '<circle cx="85" cy="99" r="3.2" fill="#2b2b3a"/><circle cx="115" cy="99" r="3.2" fill="#2b2b3a"/>' +
-      mouths(100, 122, '#9a4a4a'),
-
-    robot:
-      '<rect x="58" y="142" width="84" height="64" rx="20" fill="#4f8ef7"/>' +
-      '<circle cx="100" cy="168" r="9" fill="#6ef9d9"/>' +
-      '<rect x="90" y="126" width="20" height="18" rx="4" fill="#bbd4f7"/>' +
-      '<rect x="46" y="84" width="9" height="22" rx="4" fill="#22c1a3"/><rect x="145" y="84" width="9" height="22" rx="4" fill="#22c1a3"/>' +
-      '<line x1="100" y1="54" x2="100" y2="36" stroke="#22c1a3" stroke-width="4" stroke-linecap="round"/>' +
-      '<circle cx="100" cy="31" r="7" fill="#4f8ef7"/>' +
-      '<rect x="55" y="54" width="90" height="78" rx="24" fill="#e8f6f3" stroke="#22c1a3" stroke-width="4"/>' +
-      '<rect x="67" y="68" width="66" height="50" rx="15" fill="#0f2a3d"/>' +
-      '<circle cx="86" cy="86" r="7" fill="#6ef9d9"/><circle cx="114" cy="86" r="7" fill="#6ef9d9"/>' +
-      '<circle cx="88" cy="84" r="2" fill="#ffffff"/><circle cx="116" cy="84" r="2" fill="#ffffff"/>' +
-      mouths(100, 106, '#6ef9d9'),
-
-    debater:
-      // 양쪽 입장을 뜻하는 찬(파랑) · 반(빨강) 말풍선
-      '<rect x="24" y="36" width="42" height="32" rx="10" fill="#3b7dd8"/><path d="M50 66 L60 80 L38 67 Z" fill="#3b7dd8"/>' +
-      '<text x="45" y="59" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="Noto Sans KR, sans-serif">찬</text>' +
-      '<rect x="134" y="36" width="42" height="32" rx="10" fill="#e5484d"/><path d="M150 66 L140 80 L162 67 Z" fill="#e5484d"/>' +
-      '<text x="155" y="59" font-size="19" font-weight="800" fill="#ffffff" text-anchor="middle" font-family="Noto Sans KR, sans-serif">반</text>' +
-      '<path d="M18 200 C18 166 54 150 100 150 C146 150 182 166 182 200 Z" fill="#2f3550"/>' +
-      '<path d="M86 152 L100 182 L114 152 Z" fill="#ffffff"/>' +
-      '<path d="M86 152 L74 178 M114 152 L126 178" stroke="#1f2338" stroke-width="3" fill="none" stroke-linecap="round"/>' +
-      '<path d="M100 164 L95 174 L100 192 Z" fill="#3b7dd8"/><path d="M100 164 L105 174 L100 192 Z" fill="#e5484d"/>' +
-      '<rect x="89" y="126" width="22" height="28" rx="8" fill="#e9b88c"/>' +
-      '<ellipse cx="65" cy="100" rx="6" ry="8" fill="#e5ad80"/><ellipse cx="135" cy="100" rx="6" ry="8" fill="#e5ad80"/>' +
-      '<ellipse cx="100" cy="98" rx="35" ry="39" fill="#f1c7a0"/>' +
-      '<path d="M62 94 C54 40 146 40 138 94 C134 76 124 66 106 63 C92 70 76 72 62 94 Z" fill="#5a3a2a"/>' +
-      '<path d="M84 62 C90 48 112 46 122 60 C110 56 98 58 84 62 Z" fill="#5a3a2a"/>' +
-      // 토론용 헤드셋과 마이크
-      '<path d="M63 96 C58 42 142 42 137 96" stroke="#3b7dd8" stroke-width="5" fill="none" stroke-linecap="round"/>' +
-      '<rect x="56" y="90" width="12" height="24" rx="6" fill="#2f68b3"/><rect x="132" y="90" width="12" height="24" rx="6" fill="#2f68b3"/>' +
-      '<path d="M60 112 C60 128 72 134 82 128" stroke="#2f68b3" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="84" cy="127" r="4.5" fill="#1f4a8a"/>' +
-      '<path d="M75 88 Q85 82 95 86" stroke="#3a2a22" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
-      '<path d="M105 86 Q115 82 125 88" stroke="#3a2a22" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
-      '<circle cx="86" cy="99" r="3.2" fill="#2b2b3a"/><circle cx="114" cy="99" r="3.2" fill="#2b2b3a"/>' +
-      '<ellipse cx="124" cy="110" rx="6" ry="3.5" fill="#f4a8a0" opacity=".5"/>' +
-      mouths(100, 122, '#9a4a4a')
-  };
+  // ---------- 캐릭터 그림 ----------
+  // 캐릭터마다 표정 3장(질문하는 중·생각하는 중·칭찬하는 중)을 public/img/characters/<id>-<state>.png 로 둔다.
+  // (tools/generate-characters.js 로 만든 카툰 그림을 320px 로 줄인 것. 화면 크기는 CSS 가 정한다)
+  // 세 장을 겹쳐 두고 .avatar 의 data-state 로 하나만 보이게 해서, 상태가 바뀔 때 새로 불러오지 않고 바로 바뀐다.
+  var AVATAR_STATES = ['asking', 'thinking', 'praising'];
+  var AVATAR_DIR = 'img/characters/';
+  function avatarSrc(id, state) { return AVATAR_DIR + id + '-' + state + '.png'; }
 
   // 대화 방식(템플릿)과 캐릭터는 1:1 짝이다: 템플릿마다 그 방식에 어울리는 캐릭터 한 명.
   // (학생 화면 첫 장에 '○○가 함께해요'로 나오는 캐릭터가 AI의 실제 역할과 어긋나지 않게 하려는 규칙)
@@ -219,8 +114,11 @@
 
   function avatarHtml(id, state) {
     var ch = getCharacter(id);
-    return '<div class="avatar" data-state="' + (state || 'asking') + '" role="img" aria-label="' + ch.name + '">' +
-      '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' + SVG[ch.id] + '</svg></div>';
+    var st = AVATAR_STATES.indexOf(state) >= 0 ? state : 'asking';
+    return '<div class="avatar" data-state="' + st + '" role="img" aria-label="' + ch.name + '">' +
+      AVATAR_STATES.map(function (k) {
+        return '<img class="av-' + k + '" src="' + avatarSrc(ch.id, k) + '" alt="" aria-hidden="true" decoding="async" draggable="false">';
+      }).join('') + '</div>';
   }
 
   // "[주장]", "주장", "판단 유보" 등을 칩 색 클래스로 바꾼다
@@ -304,7 +202,7 @@
   global.ArguShared = {
     CHARACTERS: CHARACTERS, TEMPLATE_NAMES: TEMPLATE_NAMES, DEFAULT_GREETING: DEFAULT_GREETING, GREETINGS: GREETINGS, greetingFor: greetingFor, isDefaultGreeting: isDefaultGreeting,
     STEPS: STEPS, MODE_TEXT: MODE_TEXT, STUDENT_COPY: STUDENT_COPY, studentCopy: studentCopy,
-    getCharacter: getCharacter, hasCharacter: hasCharacter, characterFor: characterFor, resolveCharacter: resolveCharacter, personaCharacter: personaCharacter, avatarHtml: avatarHtml, tagClass: tagClass, tagText: tagText,
+    getCharacter: getCharacter, hasCharacter: hasCharacter, characterFor: characterFor, resolveCharacter: resolveCharacter, personaCharacter: personaCharacter, avatarHtml: avatarHtml, avatarSrc: avatarSrc, AVATAR_STATES: AVATAR_STATES, tagClass: tagClass, tagText: tagText,
     applyGreeting: applyGreeting, josa: josa, getTheme: getTheme, setTheme: setTheme
   };
 })(window);

@@ -60,11 +60,12 @@ html.icons-ready .ms { opacity: 1; }
 
 /* 캐릭터 아바타 (표정은 data-state로 바뀐다: asking / thinking / praising) */
 .avatar { position: relative; border-radius: 50%; overflow: hidden; aspect-ratio: 1 / 1; background: linear-gradient(160deg, #dff5ef, #d7e6fb); }
-.avatar svg { display: block; width: 100%; height: 100%; }
-.avatar .m-ask, .avatar .m-think, .avatar .m-happy { display: none; }
-.avatar[data-state="asking"] .m-ask,
-.avatar[data-state="thinking"] .m-think,
-.avatar[data-state="praising"] .m-happy { display: inline; }
+/* 표정 그림 3장을 겹쳐 두고 지금 상태의 한 장만 보인다 (img/characters/<id>-<state>.png, js/argu-shared.js 의 avatarHtml) */
+.avatar img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s ease; user-select: none; -webkit-user-drag: none; }
+.avatar[data-state="asking"] .av-asking,
+.avatar[data-state="thinking"] .av-thinking,
+.avatar[data-state="praising"] .av-praising { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .avatar img { transition: none; } }
 
 /* 푸터 크레딧 + 제작자 안내 모달 — 교사 콘솔·학생 화면이 함께 쓴다 (js/credit-footer.js).
    색은 기본으로 위 토큰을 따르고, 학생 화면은 --credit-* 로 다크 테마 색을 덮어쓴다. */
