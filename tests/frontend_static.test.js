@@ -113,6 +113,14 @@ ok('학생 화면의 주소 직접 입력은 형식 검사를 거침', /if \(!Ga
 ok('콘솔의 URL 저장도 형식 검사 결과를 확인', /if \(!GasClient\.setGasUrl\(url\)\) \{ setStatus\(\$\('step1Status'\), 'err', '주소를 저장하지 못했어요'/.test(pages['public/index.html']), '');
 ok('수업 입장 코드는 저장소(localStorage·sessionStorage)에 저장하지 않음', !/(localStorage|sessionStorage)\.setItem\([^)]*(code|Code)/.test(pages['public/student.html'] + gasClient), '');
 ok('학생 질문 입력칸에 글자 수 제한(1000자)', /<textarea id="userQuestion"[^>]*maxlength="1000"/.test(pages['public/student.html']), '');
+{
+  const stu = pages['public/student.html'], sc = read('public/css/student.css');
+  const ban = path.join(ROOT, 'public', 'img', 'entry-banner.jpg');
+  const b = fs.existsSync(ban) ? fs.readFileSync(ban) : null;
+  ok('수업 입장 코드 화면 위쪽에 환영 배너(2:1 JPEG, 200KB 이하, 대체 글 있음)가 코드 카드보다 먼저 나옴', !!b && b[0] === 0xFF && b[1] === 0xD8 && b.length < 200 * 1024
+    && /<div id="screenCode"[\s\S]*?<img class="entry-banner" src="img\/entry-banner\.jpg" width="960" height="480" alt="[^"]{5,}"[\s\S]*?🔑 수업 입장 코드/.test(stu) && /\.entry-banner \{[^}]*aspect-ratio: 2 \/ 1/.test(sc), b && b.length);
+  ok('카드 안의 안내 상자는 입력칸·버튼과 같은 너비(360px 제한은 카드 밖에서만)', /\.card-s \.err-box, \.card-s \.info-box \{ max-width: none; \}/.test(sc) && /\.err-box \{ max-width: 360px/.test(sc), '');
+}
 ok('학생 입장 화면에 개인정보 안내가 있음', /개인정보는 쓰지 말아요/.test(pages['public/student.html']), '');
 ok('API 키 안내: 한도는 프로젝트·모델마다 다르고 AI Studio 에서 확인, 추가 키는 다른 프로젝트에서(옛 "무료 키 20회" 문구 없음)', /하루·분당 요청 한도는 Google 프로젝트와 모델마다 달라요/.test(pages['public/index.html']) && /키가 아니라 프로젝트 단위/.test(pages['public/index.html']) && /다른 Google 프로젝트/.test(pages['public/index.html']) && !/예: 20회/.test(pages['public/index.html']), '');
 ok('결과 분석의 총평은 교사용 지도 가이드(화면·보고서·사용 가이드)', /교사용 지도 가이드 \(AI 총평\)<\/b><span id="overallFeedback"><\/span>/.test(pages['public/index.html']) && /<h2>교사용 지도 가이드<\/h2>/.test(pages['public/index.html']) && !/AI 총평 및 교사용 피드백/.test(pages['public/index.html']), '');

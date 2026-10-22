@@ -49,6 +49,8 @@ body.student { background: var(--s-bg); color: var(--s-ink); font-size: 16px; li
 .hero small { display: block; font-size: 13px; opacity: .8; }
 .hero h1 { margin: 2px 0 6px; font-size: 22px; line-height: 30px; font-weight: 700; }
 .hero p { margin: 0; font-size: 15px; line-height: 23px; opacity: .92; }
+/* 수업 입장 코드 화면 위쪽의 환영 배너 (img/entry-banner.jpg, 2:1) */
+.entry-banner { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; border-radius: 20px; border: 1px solid var(--s-line); box-shadow: var(--s-shadow); background: #e6f1fd; }
 .card-s { margin-top: 16px; padding: 20px; border-radius: 20px; background: var(--s-card); border: 1px solid var(--s-line); box-shadow: var(--s-shadow); }
 .card-s .field-s + .field-s { margin-top: 18px; }
 .topic-card h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--blue); display: flex; align-items: center; gap: 6px; }
@@ -66,6 +68,8 @@ body.student { background: var(--s-bg); color: var(--s-ink); font-size: 16px; li
 @keyframes sp { to { transform: rotate(360deg); } }
 .err-box { max-width: 360px; padding: 14px 16px; border-radius: 14px; background: var(--danger-bg); color: var(--danger-ink); font-size: 15px; text-align: left; line-height: 23px; }
 .info-box { max-width: 360px; padding: 14px 16px; border-radius: 14px; background: var(--warn-bg); color: var(--warn-ink); font-size: 15px; text-align: left; line-height: 23px; }
+/* 카드 안(입장 코드·주제 선택)의 안내 상자는 위의 입력칸·버튼과 같은 너비로 (360px 제한은 가운데 정렬 화면용) */
+.card-s .err-box, .card-s .info-box { max-width: none; }
 /* 수업 입장 코드 입력: 큼직하고 띄엄띄엄, 소문자로 쳐도 대문자로 보인다 */
 .code-input { text-align: center; font-size: 26px; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; font-variant-numeric: tabular-nums; padding-left: .28em; }
 .code-input::placeholder { letter-spacing: .08em; font-size: 18px; font-weight: 500; text-transform: none; }
