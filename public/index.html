@@ -446,7 +446,7 @@
         <div class="card">
           <div class="card-head">
             <div class="tile"><span class="ms">query_stats</span></div>
-            <div><h2>대화 불러오기 및 논증 분석</h2><p>학급 → 탐구 주제 → 모둠 순서로 단추를 눌러 고르면, 해당 대화 기록을 AI가 논증 요소별로 분석해요.</p></div>
+            <div><h2>대화 불러오기 및 논증 분석</h2><p>학급 → 탐구 주제 → 모둠 → 날짜 순서로 단추를 눌러 고르면, 해당 대화 기록을 AI가 논증 요소별로 분석해요.</p></div>
           </div>
           <div class="pick-flow" id="pickFlow">
             <section class="pick-step" id="pickStepClass" aria-labelledby="pickClassLabel">
@@ -460,6 +460,10 @@
             <section class="pick-step locked" id="pickStepGroup" aria-labelledby="pickGroupLabel">
               <div class="pick-head"><span class="pick-no">3</span><b id="pickGroupLabel">모둠</b><span class="pick-hint" id="pickGroupHint"></span></div>
               <div class="pick-btns" id="pickGroup" role="group" aria-labelledby="pickGroupLabel"></div>
+            </section>
+            <section class="pick-step locked" id="pickStepDate" aria-labelledby="pickDateLabel">
+              <div class="pick-head"><span class="pick-no">4</span><b id="pickDateLabel">날짜</b><span class="pick-hint" id="pickDateHint"></span></div>
+              <div class="pick-btns" id="pickDate" role="group" aria-labelledby="pickDateLabel"></div>
             </section>
           </div>
           <div class="pick-summary" id="pickSummary" aria-live="polite"></div>
@@ -503,7 +507,7 @@
           <div class="chip-filters" id="chipFilters"></div>
           <div class="table-wrap">
             <table class="data">
-              <thead><tr><th>#</th><th>시간</th><th>학생/모둠 발언</th><th>논증 판정</th><th>요소별 세부 평가</th></tr></thead>
+              <thead><tr><th>#</th><th>시간</th><th>튜터 질문 → 학생 답</th><th>논증 판정</th><th>요소별 세부 평가</th></tr></thead>
               <tbody id="utteranceBody"></tbody>
             </table>
           </div>
@@ -613,7 +617,7 @@
     <details class="accordion">
       <summary><span class="ms" style="color:var(--blue)">query_stats</span>메뉴 5 · 대화 결과 확인 &amp; 분석<span class="ms chev">expand_more</span></summary>
       <div class="body"><ul class="gd-list">
-        <li><b>학급 → 탐구 주제 → 모둠</b> 순서로 단추를 눌러 골라요. 앞 단계를 고르기 전에는 뒤 단계 단추가 꺼져 있고, 대화 기록이 없는 학급·주제·모둠은 <b>기록 없음</b>으로 표시돼 누를 수 없어요. 세 단계를 모두 고르면 <b>대화 불러오기 및 분석 실행</b> 버튼이 켜져요.</li>
+        <li><b>학급 → 탐구 주제 → 모둠 → 날짜</b> 순서로 단추를 눌러 골라요. 앞 단계를 고르기 전에는 뒤 단계 단추가 꺼져 있고, 대화 기록이 없는 학급·주제·모둠은 <b>기록 없음</b>으로 표시돼 누를 수 없어요. 같은 주제를 여러 날 나눠 했다면 <b>날짜</b>마다 단추가 생겨 그날의 대화만 분석할 수 있고(<b>모든 날짜 함께</b>도 고를 수 있어요), 하루만 했다면 날짜는 저절로 골라져요. 모두 고르면 <b>대화 불러오기 및 분석 실행</b> 버튼이 켜져요.</li>
         <li>이 메뉴에 들어올 때마다 목록과 기록을 새로 읽어요. 수업 중에 새 대화가 생겼다면 <b>목록·기록 새로고침</b>을 눌러 주세요. 탐구 도우미 대화처럼 평가하지 않는 대화만 있는 곳은 <b>평가 제외</b>로 표시돼요.</li>
         <li>결과에는 <b>종합 논증 수준</b>, 대화에 나타난 논증 요소, <b>대화 흐름 차트</b>(점을 누르면 그때의 발언과 판정), 담화 맥락별 평가, <b>AI 총평 · 교사용 피드백</b>, 발언별 판정 표(판정 칩으로 걸러 보기)가 나와요. <b>HTML 보고서 · 인쇄 · CSV</b>로 내보낼 수 있어요.</li>
         <li>논증 수준은 <b>논증의 구조</b>를 보는 값이라 과학적으로 맞는지는 판단하지 않아요. 탐구 자료를 반영해도 코멘트에만 쓰여요.</li>
@@ -628,7 +632,7 @@
         <li>링크(또는 QR)로 들어와 <b>수업 입장 코드</b>를 입력하고, 학급 · 모둠 · 탐구 주제를 고른 뒤 <b>탐구 대화방 입장하기</b>를 눌러요.</li>
         <li>대화방에는 AI 튜터와 <b>논증 가이드</b>(대화 방식에 따라 주장 → 근거 → 추론 등 단계가 달라져요)가 고정돼 있고, 아래 입력창에 내 생각을 써서 보내요. 막힐 때는 입력창 위의 시작 문장 버튼을 써요.</li>
         <li>AI는 정답을 알려 주는 대신 질문으로 생각을 키워 줘요. <b>이름·전화번호 같은 개인정보는 쓰지 않아요.</b></li>
-        <li>주제마다 정한 제한 시간이 있으면 위쪽에 타이머가 보여요.</li>
+        <li>주제마다 정한 제한 시간이 있으면 위쪽에 타이머가 보여요. 시간이 끝나면 <b>오늘의 탐구 요약</b>과 함께, 학생이 나눈 대화를 돌아본 100자 이내의 <b>오늘의 피드백</b>이 채팅창에 올라와요(이 피드백은 시트에 기록되지 않아요).</li>
         <li><b>금지어</b>를 쓰면 경고가 쌓이고 3번이면 그날 대화가 차단돼요. 주제와 상관없는 이야기를 계속하면 AI가 그 모둠을 10분 동안 차단해요.</li>
         <li><b>접속이 안 될 때</b> — ① 학교 Wi-Fi 또는 LTE/5G에 연결돼 있는지 확인해요. ② 별도 앱 없이 스마트폰 기본 카메라로 QR을 비추면 웹 배너가 떠요. ③ 인식이 안 되면 Chrome 등에서 링크를 직접 열어요(링크 복사 버튼으로 학급 메신저에 보낼 수 있어요).</li>
         <li>사이드바의 <b>학생 화면 열어보기</b>로 미리 체험할 수 있어요. 연습 대화도 시트에 기록돼요.</li>
@@ -1988,24 +1992,28 @@
   // ================= 5. 결과 분석 =================
   let lastResult = null, lastFilters = null, activeTag = '전체';
 
-  // ---- 학급 → 탐구 주제 → 모둠 단추 ----
+  // ---- 학급 → 탐구 주제 → 모둠 → 날짜 단추 ----
   // 무엇을 누를 수 있는지·"기록 없음"인지의 규칙은 js/pick-logic.js(ArguPick)에 있고, 여기서는 그 결과를 그리기만 한다.
   // 학급·주제·모둠 이름은 시트에서 온 글이라 innerHTML 이 아니라 textContent 로만 넣는다.
   const parseList = (v) => String(v || '').split(',').map((t) => t.trim()).filter(Boolean);
   let pickIdx = null, pickLoadSeq = 0, analyzing = false;
-  let pick = { cls: '', topic: '', group: '' };
+  let pick = { cls: '', topic: '', group: '', date: '' };
   const PICK_LEVELS = {
     class: { box: 'pickClass', none: '학급 목록이 비어 있어요. 기본 설정의 "학급 · 모둠 · 금지어"에서 학급을 입력해 주세요.' },
     topic: { box: 'pickTopic', none: '탐구 주제 목록이 비어 있어요. 주제 설정에서 주제를 입력해 주세요.' },
     group: { box: 'pickGroup', none: '모둠 목록이 비어 있어요. 기본 설정의 "학급 · 모둠 · 금지어"에서 모둠을 입력해 주세요.' },
+    date: { box: 'pickDate', none: '이 모둠의 대화 날짜를 찾지 못했어요. [목록·기록 새로고침]을 눌러 주세요.' },
   };
   const lockedOptions = (list) => list.map((value) => ({ value, state: 'locked', offList: false }));
+  // 날짜 단추 글자: '2026-10-15' → '10월 15일', 모든 날짜는 '모든 날짜 함께'
+  const dateLabel = (v) => { if (v === ArguPick.ALL_DATES) return '모든 날짜 함께'; const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? `${Number(m[2])}월 ${Number(m[3])}일` : String(v || ''); };
+  const pickDateText = (d) => (!d ? '' : d === ArguPick.ALL_DATES ? '모든 날짜' : dateLabel(d));
 
   function pickSubText(level, o) {
     if (o.state === 'locked' || o.state === 'unknown') return o.offList ? '목록에 없음' : '';
     if (o.state === 'empty') return '기록 없음';
     if (o.state === 'excluded') return `평가 제외 ${o.total}건`;
-    const base = level === 'group' ? `${o.analyzable}건` : `기록 ${o.groups}모둠`;
+    const base = level === 'group' || level === 'date' ? `${o.analyzable}건` : `기록 ${o.groups}모둠`;
     return o.offList ? `${base} · 목록에 없음` : base;
   }
   function pickTitle(o) {
@@ -2027,7 +2035,7 @@
       b.className = 'pick-btn' + (on ? ' on' : '') + (['locked', 'empty', 'excluded'].includes(o.state) ? ' ' + o.state : '');
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
       b.disabled = !ArguPick.selectable(o);
-      const name = document.createElement('span'); name.className = 'pick-name'; name.textContent = o.value; b.appendChild(name);
+      const name = document.createElement('span'); name.className = 'pick-name'; name.textContent = level === 'date' ? dateLabel(o.value) : o.value; b.appendChild(name);
       const sub = pickSubText(level, o);
       if (sub) { const s = document.createElement('span'); s.className = 'pick-sub'; s.textContent = sub; b.appendChild(s); }
       const tip = o.state === 'locked' ? '' : pickTitle(o);
@@ -2044,15 +2052,20 @@
     renderPickStep('class', ArguPick.classOptions(pickIdx), pick.cls, chooseClass);
     renderPickStep('topic', pick.cls ? ArguPick.topicOptions(pickIdx, pick.cls) : lockedOptions(pickIdx.lists.topics), pick.topic, chooseTopic);
     renderPickStep('group', pick.cls && pick.topic ? ArguPick.groupOptions(pickIdx, pick.cls, pick.topic) : lockedOptions(pickIdx.lists.groups), pick.group, chooseGroup);
+    const allPicked = pick.cls && pick.topic && pick.group;
+    if (allPicked) renderPickStep('date', ArguPick.dateOptions(pickIdx, pick.cls, pick.topic, pick.group), pick.date, chooseDate);
+    else $('pickDate').replaceChildren(); // 날짜는 모둠마다 달라서, 모둠을 고르기 전에는 단추를 그리지 않는다
     $('pickStepTopic').classList.toggle('locked', !pick.cls);
     $('pickStepGroup').classList.toggle('locked', !(pick.cls && pick.topic));
+    $('pickStepDate').classList.toggle('locked', !allPicked);
     $('pickClassHint').textContent = pick.cls ? '' : '학급을 골라 주세요';
     $('pickTopicHint').textContent = !pick.cls ? '먼저 학급을 골라 주세요' : pick.topic ? '' : '탐구 주제를 골라 주세요';
     $('pickGroupHint').textContent = !(pick.cls && pick.topic) ? '먼저 학급과 탐구 주제를 골라 주세요' : pick.group ? '' : '모둠을 골라 주세요 · 기록 없는 모둠은 누를 수 없어요';
-    const ready = ArguPick.canAnalyze(pickIdx, pick), sum = $('pickSummary'), chosen = [pick.cls, pick.topic, pick.group].filter(Boolean).join(' › ');
+    $('pickDateHint').textContent = !allPicked ? '먼저 모둠까지 골라 주세요' : pick.date ? '' : '같은 주제를 여러 날 했어요. 분석할 날짜를 골라 주세요';
+    const ready = ArguPick.canAnalyze(pickIdx, pick), sum = $('pickSummary'), chosen = [pick.cls, pick.topic, pick.group, pickDateText(pick.date)].filter(Boolean).join(' › ');
     sum.classList.toggle('ready', ready);
     sum.textContent = ready ? `선택: ${chosen} — 아래 [대화 불러오기 및 분석 실행]을 눌러 주세요.`
-      : pick.cls ? `선택: ${chosen} … 이어서 ${pick.topic ? '모둠을' : '탐구 주제를'} 골라 주세요.` : '학급 → 탐구 주제 → 모둠을 차례로 고르면 분석 버튼이 켜져요.';
+      : pick.cls ? `선택: ${chosen} … 이어서 ${pick.group ? '날짜를' : pick.topic ? '모둠을' : '탐구 주제를'} 골라 주세요.` : '학급 → 탐구 주제 → 모둠 → 날짜를 차례로 고르면 분석 버튼이 켜져요.';
     syncAnalyzeBtn();
     if (hadFocus) { // 단추를 다시 그리면 포커스가 사라지므로, 같은 단추가 아직 눌릴 수 있으면 포커스를 돌려준다
       const again = [...$(PICK_LEVELS[hadFocus[0]].box).querySelectorAll('.pick-btn')].find((x) => x.dataset.value === hadFocus[1] && !x.disabled);
@@ -2060,9 +2073,11 @@
     }
   }
   function afterPickChange() { $('rubricNote').innerHTML = ''; renderPicker(); updateQnaNote(); }
-  function chooseClass(v) { pick = { cls: v, topic: '', group: '' }; afterPickChange(); }
-  function chooseTopic(v) { pick = { cls: pick.cls, topic: v, group: '' }; afterPickChange(); }
-  function chooseGroup(v) { pick = { cls: pick.cls, topic: pick.topic, group: v }; afterPickChange(); }
+  function chooseClass(v) { pick = { cls: v, topic: '', group: '', date: '' }; afterPickChange(); }
+  function chooseTopic(v) { pick = { cls: pick.cls, topic: v, group: '', date: '' }; afterPickChange(); }
+  // 모둠을 고르면 날짜는 다시 정한다(하루만 했으면 그 날짜가 저절로 골라진다)
+  function chooseGroup(v) { pick = ArguPick.reconcile(pickIdx, { cls: pick.cls, topic: pick.topic, group: v, date: '' }); afterPickChange(); }
+  function chooseDate(v) { pick = { cls: pick.cls, topic: pick.topic, group: pick.group, date: v }; afterPickChange(); }
 
   function setPickNote(kind, title, sub) {
     const el = $('pickNote');
@@ -2122,8 +2137,8 @@
   $('rubricNote').addEventListener('click', (e) => { const b = e.target.closest('[data-rubric]'); if (b) runAnalysis(b.dataset.rubric); });
 
   async function runAnalysis(rubricName) {
-    if (!pickIdx || !ArguPick.canAnalyze(pickIdx, pick)) { setStatus($('step3Status'), 'err', '먼저 학급 → 탐구 주제 → 모둠 순서로 단추를 눌러, 대화 기록이 있는 모둠을 골라 주세요.'); return; }
-    const f = { classValue: pick.cls, groupValue: pick.group, topicValue: pick.topic };
+    if (!pickIdx || !ArguPick.canAnalyze(pickIdx, pick)) { setStatus($('step3Status'), 'err', '먼저 학급 → 탐구 주제 → 모둠 → 날짜 순서로 단추를 눌러, 대화 기록이 있는 모둠을 골라 주세요.'); return; }
+    const f = { classValue: pick.cls, groupValue: pick.group, topicValue: pick.topic, dateValue: ArguPick.dateParam(pick) };
     analyzing = true; syncAnalyzeBtn(); $('resultCard').classList.add('hidden'); $('rubricNote').innerHTML = '';
     setStatus($('step3Status'), 'busy', 'AI가 대화 내역을 분석하고 있어요', '대화량에 따라 10~30초 걸릴 수 있어요.');
     try {
@@ -2152,7 +2167,8 @@
   function renderResult() {
     const { utterances, overallLevel, overallFeedback } = lastResult;
     $('resultTitle').textContent = `${lastFilters.classValue} ${lastFilters.groupValue} 분석 결과`;
-    $('resultSub').textContent = `탐구 주제: ${lastFilters.topicValue}` + (lastResult.materialUsed ? ' · 탐구 자료 반영' : '');
+    const dayText = lastFilters.dateValue ? dateLabel(lastFilters.dateValue) + ' 대화' : '모든 날짜 대화'; // textContent 로 넣는 글
+    $('resultSub').textContent = '탐구 주제: ' + lastFilters.topicValue + ' · ' + dayText + (lastResult.materialUsed ? ' · 탐구 자료 반영' : '');
 
     // "Level 3 → 4" 처럼 숫자가 둘 이상이어도 첫 번째 한 자리 숫자만 쓴다
     const lv = parseInt((String(overallLevel).match(/\d/) || ['0'])[0], 10) || 0;
@@ -2396,14 +2412,31 @@
     const extra = elementTags(u).filter((t) => t !== main);
     return extra.length ? `<div class="jd-extra">+ ${escapeHtml(extra.join(' · '))}</div>` : '';
   }
+  // 튜터 질문 → 학생 답: 기록 한 줄은 [학생 글, 그 뒤 AI 답]이라, 학생이 답한 '튜터 질문'은 같은 날 바로 앞 줄의 AI 답이다.
+  // 그날의 첫 발언은 학생 화면의 첫 인사말에 답한 것(인사말은 기록되지 않음) → null. 그날의 마지막 AI 답은 마지막 발언 아래에 접어 둔다.
+  function tutorBefore(k) {
+    const us = lastResult.utterances, p = us[k - 1];
+    return p && p.date === us[k].date ? String(p.aiReply || '') : null;
+  }
+  function lastReplyOfDay(k) {
+    const us = lastResult.utterances, n = us[k + 1];
+    return !n || n.date !== us[k].date ? String(us[k].aiReply || '') : '';
+  }
+  function sayCellHtml(u) {
+    const k = lastResult.utterances.indexOf(u), tq = tutorBefore(k), lastReply = lastReplyOfDay(k);
+    const q = tq === null
+      ? '<div class="tq start"><span class="who"><span class="ms">waving_hand</span>첫 발언</span>튜터의 첫 인사말에 답한 발언이에요.</div>'
+      : tq ? `<div class="tq"><span class="who"><span class="ms">smart_toy</span>튜터 질문</span>${escapeHtml(tq)}</div>` : '';
+    const after = lastReply ? `<details class="ai-reply"><summary><span class="ms" style="font-size:16px">smart_toy</span>이 날의 마지막 튜터 응답 보기</summary><div>${escapeHtml(lastReply)}</div></details>` : '';
+    return `${q}<div class="sa"><span class="who"><span class="ms">person</span>학생 답</span>${escapeHtml(u.text)}</div>${after}`;
+  }
   function renderRows() {
     const rows = lastResult.utterances.filter((u) => activeTag === '전체' || (AS.tagText(u.judgment) || '미분류') === activeTag);
     $('utteranceBody').innerHTML = rows.length ? rows.map((u) => `
       <tr>
         <td class="no">${String(u.no).padStart(2, '0')}${ctxTagFor(u)}</td>
         <td class="when">${escapeHtml(u.date)}<br>${escapeHtml(u.time)}</td>
-        <td class="say">${escapeHtml(u.text)}
-          ${u.aiReply ? `<details class="ai-reply"><summary><span class="ms" style="font-size:16px">smart_toy</span>AI 튜터 응답 보기</summary><div>${escapeHtml(u.aiReply)}</div></details>` : ''}</td>
+        <td class="say">${sayCellHtml(u)}</td>
         <td class="jd"><span class="${AS.tagClass(u.judgment)}">${escapeHtml(AS.tagText(u.judgment) || '미분류')}</span>${extraElementsHtml(u)}</td>
         <td>${escapeHtml(u.evaluation)}</td>
       </tr>`).join('') : '<tr><td colspan="5" class="empty">이 유형의 발언이 없어요.</td></tr>';
@@ -2417,21 +2450,22 @@
 <table class="d"><thead><tr><th>맥락</th><th>발화</th><th>요소 흐름</th><th>완결 여부</th><th>연결</th><th>AI 평가</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
   function buildReportHtml() {
-    const { classValue, groupValue, topicValue } = lastFilters; const { overallLevel, overallFeedback, utterances } = lastResult;
+    const { classValue, groupValue, topicValue, dateValue } = lastFilters; const { overallLevel, overallFeedback, utterances } = lastResult;
     const dt = new Date().toLocaleString('ko-KR');
-    const rows = utterances.map((u) => `<tr><td>${u.no}</td><td>${escapeHtml(u.date)} ${escapeHtml(u.time)}</td><td>${escapeHtml(u.text)}${u.aiReply ? `<div class="ai">AI 튜터: ${escapeHtml(u.aiReply)}</div>` : ''}</td><td><b>${escapeHtml(AS.tagText(u.judgment))}</b></td><td>${escapeHtml(u.evaluation)}</td></tr>`).join('');
+    const rows = utterances.map((u, k) => { const tq = tutorBefore(k), lastReply = lastReplyOfDay(k);
+      return `<tr><td>${u.no}</td><td>${escapeHtml(u.date)} ${escapeHtml(u.time)}</td><td>${tq === null ? '<div class="ai first">첫 발언 (튜터의 첫 인사말에 답함)</div>' : tq ? `<div class="ai">튜터 질문: ${escapeHtml(tq)}</div>` : ''}<div class="sa">학생 답: ${escapeHtml(u.text)}</div>${lastReply ? `<div class="ai">이 날의 마지막 튜터 응답: ${escapeHtml(lastReply)}</div>` : ''}</td><td><b>${escapeHtml(AS.tagText(u.judgment))}</b></td><td>${escapeHtml(u.evaluation)}</td></tr>`; }).join('');
     return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>논증 분석 보고서 - ${escapeHtml(classValue)} ${escapeHtml(groupValue)}</title>
 <style>body{font-family:'Noto Sans KR',-apple-system,"Segoe UI",sans-serif;color:#181c1e;max-width:920px;margin:32px auto;padding:0 16px}
 h1{font-size:1.6rem;border-bottom:3px solid #3b7dd8;padding-bottom:12px}table.meta td{padding:5px 18px 5px 0}table.meta td:first-child{color:#74777e;font-weight:700}
 .fb{background:#f1f6fd;border:1px solid #cfe0f7;border-radius:10px;padding:16px;white-space:pre-wrap;line-height:1.7}
 table.d{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}table.d th,table.d td{border:1px solid #e2e8f0;padding:8px 10px;text-align:left;vertical-align:top}table.d th{background:#f2f5f8}
-.ai{margin-top:6px;color:#43474e;font-size:.85rem;border-left:3px solid #22c1a3;padding-left:8px;white-space:pre-wrap}@media print{body{margin:0}}</style></head><body>
+.ai{margin:0 0 6px;color:#43474e;font-size:.85rem;border-left:3px solid #22c1a3;padding-left:8px;white-space:pre-wrap}.ai.first{color:#74777e;border-left-style:dashed}.sa{white-space:pre-wrap;margin-bottom:6px}@media print{body{margin:0}}</style></head><body>
 <h1>논증 분석 보고서</h1>
-<table class="meta"><tr><td>학급</td><td>${escapeHtml(classValue)}</td></tr><tr><td>모둠</td><td>${escapeHtml(groupValue)}</td></tr><tr><td>탐구 주제</td><td>${escapeHtml(topicValue)}</td></tr><tr><td>분석 일시</td><td>${escapeHtml(dt)}</td></tr></table>
+<table class="meta"><tr><td>학급</td><td>${escapeHtml(classValue)}</td></tr><tr><td>모둠</td><td>${escapeHtml(groupValue)}</td></tr><tr><td>탐구 주제</td><td>${escapeHtml(topicValue)}</td></tr><tr><td>대화 날짜</td><td>${escapeHtml(dateValue || '모든 날짜')}</td></tr><tr><td>분석 일시</td><td>${escapeHtml(dt)}</td></tr></table>
 <h2>종합 논증 수준: ${escapeHtml(overallLevel)}</h2>
 <h2>대화 흐름과 담화 맥락</h2><div style="overflow-x:auto">${buildFlowSvg(utterances, resultTemplate(), lastCtxs)}</div>${ctxReportHtml()}
 <h2>AI 총평</h2><div class="fb">${escapeHtml(overallFeedback)}</div>
-<h2>발화별 상세 분석</h2><table class="d"><thead><tr><th>번호</th><th>일시</th><th>학생/모둠 발언</th><th>논증 판정</th><th>요소별 세부 평가</th></tr></thead><tbody>${rows}</tbody></table>
+<h2>발화별 상세 분석</h2><table class="d"><thead><tr><th>번호</th><th>일시</th><th>튜터 질문 → 학생 답</th><th>논증 판정</th><th>요소별 세부 평가</th></tr></thead><tbody>${rows}</tbody></table>
 </body></html>`;
   }
   function needResult() { if (!lastResult) { toast('먼저 분석을 실행해 주세요.'); return false; } return true; }
@@ -2455,8 +2489,8 @@ table.d{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}tabl
       if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
       return '"' + t.replace(/"/g, '""') + '"';
     };
-    const lines = [['번호', '날짜', '시간', '학생 발언', 'AI 튜터 응답', '논증 판정', '세부 평가', '맥락', '맥락 제목', '맥락 완결 여부'].map(q).join(',')];
-    lastResult.utterances.forEach((u, k) => { const c = ctxOfIndex(k) || {}; lines.push([u.no, u.date, u.time, u.text, u.aiReply, AS.tagText(u.judgment), u.evaluation, c.id ? '맥락 ' + c.id : '', c.title || '', c.level || ''].map(q).join(',')); });
+    const lines = [['번호', '날짜', '시간', '앞선 튜터 질문', '학생 답', '이어진 AI 튜터 응답', '논증 판정', '세부 평가', '맥락', '맥락 제목', '맥락 완결 여부'].map(q).join(',')];
+    lastResult.utterances.forEach((u, k) => { const c = ctxOfIndex(k) || {}, tq = tutorBefore(k); lines.push([u.no, u.date, u.time, tq === null ? '(첫 인사말에 답함)' : tq, u.text, u.aiReply, AS.tagText(u.judgment), u.evaluation, c.id ? '맥락 ' + c.id : '', c.title || '', c.level || ''].map(q).join(',')); });
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = `논증분석_${lastFilters.classValue}_${lastFilters.groupValue}_${lastFilters.topicValue}.csv`;

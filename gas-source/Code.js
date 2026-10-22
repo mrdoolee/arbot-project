@@ -82,7 +82,7 @@ var STUDENT_ACTIONS_ = ["getInitialData", "processChatMessage", "getSessionFeedb
 // 이 GAS 코드의 API 버전. testConnection 이 알려 주고, 교사 콘솔은 자기가 요구하는 버전(REQUIRED_API_VERSION)보다 낮으면
 // "시트의 GAS 가 옛 버전이에요"를 안내한다 (콘솔은 모두가 공유하지만 GAS 는 시트마다 따로 배포되기 때문).
 // 콘솔이 새 action 을 쓰기 시작하면 이 숫자와 콘솔의 REQUIRED_API_VERSION 을 함께 올린다. (버전 1 = 이 값이 없던 옛 코드)
-var API_VERSION_ = 4; // 3: getChatOverview (결과 분석의 학급 → 주제 → 모둠 단추가 기록 유무를 표시), 4: getSessionFeedback (탐구 시간이 끝나면 학생에게 100자 피드백)
+var API_VERSION_ = 4; // 3: getChatOverview (결과 분석의 학급 → 주제 → 모둠 단추가 기록 유무를 표시), 4: getSessionFeedback (탐구 시간이 끝나면 학생에게 100자 피드백) + 날짜별 분석 (getChatOverview 의 dates, teacherAnalyze 의 dateValue)
 var PIN_HASH_PROP_ = "TEACHER_PIN_HASH";
 var PIN_SALT_PROP_ = "TEACHER_PIN_SALT";
 var PIN_MIN_LENGTH_ = 8;
@@ -297,7 +297,7 @@ function routeAction(action, params) {
       case "getSessionFeedback":
         return getSessionFeedback(params);
       case "teacherAnalyze":
-        return apiAnalyze(params.classValue, params.groupValue, params.topicValue, params.useMaterial, params.rubricName);
+        return apiAnalyze(params.classValue, params.groupValue, params.topicValue, params.useMaterial, params.rubricName, params.dateValue);
       case "getChatOverview":
         return apiChatOverview();
       case "listGeminiModels":
@@ -1712,8 +1712,14 @@ function processChatMessage(payload) {
 // [JSON API 전용] 결과 분석 화면의 학급 → 주제 → 모둠 단추가 쓴다: 대화 기록(채팅기록)이 어느 학급·주제·모둠에 얼마나 있는지 센다.
 // 시트를 읽기만 한다(쓰기·Gemini 호출 없음). apiAnalyze 와 같은 이름 규칙(앞뒤 공백만 뺀 정확 일치)과 같은 '평가 제외' 기준
 // (H열 'qna' 또는 I열 '-')을 써서, 여기서 '기록 없음'이면 분석도 비어 있도록 맞춘다.
-//   combos: [{ classValue, topicValue, groupValue, total(모든 기록), analyzable(평가 대상), last('날짜 시간') }]
+//   combos: [{ classValue, topicValue, groupValue, total(모든 기록), analyzable(평가 대상), last('날짜 시간'),
+//              dates: [{ date('yyyy-MM-dd'), total, analyzable }] (날짜순 — 결과 분석의 4단계 '날짜' 단추) }]
 // ---------------------------------------------------------
+// 채팅기록 A열(날짜)을 'yyyy-MM-dd' 글자로. 실제 시트는 날짜 칸을 Date 로 돌려주기도 한다. apiAnalyze 의 날짜 고르기와 같은 규칙.
+function chatDateKey_(v) {
+  return (v instanceof Date) ? Utilities.formatDate(v, "Asia/Seoul", "yyyy-MM-dd") : String(v == null ? "" : v).trim();
+}
+
 function apiChatOverview() {
   var rows = requireSheet_('채팅기록').getDataRange().getValues();
   var cell = function(r, i) { return r[i] == null ? "" : String(r[i]).trim(); };
@@ -1723,16 +1729,22 @@ function apiChatOverview() {
     if (!c || !g || !t) continue; // 학급·모둠·주제가 빈 줄(손으로 지운 줄 등)은 어느 단추에도 속하지 않는다
     var key = c + "\u0001" + t + "\u0001" + g;
     var e = byKey[key];
-    if (!e) { e = byKey[key] = { classValue: c, topicValue: t, groupValue: g, total: 0, analyzable: 0, lastIndex: i }; list.push(e); }
+    if (!e) { e = byKey[key] = { classValue: c, topicValue: t, groupValue: g, total: 0, analyzable: 0, lastIndex: i, dates: {} }; list.push(e); }
+    var ok = cell(r, 7) !== "qna" && cell(r, 8) !== NO_RUBRIC_;
     e.total++;
-    if (cell(r, 7) !== "qna" && cell(r, 8) !== NO_RUBRIC_) e.analyzable++;
+    if (ok) e.analyzable++;
+    var d = chatDateKey_(r[0]);
+    var de = e.dates[d] || (e.dates[d] = { date: d, total: 0, analyzable: 0 });
+    de.total++;
+    if (ok) de.analyzable++;
     e.lastIndex = i; // 기록은 위에서 아래로 쌓이므로 마지막으로 본 줄이 가장 최근이다
   }
   var stamp = function(v, fmt) { return (v instanceof Date) ? Utilities.formatDate(v, "Asia/Seoul", fmt) : String(v == null ? "" : v); };
   var combos = list.map(function(e) { // 시각 서식은 조합마다 한 번만 만든다(기록이 많아도 느려지지 않게)
     var r = rows[e.lastIndex];
+    var dates = Object.keys(e.dates).sort().map(function(k) { return e.dates[k]; });
     return { classValue: e.classValue, topicValue: e.topicValue, groupValue: e.groupValue, total: e.total, analyzable: e.analyzable,
-      last: (stamp(r[0], "yyyy-MM-dd") + " " + stamp(r[1], "HH:mm")).trim() };
+      last: (stamp(r[0], "yyyy-MM-dd") + " " + stamp(r[1], "HH:mm")).trim(), dates: dates };
   });
   return { success: true, data: { combos: combos } };
 }
@@ -1740,11 +1752,14 @@ function apiChatOverview() {
 // ---------------------------------------------------------
 // [JSON API 전용] 교사 콘솔의 "결과 분석" 단계가 호출한다. 시트에 결과를 쓰지 않고 결과 객체를 그대로 반환한다.
 // ---------------------------------------------------------
-function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricName) {
+// targetDate: 'yyyy-MM-dd' 면 그날의 대화만, 비우면 모든 날짜를 함께 분석한다 (같은 주제를 여러 날 나눠 한 경우 섞이지 않게).
+function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricName, targetDate) {
   targetClass = (targetClass || "").toString().trim();
   targetGroup = (targetGroup || "").toString().trim();
   targetTopic = (targetTopic || "").toString().trim();
+  targetDate = (targetDate || "").toString().trim();
   rubricName = cleanName_(rubricName);
+  if (targetDate && !/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) return { success: false, error: "날짜 형식이 올바르지 않아요." };
 
   if (!targetClass || !targetGroup || !targetTopic) {
     return { success: false, error: "학급, 모둠, 탐구 주제를 모두 선택해 주세요." };
@@ -1766,6 +1781,7 @@ function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricNa
     if (allRecords[i][2].toString().trim() === targetClass &&
         allRecords[i][3].toString().trim() === targetGroup &&
         allRecords[i][4].toString().trim() === targetTopic) {
+      if (targetDate && chatDateKey_(allRecords[i][0]) !== targetDate) continue; // 고른 날짜의 대화만
       if (String(allRecords[i][7] || "").trim() === "qna" || String(allRecords[i][8] || "").trim() === NO_RUBRIC_) { excludedQna++; continue; }
       topicRows.push({ rec: allRecords[i], rubric: String(allRecords[i][8] || "").trim() });
     }
@@ -1816,7 +1832,7 @@ function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricNa
   });
 
   if (filteredChat.length === 0) {
-    var where = targetClass + " " + targetGroup + " · " + targetTopic;
+    var where = targetClass + " " + targetGroup + " · " + targetTopic + (targetDate ? " (" + targetDate + ")" : "");
     var emptyMsg;
     if (otherRubrics.length) {
       emptyMsg = where + "의 대화는 모두 다른 루브릭(" + otherRubrics.map(function(o) { return "'" + o.name + "' " + o.count + "건"; }).join(", ") + ")으로 진행됐어요. 그 루브릭을 골라 분석해 주세요.";
@@ -1917,6 +1933,7 @@ function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricNa
     rubricFallback: rubricFallback,
     currentRubricName: cfg.noRubric ? "" : cfg.rubricName, // 이 주제에 지금 연결된 루브릭(평가 안 하는 주제면 빈 문자열)
     otherRubrics: otherRubrics,
+    dateValue: targetDate, // 분석한 날짜('' = 모든 날짜)
     templateKey: (lastPersona && lastPersona.templateKey) || cfg.templateKey || "",
     levelMax: levelNums.length ? Math.max.apply(null, levelNums) : 0,
     utterances: utterances

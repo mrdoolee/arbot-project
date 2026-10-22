@@ -9,7 +9,8 @@ const ok = (name, cond, extra) => { (cond ? pass++ : fail++); console.log((cond 
 const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'pick-logic.js'), 'utf8');
 const win = {}; vm.createContext(win); win.window = win; vm.runInContext(src, win);
 const P = win.ArguPick;
-const plain = (v) => JSON.parse(JSON.stringify(v)); // vm 컨텍스트의 객체를 이쪽 객체로 바꿔 deepEqual 비교를 쉽게
+const plainAll = (v) => JSON.parse(JSON.stringify(v)); // vm 컨텍스트의 객체를 이쪽 객체로 바꿔 deepEqual 비교를 쉽게
+const plain = (v) => { const o = plainAll(v); return o && typeof o === 'object' && 'date' in o && 'cls' in o ? { cls: o.cls, topic: o.topic, group: o.group } : o; }; // 학급·주제·모둠 세 단계만 (날짜는 아래 7) 에서 따로 시험)
 
 const lists = { classes: ['1반', '2반', '3반'], topics: ['전류와 전압', '온도와 반응 속도', '원자력 발전'], groups: ['A1모둠', 'A2모둠', 'B1모둠'] };
 const combos = [
@@ -133,6 +134,38 @@ ok('아무것도 안 고르면 분석 버튼은 꺼짐', P.canAnalyze(idx, {}) =
   ok('문자열 숫자는 정수로 읽고(3건·평가 2건) 음수·잘못된 값은 0 으로 봄', res && res.g.find((o) => o.value === 'g').total === 3 && res.g.find((o) => o.value === 'g').analyzable === 2, res && res.g);
   ok('lists 가 없어도 기록만으로 단추가 만들어짐', P.classOptions(P.build(undefined, combos)).map((o) => o.value).join() === '1반,2반', '');
   ok('build 가 입력 배열을 바꾸지 않음', (() => { const c = JSON.stringify(combos), l = JSON.stringify(lists); P.build(lists, combos); return c === JSON.stringify(combos) && l === JSON.stringify(lists); })(), '');
+}
+
+// ───────── 7) 날짜 단계: 같은 주제를 여러 날 했을 때 날짜마다 따로 분석 ─────────
+{
+  const D = [
+    { classValue: '1반', topicValue: '원자력 발전', groupValue: 'A1모둠', total: 14, analyzable: 13, last: '2026-10-22 11:15',
+      dates: [{ date: '2026-10-15', total: 11, analyzable: 11 }, { date: '2026-10-22', total: 3, analyzable: 2 }] },
+    { classValue: '1반', topicValue: '원자력 발전', groupValue: 'A2모둠', total: 4, analyzable: 4, last: '2026-10-15 10:00', dates: [{ date: '2026-10-15', total: 4, analyzable: 4 }] },
+    { classValue: '1반', topicValue: '원자력 발전', groupValue: 'B1모둠', total: 3, analyzable: 2, last: '2026-10-16 10:00',
+      dates: [{ date: '2026-10-15', total: 1, analyzable: 0 }, { date: '2026-10-16', total: 2, analyzable: 2 }] },
+  ];
+  const di = P.build(lists, D);
+  const opts = P.dateOptions(di, '1반', '원자력 발전', 'A1모둠');
+  ok('날짜가 둘이면 날짜 단추 두 개(날짜순) + 모든 날짜 함께', opts.map((o) => o.value).join() === '2026-10-15,2026-10-22,' + P.ALL_DATES && opts[2].all === true, plainAll(opts));
+  ok('날짜 단추는 그날의 평가 대상 건수를 가짐', opts[0].analyzable === 11 && opts[1].analyzable === 2 && opts[2].analyzable === 13, opts.map((o) => o.analyzable));
+  ok('모둠까지만 고르면(날짜가 둘) 분석 버튼은 아직 꺼짐', !P.canAnalyze(di, { cls: '1반', topic: '원자력 발전', group: 'A1모둠' }) && plainAll(P.reconcile(di, { cls: '1반', topic: '원자력 발전', group: 'A1모둠' })).date === '', '');
+  ok('날짜를 고르면 분석 버튼이 켜지고 그 날짜가 서버로 감', P.canAnalyze(di, { cls: '1반', topic: '원자력 발전', group: 'A1모둠', date: '2026-10-22' }) && P.dateParam({ date: '2026-10-22' }) === '2026-10-22', '');
+  ok('모든 날짜 함께를 고르면 서버에는 빈 날짜(전체)가 감', P.canAnalyze(di, { cls: '1반', topic: '원자력 발전', group: 'A1모둠', date: P.ALL_DATES }) && P.dateParam({ date: P.ALL_DATES }) === '' && P.dateParam({}) === '', '');
+  ok('하루만 한 모둠은 날짜가 저절로 골라져 세 단계만으로 분석 버튼이 켜짐', P.canAnalyze(di, { cls: '1반', topic: '원자력 발전', group: 'A2모둠' }) && plainAll(P.reconcile(di, { cls: '1반', topic: '원자력 발전', group: 'A2모둠' })).date === '2026-10-15' && P.dateOptions(di, '1반', '원자력 발전', 'A2모둠').length === 1, P.dateOptions(di, '1반', '원자력 발전', 'A2모둠').map((o) => o.value));
+  const b1 = P.dateOptions(di, '1반', '원자력 발전', 'B1모둠');
+  ok('평가 제외 대화뿐인 날짜는 누를 수 없음(나머지 하루와 모든 날짜 함께는 누를 수 있음)', b1.find((o) => o.value === '2026-10-15').state === 'excluded' && !P.selectable(b1[0]) && P.selectable(b1[1]) && P.selectable(b1[2]), plainAll(b1).map((o) => [o.value, o.state]));
+  ok('고를 수 있는 단추가 둘이면(하루 + 전체) 저절로 고르지 않음', plainAll(P.reconcile(di, { cls: '1반', topic: '원자력 발전', group: 'B1모둠' })).date === '', '');
+  ok('평가 제외 날짜를 억지로 넣어도 분석 버튼은 꺼짐', !P.canAnalyze(di, { cls: '1반', topic: '원자력 발전', group: 'B1모둠', date: '2026-10-15' }), '');
+  ok('없는 날짜는 비워지고 학급·주제·모둠은 유지', JSON.stringify(plainAll(P.reconcile(di, { cls: '1반', topic: '원자력 발전', group: 'A1모둠', date: '2026-01-01' }))) === JSON.stringify({ cls: '1반', topic: '원자력 발전', group: 'A1모둠', date: '' }), '');
+  ok('모둠을 바꾸면 날짜도 새 모둠 기준으로 다시 정해짐', plainAll(P.reconcile(di, { cls: '1반', topic: '원자력 발전', group: 'A2모둠', date: '2026-10-22' })).date === '2026-10-15', '');
+  ok('모둠을 고르기 전에는 날짜 단추가 없음', P.dateOptions(di, '1반', '원자력 발전', '').length === 0, '');
+  // 옛 GAS(API v3: dates 없음)와 기록 유무를 모를 때: 날짜 단계는 '모든 날짜' 하나로 저절로 골라져 예전처럼 분석할 수 있다
+  const old = P.build(lists, combos);
+  ok('dates 를 주지 않는 옛 GAS 는 모든 날짜 하나뿐이고 저절로 골라짐', P.dateOptions(old, '1반', '전류와 전압', 'A1모둠').map((o) => o.value).join() === P.ALL_DATES && plainAll(P.reconcile(old, { cls: '1반', topic: '전류와 전압', group: 'A1모둠' })).date === P.ALL_DATES, '');
+  const unk = P.build(lists, null);
+  ok('기록 유무를 모를 때도 모든 날짜 하나로 분석 가능', P.dateOptions(unk, '2반', '원자력 발전', 'B1모둠')[0].state === 'unknown' && P.canAnalyze(unk, { cls: '2반', topic: '원자력 발전', group: 'B1모둠' }), '');
+  ok('날짜 칸이 이상한 값이면 건너뜀(깨지지 않음)', P.dateOptions(P.build(lists, [{ classValue: '1반', topicValue: 't', groupValue: 'g', total: 1, analyzable: 1, dates: [null, { date: '', total: 1 }, { date: '2026-10-15', total: 1, analyzable: 1 }] }]), '1반', 't', 'g').map((o) => o.value).join() === '2026-10-15', '');
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

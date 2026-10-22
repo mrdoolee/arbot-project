@@ -22,6 +22,16 @@ env.sheets['기본설정'].rows[3][1] = '전류와 전압의 관계, 온도와 �
 env.sheets['기본설정'].rows[1][1] = '1반, 2반';
 env.sheets['기본설정'].rows[2][1] = '1모둠, 2모둠';
 env.sheets['환경설정'].rows[0][1] = 'AIzaFakeKeyForLocalTestingOnly0000';
+// --sample-chats: 같은 주제를 두 날에 나눠 한 1반 1모둠의 대화를 미리 넣는다 (결과 분석의 '날짜' 단추와 튜터 질문 → 학생 답 표를 볼 때)
+if (process.argv.includes('--sample-chats')) {
+  const T = '원자력 발전은 앞으로 늘려야 한다';
+  [['2026-10-15', '23:17', '찬성해요.', '왜 그렇게 생각해? 어떤 사실이 네 생각을 뒷받침하니?'],
+   ['2026-10-15', '23:17', '전기가 부족하니까 원자력 발전이 필요해요', '전기가 부족하다는 사실이 왜 원자력을 늘려야 한다는 입장을 뒷받침할까?'],
+   ['2026-10-15', '23:18', '더 싸고 좋다고 했어요', '싸다는 근거는 어디서 봤니? 다른 발전과 비교해 볼 수 있을까?'],
+   ['2026-10-22', '11:14', '저는 찬성이에요. 이산화탄소를 거의 내보내지 않기 때문이에요.', '좋은 근거네! 그 장점이 왜 원자력을 늘려야 한다는 주장을 뒷받침할까?'],
+   ['2026-10-22', '11:14', '이산화탄소가 온난화의 원인이니까 원자력을 늘리면 온난화를 줄일 수 있어요.', '그런데 방사성 폐기물은 어떻게 보관해야 할까?']]
+    .forEach(([d, t, q, a]) => env.sheets['채팅기록'].rows.push([d, t, '1반', '1모둠', T, q, a, '기본', '기본']));
+}
 
 const PUBLIC = path.join(__dirname, '..', 'public');
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };

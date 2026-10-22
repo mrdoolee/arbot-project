@@ -523,3 +523,12 @@ table.data.tlink { min-width: 820px; }
 .pick-summary.ready { background: rgba(59,125,216,.08); color: var(--blue-strong); font-weight: 600; }
 .pick-note { margin: 8px 0 0; font-size: 12px; color: var(--ink-3); }
 @media (max-width: 720px) { .pick-btn { min-width: calc(50% - 4px); flex: 1 1 calc(50% - 4px); } }
+
+/* 발화별 상세 분석: 튜터 질문 → 학생 답 */
+td.say .who { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+td.say .who .ms { font-size: 15px; }
+td.say .tq { margin-bottom: 8px; padding: 8px 12px; background: var(--canvas); border-left: 3px solid #22c1a3; border-radius: 6px; font-size: 13px; line-height: 21px; color: var(--ink-2); white-space: pre-wrap; }
+td.say .tq .who { color: #0e8c76; }
+td.say .tq.start { background: transparent; border-left-style: dashed; color: var(--ink-3); }
+td.say .sa { white-space: pre-wrap; }
+td.say .sa .who { color: var(--blue-strong); }

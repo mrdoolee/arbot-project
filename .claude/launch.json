@@ -12,6 +12,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["tests/fake_gas_server.js", "3101"],
       "port": 3101
+    },
+    {
+      "name": "fake-gas-sample",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tests/fake_gas_server.js", "3102", "--sample-chats"],
+      "port": 3102
     }
   ]
 }
