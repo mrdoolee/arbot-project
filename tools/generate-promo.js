@@ -2,6 +2,7 @@
 //   node tools/generate-promo.js            → 글자 넣은 판(text)과 글자 자리만 비운 판(clean)을 함께
 //   node tools/generate-promo.js text       → 하나만
 //   node tools/generate-promo.js entry      → 학생 입장 화면 배너(글자 없음)
+//   node tools/generate-promo.js entry-title → 위 배너(가장 최근 entry-*.png)에 제목 두 줄을 얹은 판
 // 참고 그림: 카툰 캐릭터 5명의 가장 최근 기준 그림 (화풍도 이 그림들이 잡는다. 공룡 옷 마스코트는 넣지 않는다)
 // 결과: assets/promo/<종류>-<시각>.png (assets/ 는 .gitignore). 키는 화면에 찍지 않아요.
 'use strict';
@@ -42,8 +43,21 @@ const ENTRY = [
   'Absolutely no text, no letters, no numbers, no logos, no watermark.'
 ].join(' ');
 
+// 학생 입장 배너에 제목을 넣은 판: 가장 최근 entry-*.png 를 바탕으로 같은 장면을 유지한 채 위쪽에 제목 두 줄을 얹는다
+const ENTRY_TITLE = [
+  'Redraw the attached banner image keeping it the same: the same five characters (same faces, hair, clothes, colors, waving poses, order), the same cute bold-outline cartoon style, the same light sky-blue to mint gradient background and faint white science doodles.',
+  'Change only the layout: make the row of characters slightly smaller and move it lower so the characters sit between 42% and 92% of the image height,',
+  'and add a centered title in the top area between 10% and 36% of the image height (nothing in the top 8%):',
+  'line 1, large, bold, rounded, very legible, deep navy (#12304F): "ARBOT 아르봇";',
+  'line 2 just below, medium size, bold, teal (#0E8C76): "과학적 논증 웹앱".',
+  'Spell the text exactly as given, no other text, no letters elsewhere, no speech-bubble text, no logos, no watermark. Keep the title clear of characters and doodles.'
+].join(' ');
+const latestEntry = () => { const f = fs.readdirSync(OUT).filter((x) => /^entry-\d/.test(x) && x.endsWith('.png')).sort(); return f.length ? path.join(OUT, f[f.length - 1]) : null; };
+const VARIANT_FILES = { 'entry-title': () => [latestEntry()] }; // 기본은 캐릭터 5명 그림
+
 const VARIANTS = {
   entry: ENTRY,
+  'entry-title': ENTRY_TITLE,
   text: SCENE + ' Typography on the LEFT side, large, bold, rounded and very legible, exactly these Korean/English texts and nothing else, spelled exactly:' +
     ' line 1 (largest, deep navy #12304F): "ARBOT 아르봇"; line 2 (medium, teal #0E8C76): "과학적 논증 웹앱"; line 3 (smaller, dark gray): "논증 연습부터 탐구 도우미까지".' +
     ' No other text, no watermark, no logos.',
@@ -83,7 +97,7 @@ async function make(name, files) {
   const want = process.argv.slice(2).filter((a) => VARIANTS[a]);
   const names = want.length ? want : ['text', 'clean']; // entry(학생 입장 배너)는 이름을 적을 때만
   console.log('참고 그림: ' + files.map((f) => path.basename(f)).join(', '));
-  const rs = await Promise.allSettled(names.map((n) => make(n, files)));
+  const rs = await Promise.allSettled(names.map((n) => make(n, VARIANT_FILES[n] ? VARIANT_FILES[n]() : files)));
   let failed = 0;
   rs.forEach((r) => { if (r.status === 'fulfilled') console.log('✓ ' + r.value); else { failed++; console.log('✗ ' + mask(r.reason && r.reason.message)); } });
   process.exit(failed ? 1 : 0);

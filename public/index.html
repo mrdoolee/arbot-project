@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
-<title>교사 관리 콘솔 - 아르봇(ARBOT)</title>
+<title>아르봇(ARBOT)-과학적 논증 도우미</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -129,7 +129,7 @@
           </div>
           <div class="btn-row"><button id="btnSetPin" class="btn" type="button"><span class="ms">key</span><span id="btnSetPinText">비밀번호 설정</span></button></div>
           <div id="pinStatus" class="status-slot"></div>
-          <p class="hint">비밀번호를 잊으면 스프레드시트 메뉴 <b>🔐 교사 비밀번호 설정</b>에서 새로 정할 수 있어요(시트를 열 수 있는 사람만 가능). 비밀번호는 시트에 저장되지 않고(암호화된 값만 스크립트에 보관), 이 브라우저 탭에는 입력한 동안만 임시로 남아요.</p>
+          <p class="hint">비밀번호를 잊으면 스프레드시트 메뉴 <b>🔐 교사 비밀번호 설정</b>에서 새로 정할 수 있어요(시트를 열 수 있는 사람만 가능).<br>비밀번호는 시트에 저장되지 않고(암호화된 값만 스크립트에 보관), 이 브라우저 탭에는 입력한 동안만 임시로 남아요.</p>
         </div>
 
         <div class="card">
@@ -159,7 +159,7 @@
               <button id="btnResetKeys" class="btn ghost" type="button"><span class="ms">restart_alt</span>쉬는 중 해제</button>
             </div>
             <div id="keyStatus" class="status-slot"></div>
-            <p class="hint"><b>하루·분당 요청 한도는 Google 프로젝트와 모델마다 달라요.</b> Google AI Studio(aistudio.google.com)의 사용량 · 요청 한도 화면에서 쓰는 모델의 <b>RPD(하루 요청 수)</b>를 확인해 주세요. 모델 칸을 비워 두면 한도가 넉넉한 Flash-Lite가 자동으로 골라져요. 한도는 <b>키가 아니라 프로젝트 단위</b>로 세므로, 대비용 추가 키는 <b>다른 Google 프로젝트</b>에서 만들어야 도움이 돼요. 무료 한도는 예고 없이 바뀔 수 있어요. 위의 <b>기본 키</b>가 먼저 쓰이고, 크레딧·한도가 다 떨어지거나 키에 문제가 생기면 <b>추가 키</b>가 위에서부터 차례로 쓰여요. 한도가 소진된 키는 잠시 쉬었다가(몇 시간) 저절로 다시 시도하고, 충전했다면 <b>쉬는 중 해제</b>를 눌러 바로 다시 쓸 수 있어요. 모든 키가 소진되면 학생에게는 "지금은 AI를 사용할 수 없어요"가 보여요. 추가 키도 스프레드시트의 <code>API키</code> 탭에 평문으로 저장되니 시트를 공유하지 마세요.</p>
+            <p class="hint"><b>하루·분당 요청 한도는 Google 프로젝트와 모델마다 달라요.</b><br>Google AI Studio(aistudio.google.com)의 사용량 · 요청 한도 화면에서 쓰는 모델의 <b>RPD(하루 요청 수)</b>를 확인해 주세요.<br>모델 칸을 비워 두면 한도가 넉넉한 Flash-Lite가 자동으로 골라져요. 한도는 <b>키가 아니라 프로젝트 단위</b>로 세므로, 대비용 추가 키는 <b>다른 Google 프로젝트</b>에서 만들어야 도움이 돼요. 무료 한도는 예고 없이 바뀔 수 있어요.<br>위의 <b>기본 키</b>가 먼저 쓰이고, 크레딧·한도가 다 떨어지거나 키에 문제가 생기면 <b>추가 키</b>가 위에서부터 차례로 쓰여요. 한도가 소진된 키는 잠시 쉬었다가(몇 시간) 저절로 다시 시도하고, 충전했다면 <b>쉬는 중 해제</b>를 눌러 바로 다시 쓸 수 있어요.<br>모든 키가 소진되면 학생에게는 "지금은 AI를 사용할 수 없어요"가 보여요. 추가 키도 스프레드시트의 <code>API키</code> 탭에 평문으로 저장되니 시트를 공유하지 마세요.</p>
           </div>
           <div class="field">
             <label for="s_geminiModel">AI 모델 <span class="opt">선택 · 기본은 자동</span></label>
@@ -169,7 +169,7 @@
               <button id="btnLoadModels" class="btn secondary" type="button"><span class="ms">list</span>모델 목록 불러오기</button>
               <button id="btnTestModel" class="btn secondary" type="button"><span class="ms">bolt</span>모델 테스트</button>
             </div>
-            <p class="hint">비워 두면(자동) 가볍고 무료 한도에 유리한 <b>Flash-Lite</b> 모델을 먼저 써요. 답변 품질이 아쉬우면 더 큰 모델을 직접 골라 주세요. 구글이 모델을 종료·교체해서 AI 응답이 안 나올 때, 목록에서 지금 쓸 수 있는 모델을 골라 테스트한 뒤 <b>저장하기</b>를 눌러 주세요. 고른 모델이 사라져도 자동 선택 모델로 한 번 더 시도해요.</p>
+            <p class="hint">비워 두면(자동) 가볍고 무료 한도에 유리한 <b>Flash-Lite</b> 모델을 먼저 써요. 답변 품질이 아쉬우면 더 큰 모델을 직접 골라 주세요.<br>구글이 모델을 종료·교체해서 AI 응답이 안 나올 때, 목록에서 지금 쓸 수 있는 모델을 골라 테스트한 뒤 <b>저장하기</b>를 눌러 주세요. 고른 모델이 사라져도 자동 선택 모델로 한 번 더 시도해요.</p>
             <div id="modelStatus" class="status-slot"></div>
           </div>
           <div class="field"><label for="s_backupSheetId">백업 스프레드시트 ID <span class="opt">선택</span></label><div class="input-wrap"><span class="ms lead">table_chart</span><input id="s_backupSheetId" class="input" placeholder="백업용 시트 ID"></div><p class="hint">대화 기록을 한 벌 더 저장할 별도 스프레드시트</p></div>
@@ -206,7 +206,7 @@
 
       <!-- ========== 2. 기본 설정 ========== -->
       <section class="panel" id="panel-settings">
-        <p class="flow-hint"><span class="ms">route</span><span><b>처음이라면 ①부터 ③까지 순서대로</b> 진행하세요. 이미 만들어 둔 것은 필요한 탭만 열어 고치면 돼요. 주제마다 다르게 쓸 설정은 다음 메뉴인 <b>주제 설정</b>에서 해요.</span></p>
+        <p class="flow-hint"><span class="ms">route</span><span><b>처음이라면 ①부터 ③까지 순서대로</b> 진행하세요.<br>만들어진 페르소나와 평가 루브릭을 바로 사용한다면, (1) 학급, 모둠, 금지어 입력을 마친 후 바로 <b>주제 설정</b>으로 이동해주세요.<br>수정이 필요하다면 필요한 탭만 열어 고치면 돼요. 주제마다 다르게 쓸 설정은 다음 메뉴인 <b>주제 설정</b>에서 해요.</span></p>
         <div class="tabs-bar" role="tablist">
           <button class="tab active" data-sub="groups" type="button" title="학급·모둠 목록과 금지어를 정해요"><span class="tab-no">1</span>학급 · 모둠 · 금지어</button>
           <button class="tab" data-sub="persona" type="button" title="학생 화면에 보일 캐릭터·첫 인사말과, AI가 어떻게 말하고 행동할지를 한 화면에서 정해요"><span class="tab-no">2</span>캐릭터 · 인사말 · 페르소나</button>
@@ -225,7 +225,7 @@
                 <button class="btn ghost btn-tpl-info" type="button"><span class="ms">info</span>템플릿 설명</button>
               </div>
             </div>
-            <p class="pb-tip"><b>템플릿</b> 묶음은 미리 만들어 둔 원본이라 바로 골라 쓸 수 있어요(<b>주제 설정</b> 메뉴의 주제 연결에서 주제에 붙이세요). 내용을 고치기 시작하면 원본은 그대로 두고 <b>새 이름으로 따로 저장</b>돼요. 각 템플릿 설명은 [템플릿 설명]에서 볼 수 있어요.</p>
+            <p class="pb-tip"><b>템플릿</b> 묶음은 미리 만들어 둔 원본이라 바로 골라 쓸 수 있어요(<b>주제 설정</b> 메뉴의 주제 연결에서 주제에 붙이세요).<br>내용을 고치기 시작하면 원본은 그대로 두고 <b>새 이름으로 따로 저장</b>돼요.<br>각 템플릿 설명은 [템플릿 설명]에서 볼 수 있어요.</p>
             <div class="grid-2">
               <div class="field"><label for="p_name">페르소나 이름 <span class="opt">최대 30자</span></label><input id="p_name" class="input" maxlength="30" placeholder="예: CER 코치 (온도 실험용)"></div>
               <div class="field"><label for="p_template">대화 방식(템플릿) <span class="opt">학생 화면·평가 방식을 정해요</span></label><select id="p_template" class="select"></select></div>
@@ -244,7 +244,7 @@
                 <button class="btn ghost btn-tpl-info" type="button"><span class="ms">info</span>템플릿 설명</button>
               </div>
             </div>
-            <p class="pb-tip">페르소나와 <b>짝</b>으로 움직여요. 이름이 같은 페르소나를 고르면 이 루브릭도 함께 열리고, 반대로 루브릭을 고르면 이름이 같은 페르소나가 열려요. 어떤 주제에 무엇을 붙일지는 <b>주제 설정</b> 메뉴의 주제 연결에서 따로 정해요.</p>
+            <p class="pb-tip">페르소나와 <b>짝</b>으로 움직여요.<br>이름이 같은 페르소나를 고르면 이 루브릭도 함께 열리고, 반대로 루브릭을 고르면 이름이 같은 페르소나가 열려요.<br>어떤 주제에 무엇을 붙일지는 <b>주제 설정</b> 메뉴의 주제 연결에서 따로 정해요.</p>
             <div class="field"><label for="r_name">루브릭 이름 <span class="opt">최대 30자</span></label><input id="r_name" class="input" maxlength="30" placeholder="예: CER 루브릭"></div>
             <div class="pb-meta" id="rubricMeta"></div>
             <div class="btn-row left hidden both-row" id="bothRowR"><button id="btnSaveBothR" class="btn" type="button"><span class="ms">save</span>페르소나와 루브릭 함께 저장</button></div>
@@ -419,7 +419,7 @@
                   <button id="btnSaveCode" class="btn" type="button"><span class="ms">save</span>저장</button>
                 </div>
               </details>
-              <p class="hint">링크나 QR만으로는 대화방에 들어올 수 없고, 이 코드를 입력해야 해요. 반 밖으로 링크가 퍼졌거나 새 수업을 시작할 때 <b>새 코드를 만들면</b> 이전 코드는 바로 쓸 수 없게 돼요. 수업 중에 바꾸면 이미 들어온 학생도 다음 전송 때 다시 입장해야 해요.</p>
+              <p class="hint">링크나 QR만으로는 대화방에 들어올 수 없고, 이 코드를 입력해야 해요.<br>반 밖으로 링크가 퍼졌거나 새 수업을 시작할 때 <b>새 코드를 만들면</b> 이전 코드는 바로 쓸 수 없게 돼요. 수업 중에 바꾸면 이미 들어온 학생도 다음 전송 때 다시 입장해야 해요.</p>
               <div id="codeStatus" class="status-slot"></div>
             </div>
             <div class="qr-stage">
