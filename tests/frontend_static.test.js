@@ -228,7 +228,7 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('단계 번호가 1·2·3 이고 주제·모둠 단계는 처음에 잠겨(locked) 있음', /id="pickStepClass"/.test(panel) && /class="pick-step locked" id="pickStepTopic"/.test(panel) && /class="pick-step locked" id="pickStepGroup"/.test(panel) && ['1', '2', '3'].every((n) => new RegExp('<span class="pick-no">' + n + '</span>').test(panel)), '');
   ok('분석 버튼은 처음에 꺼져 있음(disabled)', /<button id="btnAnalyze"[^>]*\bdisabled\b/.test(panel), '');
   ok('각 단계 단추 묶음은 role=group 으로 제목과 연결됨', ['pickClass', 'pickTopic', 'pickGroup'].every((id) => new RegExp('id="' + id + '" role="group" aria-labelledby="[^"]+"').test(panel)) && /id="pickSummary" aria-live="polite"/.test(panel), '');
-  ok('선택 규칙(pick-logic.js)을 콘솔이 내 폴더에서 불러옴', fs.existsSync(path.join(ROOT, 'public/js/pick-logic.js')) && /<script src="js\/pick-logic\.js"><\/script>/.test(tea) && tea.indexOf('js/pick-logic.js') < tea.indexOf('<script>\n  const $ = '), '');
+  ok('선택 규칙(pick-logic.js)을 콘솔이 내 폴더에서 불러옴', fs.existsSync(path.join(ROOT, 'public/js/pick-logic.js')) && /<script src="js\/pick-logic\.js"><\/script>/.test(tea) && tea.indexOf('js/pick-logic.js') < tea.search(/<script>\r?\n  const \$ = /), ''); // \r?: Windows 에서 받은 파일(CRLF)도 통과
   ok('옛 드롭박스 코드(selClass·selGroup·selTopic·populateSelect)가 남아 있지 않음', !/selClass|selGroup|selTopic|populateSelect/.test(tea), '');
 
   const render = fnBody('renderPickStep', 'function syncAnalyzeBtn');
@@ -306,6 +306,17 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('옛 짝이 아닌 정상 조합은 건드리지 않음(고급 논쟁형=코치, CER=가운, 소크라테스형에서 고른 다른 캐릭터)', rc('advanced', 'coach', '비판적 사고 코치') === 'coach|비판적 사고 코치' && rc('cer', 'labcoat', '실험 가운 과학 선생님') === 'labcoat|실험 가운 과학 선생님' && rc('socratic', 'robot', '') === 'robot|과학 조교 로봇' && rc('debate', 'socrates', '소크라테스 선생님') === 'socrates|소크라테스 선생님', '');
   ok('모르는 캐릭터 ID나 빈 값은 그 방식의 짝 캐릭터로(이름은 직접 적은 것을 우선)', rc('debate', 'scientist', '') === 'debater|토론 파트너' && rc('debate', '', '') === 'debater|토론 파트너' && rc('qna', undefined, undefined) === 'robot|과학 조교 로봇' && rc('cer', 'scientist', 'CER쌤') === 'labcoat|CER쌤' && rc('모르는방식', 'zzz', '') === 'socrates|소크라테스 선생님', '');
 
+  ok('이름이 다른 캐릭터의 기본 이름이면 옛 값으로 보고 이 캐릭터의 기본 이름으로(토론 파트너 그림에 비판적 사고 코치 이름이 붙지 않음)', rc('debate', 'debater', '비판적 사고 코치') === 'debater|토론 파트너' && rc('socratic', 'robot', '소크라테스 선생님') === 'robot|과학 조교 로봇' && rc('debate', 'scientist', '소크라테스 선생님') === 'debater|토론 파트너' && rc('advanced', 'coach', '비판적 사고 코치') === 'coach|비판적 사고 코치' && rc('debate', 'debater', '반대 선수') === 'debater|반대 선수', [rc('debate', 'debater', '비판적 사고 코치'), rc('socratic', 'robot', '소크라테스 선생님'), rc('debate', 'scientist', '소크라테스 선생님')]);
+
+  // 빈 칸 규칙: 페르소나 줄(row)과 '기본' 줄(base)로 실제 캐릭터를 정한다 (서버 inheritCharacter_ 와 같은 규칙, gas_profiles.test.js 가 둘을 비교)
+  const pc = (row, base) => { const r = AS.personaCharacter(row, base); return r.id + '|' + r.name; };
+  const SOCB = { templateKey: 'socratic', characterId: 'socrates', characterName: '소크라테스 선생님' };
+  ok('빈 칸 규칙: 기본과 다른 대화 방식인데 캐릭터 칸이 비면 그 방식의 짝(기본의 소크라테스를 물려받지 않음)', pc({ templateKey: 'debate' }, SOCB) === 'debater|토론 파트너' && pc({ templateKey: 'qna' }, SOCB) === 'robot|과학 조교 로봇' && pc({ templateKey: 'cer', characterName: '' }, SOCB) === 'labcoat|실험 가운 과학 선생님', [pc({ templateKey: 'debate' }, SOCB), pc({ templateKey: 'qna' }, SOCB)]);
+  ok('빈 칸 규칙: 캐릭터만 정하고 이름을 비우면 기본의 이름이 아니라 그 캐릭터의 이름', pc({ templateKey: 'debate', characterId: 'debater' }, SOCB) === 'debater|토론 파트너' && pc({ templateKey: 'socratic', characterId: 'robot' }, SOCB) === 'robot|과학 조교 로봇', [pc({ templateKey: 'debate', characterId: 'debater' }, SOCB)]);
+  ok('빈 칸 규칙: 기본과 같은 대화 방식이면 빈 칸은 기본을 따름(기본에서 바꾼 캐릭터·이름도 그대로)', pc({ templateKey: 'socratic' }, SOCB) === 'socrates|소크라테스 선생님' && pc({}, { templateKey: 'socratic', characterId: 'robot', characterName: '로봇쌤' }) === 'robot|로봇쌤' && pc({ templateKey: 'socratic', characterName: '내 선생님' }, SOCB) === 'socrates|내 선생님', [pc({}, { templateKey: 'socratic', characterId: 'robot', characterName: '로봇쌤' })]);
+  ok('빈 칸 규칙: 직접 정한 캐릭터·이름은 대화 방식과 달라도 그대로, 이름만 정하면 이름은 두고 캐릭터는 짝', pc({ templateKey: 'debate', characterId: 'robot', characterName: '내 로봇' }, SOCB) === 'robot|내 로봇' && pc({ templateKey: 'debate', characterName: '반대 선수' }, SOCB) === 'debater|반대 선수', [pc({ templateKey: 'debate', characterName: '반대 선수' }, SOCB)]);
+  ok('빈 칸 규칙: 기본 줄이 비어 있거나 없어도 깨지지 않고, 템플릿 칸도 비면 기본을 통째로 따름', pc({}, {}) === 'socrates|소크라테스 선생님' && pc({ templateKey: 'cer' }, undefined) === 'labcoat|실험 가운 과학 선생님' && pc({}, SOCB) === 'socrates|소크라테스 선생님' && AS.personaCharacter({ templateKey: 'debate' }, SOCB).templateKey === 'debate', [pc({}, {}), pc({ templateKey: 'cer' }, undefined)]);
+
   const sc = keys.map((k) => AS.studentCopy(k));
   ok('대화 방식마다 입장 화면 문구(인사 한 줄·튜터 설명·상태 글자)가 있고 서로 다름', sc.every((c) => c.hero && c.tutor && c.states.asking && c.states.thinking && c.states.praising) && new Set(sc.map((c) => c.tutor)).size === 5 && new Set(sc.map((c) => c.hero)).size === 5, sc.map((c) => c.tutor));
   ok('찬반 토론형의 튜터 설명은 반론·입장을 말하고, 소크라테스형 문구(질문으로 키워 줘요)가 아님', /반론/.test(AS.studentCopy('debate').tutor) && /입장/.test(AS.studentCopy('debate').tutor) && !/정답을 알려주는 대신/.test(AS.studentCopy('debate').tutor) && /반론/.test(AS.studentCopy('debate').states.asking), AS.studentCopy('debate'));
@@ -319,7 +330,7 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('학생 화면: 캐릭터를 템플릿보다 먼저 정하지 않음(템플릿을 먼저 정한 뒤 짝을 구함)', stuScript.indexOf('S.templateKey = AS.STEPS[c.templateKey]') > -1 && stuScript.indexOf('S.templateKey = AS.STEPS[c.templateKey]') < stuScript.indexOf('AS.resolveCharacter(S.templateKey'), '');
   ok("콘솔: 캐릭터 카드는 template 짝을 보여 주고 recommend 는 더 이상 쓰지 않음", /c\.template === curTpl/.test(idxScript) && !/\.recommend/.test(idxScript), '');
   ok('콘솔: 대화 방식을 바꾸면 고르지 않은 캐릭터·이름이 새 짝으로 바뀌고 카드·미리보기를 다시 그림', /\$\('p_template'\)\.addEventListener\('change'[\s\S]*?AS\.characterFor\(tpl\)\.id[\s\S]*?renderCharGrid\(\); renderPreview\(\)/.test(idxScript), '');
-  ok('콘솔: 시트의 값을 불러올 때도 학생 화면과 같은 resolveCharacter 규칙, 초기화 단추는 이 방식의 짝으로', /AS\.resolveCharacter\(tpl, row\.characterId \|\| base\.characterId, row\.characterName \|\| base\.characterName\)/.test(idxScript) && /\$\('btnResetChar'\)\.addEventListener\('click'[\s\S]*?AS\.characterFor\(tpl\)/.test(idxScript), '');
+  ok('콘솔: 시트의 값을 불러올 때도 학생 화면과 같은 resolveCharacter 규칙, 초기화 단추는 이 방식의 짝으로', /const ch = AS\.personaCharacter\(row, base\)/.test(idxScript) && !/AS\.resolveCharacter\(tpl, row\.characterId \|\| base\.characterId/.test(idxScript) && /\$\('btnResetChar'\)\.addEventListener\('click'[\s\S]*?AS\.characterFor\(tpl\)/.test(idxScript), '');
   ok('콘솔 미리보기의 상태 글자도 대화 방식을 따름(온화하게 질문하는 중 고정 문구 없음)', /AS\.studentCopy\(\$\('s_templateKey'\)\.value \|\| 'socratic'\)\.states\.asking/.test(idxScript) && !/온화하게 질문하는 중/.test(idxScript), '');
 }
 
@@ -356,7 +367,7 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
 
   const idxHtml = pages['public/index.html'];
   const idxScript2 = [...idxHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
-  ok('콘솔이 예시 파일을 내 폴더에서, 인라인 스크립트보다 먼저 불러옴', /<script src="js\/material-samples\.js"><\/script>/.test(idxHtml) && idxHtml.indexOf('js/material-samples.js') < idxHtml.indexOf('<script>\n'), '');
+  ok('콘솔이 예시 파일을 내 폴더에서, 인라인 스크립트보다 먼저 불러옴', /<script src="js\/material-samples\.js"><\/script>/.test(idxHtml) && idxHtml.indexOf('js/material-samples.js') < idxHtml.search(/<script>\r?\n/), '');
   ok('예시 채우기: 선택한 주제의 예시(sampleFor)만 채우고, 예시 없는 주제는 아무것도 채우지 않고 안내만 함', /ArguMaterials\.sampleFor\(matSel\)/.test(idxScript2) && /if \(!sample\) \{[\s\S]*?return; \}/.test(idxScript2) && /\$\(id\)\.value = sample\[k\]/.test(idxScript2) && !/MAT_SAMPLE/.test(idxScript2), '');
   ok('주제 예시 드롭박스도 같은 파일(ArguMaterials.TOPIC_EXAMPLES)에서 가져옴(목록이 둘로 갈라지지 않음)', /const TOPIC_EXAMPLES = ArguMaterials\.TOPIC_EXAMPLES;/.test(idxScript2), '');
   ok("완료 안내에 '전류와 전압의 관계' 이름이 박혀 있지 않고 고른 주제 이름을 보여 줌", !/'전류와 전압의 관계' 예시를 채웠어요/.test(idxScript2) && /\$\{matSel\}' 예시를 채웠어요/.test(idxScript2) && /sample\.kind === 'debate'/.test(idxScript2), '');

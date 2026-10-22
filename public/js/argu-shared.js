@@ -194,12 +194,27 @@
   // 시트에 그 값이 이름까지 그대로 남아 있으면 '고르지 않은 값'으로 보고 새 짝으로 바꿔 쓴다. 이름을 직접 바꾼 것은 그대로 둔다.
   var LEGACY_PAIRS = { debate: { id: 'coach', name: '비판적 사고 코치' }, qna: { id: 'labcoat', name: '실험 가운 과학 선생님' } };
   // 시트에 저장된 캐릭터 ID·이름을 실제로 쓸 값으로 정한다: 모르는 ID나 옛 기본 짝이면 템플릿의 짝, 이름이 비면 캐릭터의 기본 이름.
+  // 이름이 '다른 캐릭터의 기본 이름'이면(예: 토론 파트너 그림에 '비판적 사고 코치') 남은 옛 값으로 보고 이 캐릭터의 기본 이름을 쓴다.
   function resolveCharacter(templateKey, id, name) {
     var nm = String(name == null ? '' : name).trim();
     var lg = LEGACY_PAIRS[templateKey];
     var legacy = !!lg && id === lg.id && (!nm || nm === lg.name);
     var ch = (legacy || !hasCharacter(id)) ? characterFor(templateKey) : getCharacter(id);
-    return { id: ch.id, name: legacy ? ch.name : (nm || ch.name) };
+    var otherDefault = !!nm && CHARACTERS.some(function (c) { return c.id !== ch.id && c.name === nm; });
+    return { id: ch.id, name: (legacy || otherDefault) ? ch.name : (nm || ch.name) };
+  }
+  // 시트의 페르소나 줄(row)과 '기본' 줄(base)로 실제로 보일 캐릭터를 정한다. 서버 resolveTopicConfig_ 와 같은 규칙이다.
+  //  - 캐릭터 칸이 비었는데 '기본'과 다른 대화 방식이면, 기본의 캐릭터를 물려받지 않고 그 대화 방식의 짝을 쓴다
+  //    (찬반 토론형 줄에 기본의 소크라테스가 붙지 않게). 기본과 같은 대화 방식이면 빈 칸은 기본을 따른다.
+  //  - 캐릭터만 정하고 이름 칸을 비우면, 기본의 이름이 아니라 그 캐릭터의 이름을 쓴다.
+  function personaCharacter(row, base) {
+    row = row || {}; base = base || {};
+    var baseTpl = base.templateKey || 'socratic', tpl = row.templateKey || baseTpl, id, name;
+    if (row.characterId) { id = row.characterId; name = row.characterName || ''; }
+    else if (tpl === baseTpl) { id = base.characterId || ''; name = row.characterName || base.characterName || ''; }
+    else { id = ''; name = row.characterName || ''; }
+    var r = resolveCharacter(tpl, id, name);
+    return { id: r.id, name: r.name, templateKey: tpl };
   }
 
   function avatarHtml(id, state) {
@@ -283,7 +298,7 @@
   global.ArguShared = {
     CHARACTERS: CHARACTERS, TEMPLATE_NAMES: TEMPLATE_NAMES, DEFAULT_GREETING: DEFAULT_GREETING, GREETINGS: GREETINGS, greetingFor: greetingFor, isDefaultGreeting: isDefaultGreeting,
     STEPS: STEPS, MODE_TEXT: MODE_TEXT, STUDENT_COPY: STUDENT_COPY, studentCopy: studentCopy,
-    getCharacter: getCharacter, hasCharacter: hasCharacter, characterFor: characterFor, resolveCharacter: resolveCharacter, avatarHtml: avatarHtml, tagClass: tagClass, tagText: tagText,
+    getCharacter: getCharacter, hasCharacter: hasCharacter, characterFor: characterFor, resolveCharacter: resolveCharacter, personaCharacter: personaCharacter, avatarHtml: avatarHtml, tagClass: tagClass, tagText: tagText,
     applyGreeting: applyGreeting, josa: josa, getTheme: getTheme, setTheme: setTheme
   };
 })(window);

@@ -1037,8 +1037,9 @@
     });
     // 캐릭터와 템플릿은 비어 있으면 '기본'의 값을 채워 보여 주고, 저장하면 이 페르소나 자신의 값이 된다
     const tpl = row.templateKey || base.templateKey || 'socratic';
-    // 모르는 ID나 예전 템플릿 줄에 들어 있던 어긋난 짝(찬반 토론형=비판적 사고 코치 등)은 이 대화 방식의 짝 캐릭터로 보여 준다 (학생 화면과 같은 규칙)
-    const ch = AS.resolveCharacter(tpl, row.characterId || base.characterId, row.characterName || base.characterName);
+    // 빈 칸 상속(기본과 다른 대화 방식이면 그 짝), 모르는 ID, 예전 템플릿 줄의 어긋난 짝(찬반 토론형=비판적 사고 코치 등)을
+    // 학생 화면·서버와 같은 규칙으로 정한다
+    const ch = AS.personaCharacter(row, base);
     $('s_characterId').value = ch.id;
     $('s_characterName').value = ch.name;
     // 직접 고친 인사말은 그대로, 비었거나 예전 기본 문구면 이 대화 방식(템플릿)의 기본 인사말을 보여 준다

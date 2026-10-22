@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
       "port": 3000
+    },
+    {
+      "name": "fake-gas",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tests/fake_gas_server.js", "3101"],
+      "port": 3101
     }
   ]
 }
