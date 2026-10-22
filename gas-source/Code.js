@@ -78,11 +78,11 @@ function requireSheet_(name) {
 var TEACHER_ACTIONS_ = ["teacherAnalyze", "getChatOverview", "listGeminiModels", "testGeminiModel", "getTeacherSettings",
   "getTopicMaterials", "saveTopicMaterial", "saveTeacherSettings", "setTeacherPin", "getApiKeys", "saveApiKeys", "resetApiKeyStatus",
   "getProfiles", "saveProfile", "deleteProfile", "saveTopicSetting", "getAccessCode", "setAccessCode"];
-var STUDENT_ACTIONS_ = ["getInitialData", "processChatMessage"]; // 수업 입장 코드가 필요한 공개 action
+var STUDENT_ACTIONS_ = ["getInitialData", "processChatMessage", "getSessionFeedback"]; // 수업 입장 코드가 필요한 공개 action
 // 이 GAS 코드의 API 버전. testConnection 이 알려 주고, 교사 콘솔은 자기가 요구하는 버전(REQUIRED_API_VERSION)보다 낮으면
 // "시트의 GAS 가 옛 버전이에요"를 안내한다 (콘솔은 모두가 공유하지만 GAS 는 시트마다 따로 배포되기 때문).
 // 콘솔이 새 action 을 쓰기 시작하면 이 숫자와 콘솔의 REQUIRED_API_VERSION 을 함께 올린다. (버전 1 = 이 값이 없던 옛 코드)
-var API_VERSION_ = 3; // 3: getChatOverview (결과 분석의 학급 → 주제 → 모둠 단추가 기록 유무를 표시)
+var API_VERSION_ = 4; // 3: getChatOverview (결과 분석의 학급 → 주제 → 모둠 단추가 기록 유무를 표시), 4: getSessionFeedback (탐구 시간이 끝나면 학생에게 100자 피드백) + 날짜별 분석 (getChatOverview 의 dates, teacherAnalyze 의 dateValue)
 var PIN_HASH_PROP_ = "TEACHER_PIN_HASH";
 var PIN_SALT_PROP_ = "TEACHER_PIN_SALT";
 var PIN_MIN_LENGTH_ = 8;
@@ -203,9 +203,10 @@ function rateLimited_(key, max, windowSec) {
 }
 
 // 통과하면 null (필요하면 params.history 를 정리해 둔다), 아니면 거부 응답.
-function validateChatRequest_(p) {
+// noQuestion: 학생 글이 없는 요청(탐구 마무리 피드백)은 userQuestion 을 보지 않는다. 학급·모둠·주제·기록·횟수 제한은 똑같이 검사한다.
+function validateChatRequest_(p, noQuestion) {
   var asText = function(v, max) { return typeof v === "string" && v.trim().length > 0 && v.length <= max; };
-  if (!asText(p.userQuestion, CHAT_MAX_QUESTION_)) {
+  if (!noQuestion && !asText(p.userQuestion, CHAT_MAX_QUESTION_)) {
     return { success: false, error: typeof p.userQuestion === "string" && p.userQuestion.length > CHAT_MAX_QUESTION_
       ? "한 번에 쓸 수 있는 글은 " + CHAT_MAX_QUESTION_ + "자까지예요. 조금 나눠서 보내 주세요." : "보낼 내용을 입력해 주세요." };
   }
@@ -264,8 +265,8 @@ function routeAction(action, params) {
     if (STUDENT_ACTIONS_.indexOf(action) !== -1) {
       var codeDenied = checkAccessCode_(params);
       if (codeDenied) return codeDenied;
-      if (action === "processChatMessage") {
-        var invalid = validateChatRequest_(params);
+      if (action === "processChatMessage" || action === "getSessionFeedback") {
+        var invalid = validateChatRequest_(params, action === "getSessionFeedback");
         if (invalid) return invalid;
       }
     }
@@ -293,8 +294,10 @@ function routeAction(action, params) {
         return { success: true, data: getInitialData() };
       case "processChatMessage":
         return processChatMessage(params);
+      case "getSessionFeedback":
+        return getSessionFeedback(params);
       case "teacherAnalyze":
-        return apiAnalyze(params.classValue, params.groupValue, params.topicValue, params.useMaterial, params.rubricName);
+        return apiAnalyze(params.classValue, params.groupValue, params.topicValue, params.useMaterial, params.rubricName, params.dateValue);
       case "getChatOverview":
         return apiChatOverview();
       case "listGeminiModels":
@@ -1411,6 +1414,115 @@ function minutesOfDay_(v) {
   return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : -1;
 }
 
+// 오늘 이 모둠이 차단 상태면 학생 화면에 보낼 응답, 아니면 null.
+//  - 금지어 3회 누적([시스템 차단])은 그날 하루 내내
+//  - AI 차단([AI 차단])은 마지막 차단부터 AI_BLOCK_COOLDOWN_MIN_ 분 동안
+// rows 는 loadTodayRecords_ 의 결과(오늘 이 학급·모둠의 줄), timeStr 은 지금 시각 'HH:mm'.
+function groupBlockedReply_(rows, timeStr) {
+  var isAlreadyBlocked = rows.some(function(row) {
+    return row[6].toString().indexOf("[시스템 차단]") !== -1;
+  });
+  if (isAlreadyBlocked) {
+    return {
+      success: true,
+      isBlocked: true,
+      aiReply: "🚫 부적절한 언어 사용 누적으로 오늘 탐구 대화가 차단된 모둠입니다. 선생님께 문의해 주세요."
+    };
+  }
+  var nowMin = minutesOfDay_(timeStr), blockedMin = -1;
+  rows.forEach(function(row) {
+    if (row[6].toString().indexOf("[AI 차단]") === -1) return;
+    var m = minutesOfDay_(row[1]);
+    if (m >= 0 && m <= nowMin && m > blockedMin) blockedMin = m;
+  });
+  if (blockedMin >= 0 && nowMin - blockedMin < AI_BLOCK_COOLDOWN_MIN_) {
+    return {
+      success: true,
+      isBlocked: true,
+      aiReply: "🚫 수업과 무관한 말이 이어져 잠시 대화가 멈췄어요. 약 " + (AI_BLOCK_COOLDOWN_MIN_ - (nowMin - blockedMin)) + "분 뒤에 다시 시도해 주세요."
+    };
+  }
+  return null;
+}
+
+// ───────── 탐구 마무리 피드백 ─────────
+// 제한 시간이 끝나 학생 화면에 '오늘의 탐구 요약'이 뜰 때, 대화 전체를 보고 학생에게 줄 짧은 피드백(FEEDBACK_MAX_CHARS_ 자 이내)을 만든다.
+// 시트에는 기록하지 않는다(분석·기록 집계에 섞이지 않게). 차단된 모둠과 학생이 한 마디도 하지 않은 대화는 AI를 부르지 않는다.
+var FEEDBACK_MAX_CHARS_ = 100;
+var FEEDBACK_TRANSCRIPT_MAX_ = 8000; // AI에 보내는 대화 글자 수 상한 (최근 것부터 남긴다)
+// 대화 방식(템플릿)마다 피드백이 볼 점 (학생 화면의 논증 가이드와 같은 흐름)
+var FEEDBACK_FOCUS_ = {
+  socratic: "주장(가설)에 근거와 이유를 붙여 생각을 이어 갔는지",
+  cer: "주장 → 증거(관찰·측정값) → 추론(과학 원리)의 세 걸음을 갖췄는지",
+  advanced: "주장·근거·정당화에 더해 반례나 예외를 생각하고, 주장이 맞는 조건(한정어)을 밝혔는지",
+  debate: "입장을 정하고 근거를 대며, 상대 반론에 재반박하고 조건을 붙여 정리했는지",
+  qna: "실험 방법·준비물·안전에 대해 궁금한 점을 구체적으로 묻고 스스로 확인하려 했는지"
+};
+
+// 모델이 낸 피드백을 화면에 올릴 한두 문장으로 다듬는다: 마크다운·따옴표·태그를 지우고 FEEDBACK_MAX_CHARS_ 자로 자른다(문장 끝에서 자르기 우선).
+function clampFeedback_(text) {
+  var s = String(text == null ? "" : text)
+    .replace(/\[강제차단\]/g, "")
+    .replace(/[*#`>_~]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^["'“”‘’「」]+/, "")
+    .replace(/["'“”‘’「」]+$/, "")
+    .trim();
+  if (s.length <= FEEDBACK_MAX_CHARS_) return s;
+  var cut = s.slice(0, FEEDBACK_MAX_CHARS_);
+  var end = Math.max(cut.lastIndexOf("."), cut.lastIndexOf("!"), cut.lastIndexOf("?"));
+  if (end >= 30) return cut.slice(0, end + 1).trim();
+  return s.slice(0, FEEDBACK_MAX_CHARS_ - 1).trim() + "…";
+}
+
+function getSessionFeedback(payload) {
+  var history = payload.history || [];
+  // 학생이 한 마디도 하지 않았으면 피드백할 내용이 없다 (AI 를 부르지 않는다)
+  if (!history.some(function(h) { return h.role === "user"; })) return { success: true, feedback: "", skipped: "empty" };
+
+  var recordSheet = requireSheet_('채팅기록');
+  var now = new Date();
+  var dateStr = Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
+  var timeStr = Utilities.formatDate(now, "Asia/Seoul", "HH:mm");
+  // 차단된 모둠에는 피드백을 주지 않는다 (차단 안내가 마지막 말이 되게)
+  if (groupBlockedReply_(loadTodayRecords_(recordSheet, dateStr, payload.classValue, payload.groupValue), timeStr)) {
+    return { success: true, feedback: "", skipped: "blocked" };
+  }
+
+  var cfg = resolveTopicConfig_(readCoreConfig_(), payload.topicValue);
+  var focus = FEEDBACK_FOCUS_[cfg.templateKey] || FEEDBACK_FOCUS_.socratic;
+  var lines = [], total = 0;
+  for (var i = history.length - 1; i >= 0; i--) {
+    var line = (history[i].role === "user" ? "학생: " : "튜터: ") + String(history[i].text).slice(0, 600);
+    if (total + line.length > FEEDBACK_TRANSCRIPT_MAX_) break;
+    lines.unshift(line); total += line.length;
+  }
+  var systemText = [
+    "너는 중고등학생의 과학 탐구 대화를 돌아보고 짧은 마무리 피드백을 주는 선생님이야.",
+    "아래 [대화]는 학생과 AI 튜터가 '" + payload.topicValue + "'를 두고 나눈 대화야.",
+    "학생에게 직접 말하듯 친근한 존댓말(해요체)로, " + FEEDBACK_MAX_CHARS_ + "자 이내의 한두 문장만 써.",
+    "학생이 잘한 점 한 가지와 다음에 해 볼 점 한 가지를 담아. 이번 대화에서 볼 점: " + focus + ".",
+    "정답이나 결론, 실험 결과를 알려 주지 마. 학생 이름 같은 개인정보는 쓰지 마.",
+    "학생이 대화에서 실제로 한 말에 근거해서만 칭찬해. 인사말, 제목, 따옴표, 기호, 줄바꿈 없이 피드백 문장만 출력해."
+  ].join("\n");
+  var apiPayload = {
+    systemInstruction: { parts: [{ text: systemText }] },
+    contents: [{ role: "user", parts: [{ text: "[대화]\n" + lines.join("\n") }] }]
+  };
+  var apiKey = requireSheet_('환경설정').getRange(ENV_KEY_CELL_).getValue().toString().trim();
+  var jsonResp = geminiGenerate_(apiKey, apiPayload);
+  var cand = jsonResp.candidates && jsonResp.candidates[0];
+  var parts = cand && cand.content && cand.content.parts;
+  var feedback = clampFeedback_(parts && parts.length ? parts.map(function(p) { return p.text || ""; }).join("") : "");
+  if (!feedback) {
+    if (jsonResp.error && jsonResp.error.allKeysExhausted) return { success: false, error: "지금은 AI를 사용할 수 없어요(사용 한도 소진)." };
+    Logger.log("⚠️ 마무리 피드백 응답 없음: " + maskSecrets_(JSON.stringify(jsonResp.error || (cand && cand.finishReason) || "empty")));
+    return { success: false, error: "피드백을 만들지 못했어요." };
+  }
+  return { success: true, feedback: feedback };
+}
+
 function processChatMessage(payload) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var envSheet = requireSheet_('환경설정');
@@ -1447,30 +1559,9 @@ function processChatMessage(payload) {
   // ★ [0단계 방어 신설] 이미 오늘 차단된 모둠이면 금지어 포함 여부와 무관하게 즉시 차단 유지
   //   (새로고침으로 세션을 새로 시작해 깨끗한 메시지를 보내는 우회를 막음)
   // ---------------------------------------------------------
-  var isAlreadyBlocked = allRecordsToday.some(function(row) {
-    return row[6].toString().indexOf("[시스템 차단]") !== -1;
-  });
-  if (isAlreadyBlocked) {
-    return {
-      success: true,
-      isBlocked: true,
-      aiReply: "🚫 부적절한 언어 사용 누적으로 오늘 탐구 대화가 차단된 모둠입니다. 선생님께 문의해 주세요."
-    };
-  }
   // AI 차단([강제차단])은 하루 종일이 아니라 AI_BLOCK_COOLDOWN_MIN_ 분 동안만 유지한다 (새로고침으로 풀리지 않게)
-  var nowMin = minutesOfDay_(timeStr), blockedMin = -1;
-  allRecordsToday.forEach(function(row) {
-    if (row[6].toString().indexOf("[AI 차단]") === -1) return;
-    var m = minutesOfDay_(row[1]);
-    if (m >= 0 && m <= nowMin && m > blockedMin) blockedMin = m;
-  });
-  if (blockedMin >= 0 && nowMin - blockedMin < AI_BLOCK_COOLDOWN_MIN_) {
-    return {
-      success: true,
-      isBlocked: true,
-      aiReply: "🚫 수업과 무관한 말이 이어져 잠시 대화가 멈췄어요. 약 " + (AI_BLOCK_COOLDOWN_MIN_ - (nowMin - blockedMin)) + "분 뒤에 다시 시도해 주세요."
-    };
-  }
+  var blockedReply = groupBlockedReply_(allRecordsToday, timeStr);
+  if (blockedReply) return blockedReply;
 
   // 🛡️ [1단계 방어 업그레이드] 금지어 감지 (2회 경고 후 3회차 강제 차단 삼진아웃제)
   var bannedWords = bannedWordsRaw.split(',').map(function(w) { return w.trim(); }).filter(Boolean);
@@ -1621,8 +1712,14 @@ function processChatMessage(payload) {
 // [JSON API 전용] 결과 분석 화면의 학급 → 주제 → 모둠 단추가 쓴다: 대화 기록(채팅기록)이 어느 학급·주제·모둠에 얼마나 있는지 센다.
 // 시트를 읽기만 한다(쓰기·Gemini 호출 없음). apiAnalyze 와 같은 이름 규칙(앞뒤 공백만 뺀 정확 일치)과 같은 '평가 제외' 기준
 // (H열 'qna' 또는 I열 '-')을 써서, 여기서 '기록 없음'이면 분석도 비어 있도록 맞춘다.
-//   combos: [{ classValue, topicValue, groupValue, total(모든 기록), analyzable(평가 대상), last('날짜 시간') }]
+//   combos: [{ classValue, topicValue, groupValue, total(모든 기록), analyzable(평가 대상), last('날짜 시간'),
+//              dates: [{ date('yyyy-MM-dd'), total, analyzable }] (날짜순 — 결과 분석의 4단계 '날짜' 단추) }]
 // ---------------------------------------------------------
+// 채팅기록 A열(날짜)을 'yyyy-MM-dd' 글자로. 실제 시트는 날짜 칸을 Date 로 돌려주기도 한다. apiAnalyze 의 날짜 고르기와 같은 규칙.
+function chatDateKey_(v) {
+  return (v instanceof Date) ? Utilities.formatDate(v, "Asia/Seoul", "yyyy-MM-dd") : String(v == null ? "" : v).trim();
+}
+
 function apiChatOverview() {
   var rows = requireSheet_('채팅기록').getDataRange().getValues();
   var cell = function(r, i) { return r[i] == null ? "" : String(r[i]).trim(); };
@@ -1632,16 +1729,22 @@ function apiChatOverview() {
     if (!c || !g || !t) continue; // 학급·모둠·주제가 빈 줄(손으로 지운 줄 등)은 어느 단추에도 속하지 않는다
     var key = c + "\u0001" + t + "\u0001" + g;
     var e = byKey[key];
-    if (!e) { e = byKey[key] = { classValue: c, topicValue: t, groupValue: g, total: 0, analyzable: 0, lastIndex: i }; list.push(e); }
+    if (!e) { e = byKey[key] = { classValue: c, topicValue: t, groupValue: g, total: 0, analyzable: 0, lastIndex: i, dates: {} }; list.push(e); }
+    var ok = cell(r, 7) !== "qna" && cell(r, 8) !== NO_RUBRIC_;
     e.total++;
-    if (cell(r, 7) !== "qna" && cell(r, 8) !== NO_RUBRIC_) e.analyzable++;
+    if (ok) e.analyzable++;
+    var d = chatDateKey_(r[0]);
+    var de = e.dates[d] || (e.dates[d] = { date: d, total: 0, analyzable: 0 });
+    de.total++;
+    if (ok) de.analyzable++;
     e.lastIndex = i; // 기록은 위에서 아래로 쌓이므로 마지막으로 본 줄이 가장 최근이다
   }
   var stamp = function(v, fmt) { return (v instanceof Date) ? Utilities.formatDate(v, "Asia/Seoul", fmt) : String(v == null ? "" : v); };
   var combos = list.map(function(e) { // 시각 서식은 조합마다 한 번만 만든다(기록이 많아도 느려지지 않게)
     var r = rows[e.lastIndex];
+    var dates = Object.keys(e.dates).sort().map(function(k) { return e.dates[k]; });
     return { classValue: e.classValue, topicValue: e.topicValue, groupValue: e.groupValue, total: e.total, analyzable: e.analyzable,
-      last: (stamp(r[0], "yyyy-MM-dd") + " " + stamp(r[1], "HH:mm")).trim() };
+      last: (stamp(r[0], "yyyy-MM-dd") + " " + stamp(r[1], "HH:mm")).trim(), dates: dates };
   });
   return { success: true, data: { combos: combos } };
 }
@@ -1649,11 +1752,14 @@ function apiChatOverview() {
 // ---------------------------------------------------------
 // [JSON API 전용] 교사 콘솔의 "결과 분석" 단계가 호출한다. 시트에 결과를 쓰지 않고 결과 객체를 그대로 반환한다.
 // ---------------------------------------------------------
-function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricName) {
+// targetDate: 'yyyy-MM-dd' 면 그날의 대화만, 비우면 모든 날짜를 함께 분석한다 (같은 주제를 여러 날 나눠 한 경우 섞이지 않게).
+function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricName, targetDate) {
   targetClass = (targetClass || "").toString().trim();
   targetGroup = (targetGroup || "").toString().trim();
   targetTopic = (targetTopic || "").toString().trim();
+  targetDate = (targetDate || "").toString().trim();
   rubricName = cleanName_(rubricName);
+  if (targetDate && !/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) return { success: false, error: "날짜 형식이 올바르지 않아요." };
 
   if (!targetClass || !targetGroup || !targetTopic) {
     return { success: false, error: "학급, 모둠, 탐구 주제를 모두 선택해 주세요." };
@@ -1675,6 +1781,7 @@ function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricNa
     if (allRecords[i][2].toString().trim() === targetClass &&
         allRecords[i][3].toString().trim() === targetGroup &&
         allRecords[i][4].toString().trim() === targetTopic) {
+      if (targetDate && chatDateKey_(allRecords[i][0]) !== targetDate) continue; // 고른 날짜의 대화만
       if (String(allRecords[i][7] || "").trim() === "qna" || String(allRecords[i][8] || "").trim() === NO_RUBRIC_) { excludedQna++; continue; }
       topicRows.push({ rec: allRecords[i], rubric: String(allRecords[i][8] || "").trim() });
     }
@@ -1725,7 +1832,7 @@ function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricNa
   });
 
   if (filteredChat.length === 0) {
-    var where = targetClass + " " + targetGroup + " · " + targetTopic;
+    var where = targetClass + " " + targetGroup + " · " + targetTopic + (targetDate ? " (" + targetDate + ")" : "");
     var emptyMsg;
     if (otherRubrics.length) {
       emptyMsg = where + "의 대화는 모두 다른 루브릭(" + otherRubrics.map(function(o) { return "'" + o.name + "' " + o.count + "건"; }).join(", ") + ")으로 진행됐어요. 그 루브릭을 골라 분석해 주세요.";
@@ -1826,6 +1933,7 @@ function apiAnalyze(targetClass, targetGroup, targetTopic, useMaterial, rubricNa
     rubricFallback: rubricFallback,
     currentRubricName: cfg.noRubric ? "" : cfg.rubricName, // 이 주제에 지금 연결된 루브릭(평가 안 하는 주제면 빈 문자열)
     otherRubrics: otherRubrics,
+    dateValue: targetDate, // 분석한 날짜('' = 모든 날짜)
     templateKey: (lastPersona && lastPersona.templateKey) || cfg.templateKey || "",
     levelMax: levelNums.length ? Math.max.apply(null, levelNums) : 0,
     utterances: utterances

@@ -143,5 +143,38 @@ const find = (r, c, t, g) => (r.data.combos || []).find((x) => x.classValue === 
   ok('3반의 T3 은 평가 가능한 기록(A1모둠)이 있어 주제 단추가 켜지고, 모둠 A2는 평가 제외로 막힘', t3.state === 'ok' && win.ArguPick.groupOptions(idx, '3반', T3).find((o) => o.value === 'A2모둠').state === 'excluded', JSON.parse(JSON.stringify(t3)));
 }
 
+// ───────── 날짜별: 같은 주제를 여러 날 한 경우 날짜마다 세고, 분석도 고른 날짜만 ─────────
+{
+  const e = fresh();
+  const DateCtor = vm.runInContext('Date', e.ctx); // 실제 시트처럼 날짜 칸이 Date 로 오는 경우(Code.js 쪽 Date 로 만들어야 instanceof 가 맞다)
+  rec(e, '2026-10-15', '23:17', '1반', 'A1모둠', T3, '기본', '기본');
+  rec(e, '2026-10-15', '23:18', '1반', 'A1모둠', T3, '기본', '기본');
+  rec(e, new DateCtor(2026, 9, 15, 0, 0), '23:19', '1반', 'A1모둠', T3, '기본', '기본'); // 같은 날, Date 칸
+  rec(e, '2026-10-22', '11:14', '1반', 'A1모둠', T3, '기본', '기본');
+  rec(e, '2026-10-22', '11:15', '1반', 'A1모둠', T3, 'qna', '-'); // 평가 제외
+  const c = find(overview(e), '1반', T3, 'A1모둠');
+  ok('조합마다 날짜별 개수(dates)를 날짜순으로 알려 줌(Date 칸도 같은 날로 묶음)', c && JSON.stringify(c.dates) === JSON.stringify([{ date: '2026-10-15', total: 3, analyzable: 3 }, { date: '2026-10-22', total: 2, analyzable: 1 }]), c && c.dates);
+  ok('날짜별 개수의 합은 조합 전체 개수와 같음', c && c.dates.reduce((n, d) => n + d.total, 0) === c.total && c.dates.reduce((n, d) => n + d.analyzable, 0) === c.analyzable, c);
+
+  const an = (dateValue) => e.ctx.routeAction('teacherAnalyze', { pin: PIN, classValue: '1반', groupValue: 'A1모둠', topicValue: T3, dateValue });
+  const d15 = an('2026-10-15'), d22 = an('2026-10-22'), all = an(''), none = an(undefined);
+  ok('10월 15일을 고르면 그날 대화 3건만 분석(Date 칸 포함)', d15.success === true && d15.utterances.length === 3 && d15.utterances.every((u) => u.date === '2026-10-15') && d15.dateValue === '2026-10-15', d15);
+  ok('10월 22일을 고르면 그날 평가 대상 1건만 분석하고, 평가 제외도 그날 것만 셈', d22.success === true && d22.utterances.length === 1 && d22.utterances[0].time === '11:14' && d22.excludedQna === 1, d22);
+  ok('날짜를 비우면(모든 날짜 함께) 두 날을 모두 분석', all.success === true && all.utterances.length === 4 && all.dateValue === '' && none.success === true && none.utterances.length === 4, [all.utterances && all.utterances.length, none.utterances && none.utterances.length]);
+  ok('분석 프롬프트에도 고른 날짜의 발화만 들어감', (() => { an('2026-10-22'); const t = e.calls[e.calls.length - 1].contents[0].parts[0].text; return /2026-10-22/.test(t) && !/2026-10-15/.test(t); })(), '');
+  const empty = an('2026-10-30');
+  ok('기록 없는 날짜는 빈 결과로 알리고 날짜를 문구에 넣음', empty.success === false && empty.empty === true && /2026-10-30/.test(empty.error), empty);
+  const bad = an('10/15');
+  ok('날짜 형식이 이상하면 거절(AI 호출 없음)', bad.success === false && /날짜 형식/.test(bad.error), bad);
+  // 단추(pick-logic)와 분석이 같은 답: 날짜 단추가 '기록 있음'이면 그 날짜 분석이 성공하고, 평가 제외만 있는 날짜는 분석도 비어 있다
+  rec(e, '2026-10-23', '09:00', '1반', 'A1모둠', T3, 'qna', '-');
+  const win = { console }; vm.createContext(win); win.window = win;
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'pick-logic.js'), 'utf8'), win);
+  const idx = win.ArguPick.build({ classes: ['1반'], topics: [T3], groups: ['A1모둠'] }, overview(e).data.combos);
+  const opts = win.ArguPick.dateOptions(idx, '1반', T3, 'A1모둠');
+  const mism = opts.filter((o) => !o.all).filter((o) => { const r = an(o.value); return win.ArguPick.selectable(o) ? r.success !== true : r.success !== false; }).map((o) => o.value);
+  ok('날짜 단추의 상태와 그 날짜 분석 결과가 모든 날짜에서 맞음(평가 제외뿐인 10/23 은 단추도 막히고 분석도 비어 있음)', opts.length === 4 && mism.length === 0 && opts.find((o) => o.value === '2026-10-23').state === 'excluded', { opts: JSON.parse(JSON.stringify(opts)).map((o) => [o.value, o.state]), mism });
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

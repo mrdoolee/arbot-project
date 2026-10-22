@@ -209,3 +209,7 @@ html[data-theme="dark"] { --credit-link: #7cb0ff; }
 .chat-shell > [data-credit-footer] { flex-shrink: 0; }
 .chat-shell .credit-footer { padding: 4px 12px calc(6px + env(safe-area-inset-bottom)); background: var(--s-bg); }
 @media (max-height: 640px) and (max-width: 899px) { .chat-shell .credit-footer { display: none; } }
+
+/* 탐구 마무리 피드백: 시간이 끝난 뒤 채팅창에 올라오는 100자 이내 피드백 */
+.msg.feedback { border-left: 4px solid var(--blue); }
+.msg.feedback .fb-head { display: block; font-size: 14px; line-height: 22px; color: var(--blue); margin-bottom: 2px; }

@@ -50,7 +50,7 @@ const serverStudent = listOf(server, /var STUDENT_ACTIONS_ = \[([\s\S]*?)\];/, '
 ok('화면이 부르는 action 은 모두 서버에 있음', [...called].every((a) => routed.has(a)), [...called].filter((a) => !routed.has(a)));
 ok('서버 교사 전용 목록 = 클라이언트 교사 전용 목록 (testConnection 만 스스로 비밀번호를 확인해 클라이언트에만 있음)',
   [...serverTeacher].every((a) => clientTeacher.has(a)) && [...clientTeacher].filter((a) => !serverTeacher.has(a)).join() === 'testConnection', [[...serverTeacher], [...clientTeacher]]);
-ok('학생 입구(코드 필요)는 getInitialData·processChatMessage 둘뿐', [...serverStudent].sort().join() === 'getInitialData,processChatMessage', [...serverStudent]);
+ok('학생 입구(코드 필요)는 getInitialData·getSessionFeedback·processChatMessage 셋뿐', [...serverStudent].sort().join() === 'getInitialData,getSessionFeedback,processChatMessage', [...serverStudent]);
 ok('학생 입구 action 은 교사 전용 목록과 겹치지 않음', [...serverStudent].every((a) => !serverTeacher.has(a)), '');
 ok('getInitialData 는 학생 화면에서만, 수업 입장 코드와 함께 POST 로 부름', /callPost\('getInitialData', \{ accessCode/.test(pages['public/student.html']) && !/call(?:Get|Post)\('getInitialData'/.test(pages['public/index.html']) && !/callGet\('getInitialData'/.test(pages['public/student.html']), '');
 ok('채팅 요청에 수업 입장 코드를 실어 보냄', /callPost\('processChatMessage', \{[\s\S]*?accessCode: S\.code/.test(pages['public/student.html']), '');
@@ -118,7 +118,7 @@ ok('콘솔 화면이 API 키 원문을 요구·복원하지 않음(가린 값은
 
 // ───────── 5) 화면 출력 이스케이프 (학생이 쓴 글·AI 응답·분석 결과가 코드로 해석되지 않게) ─────────
 const idx = pages['public/index.html'];
-const untrusted = ['u.text', 'u.aiReply', 'u.evaluation', 'c.evaluation', 'c.title', 'lastResult.contextSummary', 'overallFeedback', 'u.date', 'u.time', 'r.label', 'r.key', 't.topic'];
+const untrusted = ['u.text', 'u.aiReply', 'u.evaluation', 'c.evaluation', 'c.title', 'lastResult.contextSummary', 'overallFeedback', 'u.date', 'u.time', 'r.label', 'r.key', 't.topic', 'tq', 'lastReply', 'dateValue'];
 const offenders = [];
 idx.split('\n').forEach((line, i) => {
   if (!line.includes('${')) return;
@@ -232,16 +232,22 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('옛 드롭박스 코드(selClass·selGroup·selTopic·populateSelect)가 남아 있지 않음', !/selClass|selGroup|selTopic|populateSelect/.test(tea), '');
 
   const render = fnBody('renderPickStep', 'function syncAnalyzeBtn');
-  ok('단추의 이름·부가 글은 textContent 로만 넣음(시트에서 온 글이 HTML 로 해석되지 않게)', render.length > 200 && /name\.textContent = o\.value/.test(render) && /s\.textContent = sub/.test(render) && !/innerHTML/.test(render), render.slice(0, 80));
+  ok('단추의 이름·부가 글은 textContent 로만 넣음(시트에서 온 글이 HTML 로 해석되지 않게)', render.length > 200 && /name\.textContent = level === 'date' \? dateLabel\(o\.value\) : o\.value/.test(render) && /s\.textContent = sub/.test(render) && !/innerHTML/.test(render), render.slice(0, 80));
   ok('기록 없음·평가 제외 표시와 못 누르는 단추(disabled)가 있음', /return '기록 없음'/.test(script) && /평가 제외 \$\{o\.total\}건/.test(script) && /b\.disabled = !ArguPick\.selectable\(o\)/.test(render), '');
   ok('앞 단계를 고르기 전의 뒤 단계 단추는 잠긴(locked) 단추로 그려짐', /ArguPick\.topicOptions\(pickIdx, pick\.cls\) : lockedOptions\(/.test(script) && /ArguPick\.groupOptions\(pickIdx, pick\.cls, pick\.topic\) : lockedOptions\(/.test(script), '');
-  ok('학급을 바꾸면 주제·모둠이, 주제를 바꾸면 모둠이 비워짐', /function chooseClass\(v\) \{ pick = \{ cls: v, topic: '', group: '' \}/.test(script) && /function chooseTopic\(v\) \{ pick = \{ cls: pick\.cls, topic: v, group: '' \}/.test(script), '');
+  ok('학급을 바꾸면 주제·모둠·날짜가, 주제를 바꾸면 모둠·날짜가 비워지고, 모둠을 바꾸면 날짜를 다시 정함', /function chooseClass\(v\) \{ pick = \{ cls: v, topic: '', group: '', date: '' \}/.test(script) && /function chooseTopic\(v\) \{ pick = \{ cls: pick\.cls, topic: v, group: '', date: '' \}/.test(script) && /function chooseGroup\(v\) \{ pick = ArguPick\.reconcile\(pickIdx, \{ cls: pick\.cls, topic: pick\.topic, group: v, date: '' \}\)/.test(script), '');
+  ok('발화별 상세 분석은 튜터 질문 → 학생 답 순서(머리글·표·보고서 모두)', (pages['public/index.html'].match(/<th>튜터 질문 → 학생 답<\/th>/g) || []).length === 2 && !/학생\/모둠 발언/.test(pages['public/index.html'])
+    && /return `\$\{q\}<div class="sa">/.test(script) && /<td class="say">\$\{sayCellHtml\(u\)\}<\/td>/.test(script), '');
+  ok('튜터 질문은 같은 날 바로 앞 발언의 AI 답, 그날 첫 발언은 첫 인사말 표시, 그날 마지막 AI 답은 접어서', /function tutorBefore\(k\) \{\s*const us = lastResult\.utterances, p = us\[k - 1\];\s*return p && p\.date === us\[k\]\.date \? String\(p\.aiReply \|\| ''\) : null;/.test(script)
+    && /function lastReplyOfDay\(k\) \{\s*const us = lastResult\.utterances, n = us\[k \+ 1\];\s*return !n \|\| n\.date !== us\[k\]\.date \? String\(us\[k\]\.aiReply \|\| ''\) : '';/.test(script), '');
+  ok('CSV 도 앞선 튜터 질문 → 학생 답 → 이어진 응답 순서', /'앞선 튜터 질문', '학생 답', '이어진 AI 튜터 응답'/.test(script), '');
+  ok('날짜 단계: 모둠을 고르기 전에는 단추를 그리지 않고, 고른 뒤 dateOptions 로 그림', /if \(allPicked\) renderPickStep\('date', ArguPick\.dateOptions\(pickIdx, pick\.cls, pick\.topic, pick\.group\), pick\.date, chooseDate\);\s*else \$\('pickDate'\)\.replaceChildren\(\);/.test(script) && /id="pickStepDate"/.test(pages['public/index.html']) && /<b id="pickDateLabel">날짜<\/b>/.test(pages['public/index.html']), '');
   ok('선택이 바뀔 때마다 이전 분석의 루브릭 안내가 지워지고 탐구 도우미 안내가 갱신됨', /function afterPickChange\(\) \{ \$\('rubricNote'\)\.innerHTML = ''; renderPicker\(\); updateQnaNote\(\); \}/.test(script) && /normTopic\(pick\.topic\)/.test(script), '');
   ok('분석 버튼은 세 단계가 유효할 때만 켜지고, 분석 중에는 꺼짐', /\$\('btnAnalyze'\)\.disabled = analyzing \|\| !\(pickIdx && ArguPick\.canAnalyze\(pickIdx, pick\)\)/.test(script) && /analyzing = true; syncAnalyzeBtn\(\)/.test(script) && /finally \{ analyzing = false; syncAnalyzeBtn\(\); \}/.test(script) && !/\$\('btnAnalyze'\)\.disabled = false/.test(script), '');
-  ok('분석을 실행하기 전에 한 번 더 선택이 유효한지 확인하고, 분석 요청은 고른 값(pick)으로 보냄', /if \(!pickIdx \|\| !ArguPick\.canAnalyze\(pickIdx, pick\)\)/.test(script) && /const f = \{ classValue: pick\.cls, groupValue: pick\.group, topicValue: pick\.topic \}/.test(script), '');
+  ok('분석을 실행하기 전에 한 번 더 선택이 유효한지 확인하고, 분석 요청은 고른 값(pick)으로 보냄', /if \(!pickIdx \|\| !ArguPick\.canAnalyze\(pickIdx, pick\)\)/.test(script) && /const f = \{ classValue: pick\.cls, groupValue: pick\.group, topicValue: pick\.topic, dateValue: ArguPick\.dateParam\(pick\) \}/.test(script), '');
   ok('기록 유무는 getChatOverview 로 불러오고, 실패해도 목록 단추는 그대로 쓰게 하며 옛 GAS 는 안내함', /GasClient\.callPost\('getChatOverview', \{\}\)/.test(script) && /\(error\) => \(\{ error \}\)/.test(script) && /ov\.combos \|\| null/.test(script) && /ov\.error\.oldBackend/.test(script), '');
   ok('늦게 도착한 옛 응답은 버림(새로고침 순번 확인)', /const seq = \+\+pickLoadSeq/.test(script) && (script.match(/seq (!==|===) pickLoadSeq/g) || []).length >= 3 && /if \(seq !== pickLoadSeq\) return;/.test(script), '');
-  ok('단추 안내 문구의 조사가 받침에 맞음(탐구 주제를 · 모둠을 · 학급을)', /\$\{pick\.topic \? '모둠을' : '탐구 주제를'\} 골라 주세요/.test(script) && /학급을 골라 주세요/.test(script) && /'탐구 주제를 골라 주세요'/.test(script) && /'모둠을 골라 주세요 · /.test(script) && !/모둠를|주제을|학급를/.test(script), '');
+  ok('단추 안내 문구의 조사가 받침에 맞음(탐구 주제를 · 모둠을 · 학급을)', /\$\{pick\.group \? '날짜를' : pick\.topic \? '모둠을' : '탐구 주제를'\} 골라 주세요/.test(script) && /학급을 골라 주세요/.test(script) && /'탐구 주제를 골라 주세요'/.test(script) && /'모둠을 골라 주세요 · /.test(script) && !/모둠를|주제을|학급를/.test(script), '');
   ok('메뉴 5 에 들어올 때마다 목록·기록을 새로 읽음', /if \(name === 'analyze'\) refreshPicker\(false\)/.test(script) && /id="btnLoadOptions"[^>]*><span class="ms">sync<\/span>목록·기록 새로고침/.test(panel), '');
   ok('getChatOverview 는 콘솔 호출 목록(TEACHER_ACTIONS)과 서버 교사 전용 목록 양쪽에 있고 버전 요구가 3 이상', /'getChatOverview'/.test(gasClient) && /"getChatOverview"/.test(server) && Number((script.match(/const REQUIRED_API_VERSION = (\d+)/) || [])[1]) >= 3, '');
   ok('분석 결과 화면은 입력 폼이 아니라 분석 응답으로만 그림(드롭박스가 없어도 결과 제목이 나옴)', /lastFilters = f;/.test(script) && /\$\('resultTitle'\)\.textContent = `\$\{lastFilters\.classValue\} \$\{lastFilters\.groupValue\} 분석 결과`/.test(script), '');
@@ -321,12 +327,22 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('대화 방식마다 입장 화면 문구(인사 한 줄·튜터 설명·상태 글자)가 있고 서로 다름', sc.every((c) => c.hero && c.tutor && c.states.asking && c.states.thinking && c.states.praising) && new Set(sc.map((c) => c.tutor)).size === 5 && new Set(sc.map((c) => c.hero)).size === 5, sc.map((c) => c.tutor));
   ok('찬반 토론형의 튜터 설명은 반론·입장을 말하고, 소크라테스형 문구(질문으로 키워 줘요)가 아님', /반론/.test(AS.studentCopy('debate').tutor) && /입장/.test(AS.studentCopy('debate').tutor) && !/정답을 알려주는 대신/.test(AS.studentCopy('debate').tutor) && /반론/.test(AS.studentCopy('debate').states.asking), AS.studentCopy('debate'));
   ok('모르는 방식은 소크라테스형 문구로(깨지지 않음)', AS.studentCopy('모르는방식').tutor === AS.studentCopy('socratic').tutor, '');
+  ok('탐구 요약 카드의 마무리 안내(wrapUp)가 방식마다 있고 서로 다름', sc.every((c) => typeof c.wrapUp === 'string' && c.wrapUp.length > 20) && new Set(sc.map((c) => c.wrapUp)).size === 5, sc.map((c) => c.wrapUp));
+  ok('찬반 토론형·탐구 도우미의 마무리 안내에 실험보고서·가설이 없고, 토론은 입장·반론을 말함', !/실험보고서|가설/.test(AS.studentCopy('debate').wrapUp) && /입장/.test(AS.studentCopy('debate').wrapUp) && /반론/.test(AS.studentCopy('debate').wrapUp) && !/실험보고서|가설|논증/.test(AS.studentCopy('qna').wrapUp), [AS.studentCopy('debate').wrapUp, AS.studentCopy('qna').wrapUp]);
 
   // 화면이 이 규칙을 실제로 쓴다
   const stuScript = [...pages['public/student.html'].matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
   const idxScript = [...pages['public/index.html'].matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
   ok('학생 화면: 캐릭터를 resolveCharacter 로 정하고, 인사 한 줄·튜터 설명·상태 글자를 studentCopy 에서 가져옴', /AS\.resolveCharacter\(S\.templateKey, c\.id, c\.name\)/.test(stuScript) && /AS\.studentCopy\(S\.templateKey\)/.test(stuScript) && /\$\('heroLine'\)\.textContent = copy\.hero/.test(stuScript) && /\$\('tutorDesc'\)\.textContent = copy\.tutor/.test(stuScript) && /\.states\[state\]/.test(stuScript), '');
   ok('학생 화면 스크립트에 소크라테스형 튜터 문구가 모든 방식에 박혀 있지 않음', !/정답을 알려주는 대신/.test(stuScript), '');
+  ok('탐구 요약 카드는 방식별 wrapUp 을 escape 해서 쓰고, 실험보고서 고정 문구가 없음', /\$\{esc\(AS\.studentCopy\(S\.templateKey\)\.wrapUp\)\}/.test(stuScript) && !/실험보고서/.test(stuScript), '');
+  // 마무리 피드백: 시간이 끝나면(학생이 말한 게 있을 때만) 입장 코드와 함께 요청하고, AI 글은 textContent 로만 넣는다
+  const fbFn = (/async function requestFeedback\(\) \{([\s\S]*?)\n  \}/.exec(stuScript) || [])[1] || '';
+  ok('마무리 피드백: 시간 종료 때 학생이 말한 경우에만 요청', /lock\(reason, message\)[\s\S]*?reason === 'timeout'[\s\S]*?if \(S\.turns > 0\) requestFeedback\(\);[\s\S]*?\} else if \(reason === 'code'\)/.test(stuScript), '');
+  ok('마무리 피드백: 학급·모둠·주제·기록과 수업 입장 코드를 POST 로 보냄', /callPost\('getSessionFeedback', \{[\s\S]*?history: S\.sess\.history\.slice\(-40\), accessCode: S\.code/.test(fbFn), fbFn.slice(0, 200));
+  ok('마무리 피드백: AI 글을 innerHTML 이 아니라 텍스트 노드로 넣음', fbFn.length > 0 && /document\.createTextNode\(text\)/.test(fbFn) && !/innerHTML/.test(fbFn), '');
+  ok('마무리 피드백: 실패(옛 GAS 포함)하면 기다림 표시만 지우고 조용히 넘어감', /catch \(err\) \{\s*typing\.remove\(\);\s*\}/.test(fbFn), '');
+  ok('마무리 피드백: 보내던 글의 답을 기다린 뒤(inflight) 요청', /while|S\.inflight && i < \d+/.test(fbFn) && /S\.busy = true; S\.inflight = true;/.test(stuScript) && /S\.inflight = false;/.test(stuScript), '');
   ok('학생 화면: 캐릭터를 템플릿보다 먼저 정하지 않음(템플릿을 먼저 정한 뒤 짝을 구함)', stuScript.indexOf('S.templateKey = AS.STEPS[c.templateKey]') > -1 && stuScript.indexOf('S.templateKey = AS.STEPS[c.templateKey]') < stuScript.indexOf('AS.resolveCharacter(S.templateKey'), '');
   ok("콘솔: 캐릭터 카드는 template 짝을 보여 주고 recommend 는 더 이상 쓰지 않음", /c\.template === curTpl/.test(idxScript) && !/\.recommend/.test(idxScript), '');
   ok('콘솔: 대화 방식을 바꾸면 고르지 않은 캐릭터·이름이 새 짝으로 바뀌고 카드·미리보기를 다시 그림', /\$\('p_template'\)\.addEventListener\('change'[\s\S]*?AS\.characterFor\(tpl\)\.id[\s\S]*?renderCharGrid\(\); renderPreview\(\)/.test(idxScript), '');

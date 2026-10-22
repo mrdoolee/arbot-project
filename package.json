@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --check gas-source/Code.js && node --check gas-source/Templates.js && node tests/gas_logic.test.js && node tests/gas_profiles.test.js && node tests/gas_reset.test.js && node tests/gas_security.test.js && node tests/gas_structure.test.js && node tests/gas_guide.test.js && node tests/gas_chat_overview.test.js && node tests/gas_topic_rows.test.js && node tests/pick_logic.test.js && node tests/frontend_static.test.js"
+    "test": "node --check gas-source/Code.js && node --check gas-source/Templates.js && node tests/gas_logic.test.js && node tests/gas_profiles.test.js && node tests/gas_reset.test.js && node tests/gas_security.test.js && node tests/gas_structure.test.js && node tests/gas_guide.test.js && node tests/gas_chat_overview.test.js && node tests/gas_topic_rows.test.js && node tests/gas_feedback.test.js && node tests/pick_logic.test.js && node tests/frontend_static.test.js"
   },
   "dependencies": {
     "express": "^4.19.2"

@@ -114,6 +114,10 @@ function makeEnv(opts) {
           if (h) return { getResponseCode: () => h.code, getContentText: () => JSON.stringify(h.body) };
         }
         let reply = opts.geminiReply ? opts.geminiReply(body) : '응답이에요.';
+        // 탐구 마무리 피드백 요청이면 그럴듯한 한 문장으로 답한다 (가짜 서버에서 화면을 눌러 볼 때도 보이게)
+        if (!opts.geminiReply && body.systemInstruction && body.systemInstruction.parts[0].text.includes('마무리 피드백')) {
+          reply = '근거를 들어 입장을 분명히 말한 점이 좋았어요. 다음에는 반론에 한 번 더 재반박해 보세요.';
+        }
         // 분석 요청이면(맥락 분석 지침이 들어 있음) 발화 수만큼의 올바른 JSON 으로 답한다
         if (!opts.geminiReply && body.systemInstruction && body.systemInstruction.parts[0].text.includes('[맥락 분석 지침]')) {
           const n = (body.contents[0].parts[0].text.match(/\[발화 \d+/g) || []).length;
