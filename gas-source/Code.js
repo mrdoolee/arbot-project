@@ -820,6 +820,27 @@ function mergeBlank_(row, base, cols) {
 
 // 한 주제에 실제로 적용되는 값(페르소나·캐릭터·제한 시간·기억 쌍과, 채팅 기록에 남길 페르소나·루브릭 이름).
 // 루브릭 내용은 분석할 때만 필요하므로 여기서는 이름만 정한다. topic 이 비면 기본값.
+// 캐릭터 빈 칸 규칙 (public/js/argu-shared.js 의 personaCharacter 와 같은 규칙; tests/gas_profiles.test.js 가 두 쪽을 비교한다).
+//  - 캐릭터 칸이 비었는데 '기본'과 다른 대화 방식이면, 기본의 캐릭터를 물려받지 않고 그 대화 방식의 짝(Templates.js)을 쓴다.
+//  - 캐릭터만 정하고 이름 칸을 비우면, 기본의 이름이 아니라 그 캐릭터의 이름을 쓴다(모르는 캐릭터면 비워 두고 화면이 채운다).
+// p 는 mergeBlank_ 로 만든 값이고, 그 안의 characterId/characterName 만 고친다.
+function inheritCharacter_(p, row, base) {
+  var baseTpl = base.templateKey || 'socratic', tpl = p.templateKey || baseTpl;
+  if (row.characterId) {
+    if (!row.characterName) p.characterName = templateCharacterName_(row.characterId);
+  } else if (tpl !== baseTpl) {
+    var pair = null;
+    for (var i = 0; i < TEMPLATE_PROFILES_.length; i++) if (TEMPLATE_PROFILES_[i].key === tpl) pair = TEMPLATE_PROFILES_[i].persona;
+    p.characterId = pair ? pair.characterId : '';
+    p.characterName = row.characterName || (pair ? pair.characterName : '');
+  }
+}
+// 템플릿 5개의 짝 캐릭터 중 이 id 의 기본 이름 (모르면 '')
+function templateCharacterName_(id) {
+  for (var i = 0; i < TEMPLATE_PROFILES_.length; i++) if (TEMPLATE_PROFILES_[i].persona.characterId === id) return TEMPLATE_PROFILES_[i].persona.characterName;
+  return '';
+}
+
 function resolveTopicConfig_(core, topic) {
   var base = basePersona_(core), tDef = topicDefaultRow_(core), warnings = [];
   var want = normalizeTopic_(topic);
@@ -828,6 +849,7 @@ function resolveTopicConfig_(core, topic) {
   var row = wantedPersona ? findByName_(core.personas, 'name', wantedPersona) : base;
   if (!row) { warnings.push("페르소나 '" + wantedPersona + "'를 찾지 못해 '기본'을 썼어요."); row = base; }
   var p = mergeBlank_(row, base, PERSONA_COLS_);
+  inheritCharacter_(p, row, base);
   var rubricRaw = tRow ? tRow.rubric : '';
   var noRubric = p.templateKey === 'qna' || rubricRaw === NO_RUBRIC_WORD_ || rubricRaw === NO_RUBRIC_;
   return {

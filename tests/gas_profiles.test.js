@@ -340,5 +340,50 @@ try { chat(env, { topicValue: T2 }); } catch (e) { /* qna 기본 페르소나 + 
 env.ctx.ensureProfileTabs_();
 ok('옛 시트 이관과 함께 템플릿도 들어가고 기본 줄은 옛 설정 그대로', env.sheets[P].rows.length === 7 && env.sheets[P].rows[1][0] === '기본' && env.sheets[P].rows[1][1] === 'qna' && env.sheets[P].rows[1][2] === 'role-text', env.sheets[P].rows.map((r) => r[0]));
 
+// ── 캐릭터 빈 칸 규칙: 시트에서 손으로 만든 페르소나 줄의 캐릭터 칸이 비었을 때 ──
+// 서버(inheritCharacter_)가 내려보낸 값을 학생 화면이 resolveCharacter 로 정한 결과가, 콘솔이 쓰는 personaCharacter(row, base) 와 같아야 한다.
+{
+  const vm = require('vm'), fs = require('fs'), path = require('path');
+  const sctx = vm.createContext({ window: {}, document: { documentElement: { classList: { add() {} } }, fonts: { load: () => ({ then() {} }) } }, setTimeout: () => 0, localStorage: {} });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'argu-shared.js'), 'utf8'), sctx);
+  const AS = sctx.window.ArguShared;
+  // 페르소나 줄 하나를 시트에 직접 넣고 T1 에 연결한 뒤, 학생 화면에 내려가는 캐릭터를 돌려준다
+  const serverChar = (base, row) => {
+    const e = makeEnv({ templateKey: 'socratic' });
+    e.ctx.getInitialData(); // 세부설정 탭·템플릿 줄을 먼저 만든다
+    const b = e.sheets[P].rows[1];
+    b[1] = base.templateKey || ''; b[7] = base.characterId || ''; b[8] = base.characterName || '';
+    e.sheets[P].rows.push(['손으로 만든 줄', row.templateKey || '', 'my-role', '', '', '', '', row.characterId || '', row.characterName || '', '', '']);
+    e.ctx.clearSettingsCache_();
+    const linked = e.ctx.saveTopicSetting({ topic: T1, persona: '손으로 만든 줄' });
+    return { linked: linked, c: e.ctx.getInitialData().topicConfigs[T1].character };
+  };
+  const SOCB = { templateKey: 'socratic', characterId: 'socrates', characterName: '소크라테스 선생님' };
+
+  let r = serverChar(SOCB, { templateKey: 'debate' });
+  ok('(준비) 손으로 만든 페르소나 줄을 주제에 연결할 수 있음', r.linked && r.linked.success === true, r.linked);
+  ok('서버: 기본(소크라테스)과 다른 대화 방식인데 캐릭터 칸이 비면 그 방식의 짝을 내려보냄(소크라테스가 아님)', r.c.id === 'debater' && r.c.name === '토론 파트너' && r.c.templateKey === 'debate', r.c);
+  r = serverChar(SOCB, { templateKey: 'debate', characterId: 'debater' });
+  ok('서버: 캐릭터만 정하고 이름 칸을 비우면 그 캐릭터의 이름(기본의 이름 "소크라테스 선생님"이 아님)', r.c.id === 'debater' && r.c.name === '토론 파트너', r.c);
+  r = serverChar(SOCB, { templateKey: 'socratic' });
+  ok('서버: 기본과 같은 대화 방식이면 빈 칸은 예전처럼 기본을 따름', r.c.id === 'socrates' && r.c.name === '소크라테스 선생님', r.c);
+  r = serverChar(SOCB, { templateKey: 'debate', characterId: 'robot', characterName: '내 로봇' });
+  ok('서버: 직접 정한 캐릭터·이름은 대화 방식과 달라도 그대로', r.c.id === 'robot' && r.c.name === '내 로봇', r.c);
+
+  const bases = [SOCB, { templateKey: 'socratic', characterId: 'labcoat', characterName: '도우미' }, { templateKey: 'cer' }, {}];
+  const rows = [
+    { templateKey: 'debate' }, { templateKey: 'qna' }, { templateKey: 'socratic' }, { templateKey: 'cer' }, {},
+    { templateKey: 'debate', characterId: 'debater' }, { templateKey: 'socratic', characterId: 'robot' },
+    { templateKey: 'debate', characterName: '반대 선수' }, { templateKey: 'debate', characterId: 'robot', characterName: '내 로봇' },
+    { templateKey: 'qna', characterId: 'scientist' }, { templateKey: 'debate', characterId: 'coach', characterName: '비판적 사고 코치' }
+  ];
+  const mismatches = [];
+  bases.forEach((base) => rows.forEach((row) => {
+    const c = serverChar(base, row).c, shown = AS.resolveCharacter(c.templateKey, c.id, c.name), want = AS.personaCharacter(row, base);
+    if (shown.id !== want.id || shown.name !== want.name) mismatches.push({ base, row, server: c, shown, want });
+  }));
+  ok(`서버 + 학생 화면의 캐릭터와 콘솔(personaCharacter)의 캐릭터가 같음 (${bases.length * rows.length}가지 조합)`, mismatches.length === 0, mismatches.slice(0, 3));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
