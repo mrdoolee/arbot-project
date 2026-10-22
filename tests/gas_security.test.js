@@ -73,7 +73,31 @@ ok('testConnection(맞는 비밀번호): 시트 이름·주소 공개', tc.autho
 ok('비밀번호 변경: 현재 비밀번호 없이는 거부', route(env, 'setTeacherPin', { newPin: 'brand-new-pass-9' }).needPin === true, '');
 ok('비밀번호 변경: 8자 미만은 거부', route(env, 'setTeacherPin', { pin: PIN, newPin: '1234567' }).success === false, '');
 ok('비밀번호 변경: 현재 비밀번호가 맞으면 변경', route(env, 'setTeacherPin', { pin: PIN, newPin: 'brand-new-pass-9' }).success === true && route(env, 'getTeacherSettings', { pin: PIN }).needPin === true && route(env, 'getTeacherSettings', { pin: 'brand-new-pass-9' }).success === true, '');
-ok('setTeacherPin_ 는 7자를 거부, 8자는 허용', env.ctx.setTeacherPin_({ newPin: '1234567' }).success === false && env.ctx.setTeacherPin_({ newPin: '12345678' }).success === true, '');
+ok('setTeacherPin_ 는 7자를 거부, 8자는 허용, 초기 비밀번호(12345678)는 새 비밀번호로 거부', env.ctx.setTeacherPin_({ newPin: '1234567' }).success === false && env.ctx.setTeacherPin_({ newPin: '12345678' }).success === false && env.ctx.setTeacherPin_({ newPin: 'abcd1234' }).success === true, '');
+
+// ───────────────────────── 1b) 초기 비밀번호(12345678): 비밀번호가 없을 때 '새 비밀번호 정하기'만 ─────────────────────────
+{
+  const e = makeEnv({});
+  const INIT = '12345678';
+  ok('초기 비밀번호 값은 12345678', e.ctx.DEFAULT_PIN_ === INIT, e.ctx.DEFAULT_PIN_);
+  const others = e.ctx.TEACHER_ACTIONS_.filter((a) => a !== 'setTeacherPin');
+  const opened = others.filter((a) => { const r = route(e, a, { pin: INIT }); return !(r.success === false && r.needSetup === true); });
+  ok('초기 비밀번호로는 다른 교사 기능을 하나도 열 수 없음(설정·기록·키·코드 모두 needSetup)', opened.length === 0, opened);
+  const tc0 = route(e, 'testConnection', { pin: INIT });
+  ok('초기 비밀번호로 testConnection 해도 authorized 아님, 시트 이름·주소 비공개', tc0.needSetup === true && tc0.authorized === false && !tc0.sheetName && !tc0.sheetUrl, tc0);
+  e.sleeps.length = 0;
+  const wrong = route(e, 'setTeacherPin', { pin: 'wrong-init', newPin: 'my-new-pass-1' });
+  ok('틀린 초기 비밀번호는 거부되고 800ms 지연, 비밀번호는 그대로 없음', wrong.success === false && wrong.needSetup === true && /12345678/.test(wrong.error) && e.sleeps.includes(800) && !e.ctx.isTeacherPinSet_(), wrong);
+  ok('초기 비밀번호를 그대로 새 비밀번호로 정할 수 없음', route(e, 'setTeacherPin', { pin: INIT, newPin: INIT }).success === false && !e.ctx.isTeacherPinSet_(), '');
+  ok('초기 비밀번호로도 8자 미만은 거부', route(e, 'setTeacherPin', { pin: INIT, newPin: 'short1' }).success === false && !e.ctx.isTeacherPinSet_(), '');
+  ok('초기 비밀번호 거부 안내에 초기 비밀번호와 시트 메뉴가 함께 나옴', /12345678/.test(route(e, 'getTeacherSettings', {}).error) && /교사 비밀번호 설정/.test(route(e, 'getTeacherSettings', {}).error), route(e, 'getTeacherSettings', {}).error);
+  const set = route(e, 'setTeacherPin', { pin: INIT, newPin: 'my-new-pass-1' });
+  ok('맞는 초기 비밀번호 + 새 비밀번호면 정해지고 수업 입장 코드도 만들어짐', set.success === true && e.ctx.isTeacherPinSet_() && /^[A-Z0-9]{6}$/.test(e.props.get(CODE_PROP) || ''), set);
+  ok('새 비밀번호를 정하면 초기 비밀번호로는 아무것도 안 됨(변경도 needPin)', route(e, 'setTeacherPin', { pin: INIT, newPin: 'other-pass-22' }).needPin === true && route(e, 'getTeacherSettings', { pin: INIT }).needPin === true && route(e, 'testConnection', { pin: INIT }).authorized === false, '');
+  ok('정한 새 비밀번호로는 열림', route(e, 'getTeacherSettings', { pin: 'my-new-pass-1' }).success === true && route(e, 'testConnection', { pin: 'my-new-pass-1' }).authorized === true, '');
+  ok('그사이 누가 먼저 정했으면 초기 비밀번호 경로도 거부(setInitialPin_ 직접 호출)', e.ctx.setInitialPin_({ pin: INIT, newPin: 'late-comer-33' }).needPin === true && route(e, 'getTeacherSettings', { pin: 'my-new-pass-1' }).success === true, '');
+  ok('비밀번호·초기 비밀번호 원문은 저장되지 않음', !JSON.stringify([...e.props]).includes('my-new-pass-1') && !JSON.stringify([...e.props]).includes(INIT), '');
+}
 
 // ───────────────────────── 2) 수업 입장 코드 ─────────────────────────
 env = makeEnv({ pin: PIN }); // 비밀번호만 있고 코드는 아직 없음

@@ -18,6 +18,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["tests/fake_gas_server.js", "3102", "--sample-chats"],
       "port": 3102
+    },
+    {
+      "name": "fake-gas-nopin",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tests/fake_gas_server.js", "3103", "--no-pin"],
+      "port": 3103
     }
   ]
 }

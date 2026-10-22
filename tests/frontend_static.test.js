@@ -124,6 +124,12 @@ ok('학생 질문 입력칸에 글자 수 제한(1000자)', /<textarea id="userQ
 ok('학생 입장 화면에 개인정보 안내가 있음', /개인정보는 쓰지 말아요/.test(pages['public/student.html']), '');
 ok('API 키 안내: 한도는 프로젝트·모델마다 다르고 AI Studio 에서 확인, 추가 키는 다른 프로젝트에서(옛 "무료 키 20회" 문구 없음)', /하루·분당 요청 한도는 Google 프로젝트와 모델마다 달라요/.test(pages['public/index.html']) && /키가 아니라 프로젝트 단위/.test(pages['public/index.html']) && /다른 Google 프로젝트/.test(pages['public/index.html']) && !/예: 20회/.test(pages['public/index.html']), '');
 ok('결과 분석의 총평은 교사용 지도 가이드(화면·보고서·사용 가이드)', /교사용 지도 가이드 \(AI 총평\)<\/b><span id="overallFeedback"><\/span>/.test(pages['public/index.html']) && /<h2>교사용 지도 가이드<\/h2>/.test(pages['public/index.html']) && !/AI 총평 및 교사용 피드백/.test(pages['public/index.html']), '');
+{
+  const idxH = pages['public/index.html'];
+  const firstFn = (/\$\('btnFirstPin'\)\.addEventListener\('click', async \(\) => \{([\s\S]*?)\n  \}\);/.exec(idxH) || [])[1] || '';
+  ok('비밀번호 설정 카드: 초기 비밀번호 "12345678" 안내와 초기·새·확인 입력칸, 시작 버튼이 있음', /<div class="card hidden" id="pinSetupCard">[\s\S]*?초기 비밀번호는 "12345678"입니다\.[\s\S]*?id="pinInit"[\s\S]*?id="pinFirst"[\s\S]*?id="pinFirst2"[\s\S]*?id="btnFirstPin"[\s\S]*?id="btnRecheck"/.test(idxH), '');
+  ok('시작 버튼: 초기 비밀번호로 setTeacherPin 을 부르고, 성공하면 새 비밀번호로 바꿔 다시 연결, 실패하면 저장한 비밀번호를 지움', firstFn.length > 200 && /GasClient\.setPin\(init\);\s*await GasClient\.callPost\('setTeacherPin', \{ newPin: a \}\);\s*GasClient\.setPin\(a\);/.test(firstFn) && /await testConnection\(url, true\); markConnected\(true\);/.test(firstFn) && /catch \(err\) \{\s*GasClient\.setPin\(''\);/.test(firstFn) && /if \(a === init\)/.test(firstFn), firstFn.slice(0, 120));
+}
 ok('콘솔 화면이 API 키 원문을 요구·복원하지 않음(가린 값은 서버로 되돌려 보내도 무시됨)', /isMaskedKey/.test(pages['public/index.html']) && /가린 모양/.test(pages['public/index.html']), '');
 
 // ───────── 5) 화면 출력 이스케이프 (학생이 쓴 글·AI 응답·분석 결과가 코드로 해석되지 않게) ─────────
