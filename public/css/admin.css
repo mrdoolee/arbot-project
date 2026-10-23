@@ -107,6 +107,10 @@ html, body { min-height: 100%; background: var(--canvas); color: var(--ink); fon
 .btn:hover { background: var(--blue-strong); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+a.btn { text-decoration: none; }
+.copy-sheet-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; padding: 14px 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+.copy-sheet-row .hint { margin: 0; flex: 1 1 260px; font-size: 13px; color: var(--ink-2); }
+.pin-forgot { margin-top: 10px; }
 .btn.secondary { background: #fff; color: var(--blue-strong); border-color: var(--line); }
 .btn.secondary:hover { background: var(--canvas); border-color: var(--blue); }
 .btn.ghost { background: transparent; color: var(--ink-2); border-color: var(--line); }

@@ -50,7 +50,7 @@
     <div class="sidebar-spacer"></div>
     <a class="btn-side green" href="student.html" target="_blank" rel="noopener"><span class="ms">school</span>학생 화면 열어보기</a>
     <button class="btn-side ghost" id="guideBtn" type="button"><span class="ms">menu_book</span>사용 가이드</button>
-    <div class="side-foot"><span>아르봇(ARBOT)</span><span>v3.0</span></div>
+    <div class="side-foot"><span>아르봇(ARBOT)</span><span>v1.0</span></div>
   </aside>
 
   <!-- ===== 메인 ===== -->
@@ -79,18 +79,23 @@
           </div>
           <div class="btn-row">
             <button id="btnTest" class="btn secondary" type="button"><span class="ms">cell_tower</span>연결 테스트</button>
-            <button id="btnOpenSheet" class="btn secondary" type="button" disabled title="연결 테스트에 성공하면 열 수 있어요"><span class="ms">table_chart</span>스프레드시트 접속</button>
-            <button id="btnSave" class="btn" type="button"><span class="ms">save</span>URL 저장</button>
+            <button id="btnOpenSheet" class="btn secondary" type="button" disabled title="연결 테스트에 성공하면 열 수 있어요"><span class="ms">table_chart</span>새 창에서 스프레드시트 보기</button>
+            <button id="btnSave" class="btn" type="button"><span class="ms">save</span>URL 저장 및 시트 연결</button>
           </div>
           <div id="step1Status" class="status-slot"></div>
 
           <details class="accordion" id="gasGuide">
             <summary><span class="ms" style="color:var(--blue)">build</span>아직 스프레드시트를 준비 안 했다면? (1분 설정 가이드)<span class="ms chev">expand_more</span></summary>
-            <div class="body"><div class="steps-grid">
-              <div class="step-card"><span class="n">1</span><div><b>스프레드시트 사본 만들기</b><span>아르봇(ARBOT) 스프레드시트를 <b>파일 → 사본 만들기</b>로 내 드라이브에 복사해요. Apps Script 코드가 이미 들어 있어요.</span></div></div>
+            <div class="body">
+              <div class="copy-sheet-row">
+                <p class="hint">아르봇(ARBOT) 배부용 스프레드시트를 내 구글 드라이브로 복사해요. 새 탭에서 <b>사본 만들기</b>를 누르면 Apps Script 코드도 함께 복사돼요.</p>
+                <a id="btnCopySheet" class="btn" href="https://docs.google.com/spreadsheets/d/1IrdNxs9sO23-ae_quI3gaenXpXUvvIgBlFzousnr69M/copy" target="_blank" rel="noopener noreferrer"><span class="ms">content_copy</span>배부용 시트 사본 만들기</a>
+              </div>
+              <div class="steps-grid">
+              <div class="step-card"><span class="n">1</span><div><b>스프레드시트 사본 만들기</b><span>위의 <b>배부용 시트 사본 만들기</b>를 누르고, 새 탭에서 <b>사본 만들기</b>를 눌러 내 드라이브에 복사해요. Apps Script 코드가 이미 들어 있어요.</span></div></div>
               <div class="step-card"><span class="n">2</span><div><b>Apps Script 열기</b><span>스프레드시트 상단 메뉴 <b>확장 프로그램 → Apps Script</b>를 열어요.</span></div></div>
               <div class="step-card"><span class="n">3</span><div><b>웹 앱으로 배포</b><span>우측 상단 <b>배포 → 새 배포</b>를 눌러 유형은 <b>웹 앱</b>, 액세스 권한은 <b>"모든 사용자"</b>로 정하고 배포해요.</span></div></div>
-              <div class="step-card"><span class="n">4</span><div><b>웹 앱 URL 등록</b><span>발급된 URL을 위 입력창에 붙여넣고 <b>연결 테스트</b> 후 <b>URL 저장</b>을 누르면 연동이 끝나요.</span></div></div>
+              <div class="step-card"><span class="n">4</span><div><b>웹 앱 URL 등록</b><span>발급된 URL을 위 입력창에 붙여넣고 <b>연결 테스트</b> 후 <b>URL 저장 및 시트 연결</b>을 누르면 연동이 끝나요.</span></div></div>
             </div></div>
           </details>
         </div>
@@ -121,7 +126,7 @@
           </div>
           <p class="hint" style="margin-top:14px"><b>또는 스프레드시트 메뉴에서 정할 수도 있어요.</b></p>
           <div class="steps-grid">
-            <div class="step-card"><span class="n">1</span><div><b>스프레드시트 열기</b><span>연결한 스프레드시트 탭으로 이동해요. (연결 테스트 후 [스프레드시트 접속] 버튼으로도 열 수 있어요)</span></div></div>
+            <div class="step-card"><span class="n">1</span><div><b>스프레드시트 열기</b><span>연결한 스프레드시트 탭으로 이동해요. (연결 테스트 후 [새 창에서 스프레드시트 보기] 버튼으로도 열 수 있어요)</span></div></div>
             <div class="step-card"><span class="n">2</span><div><b>메뉴에서 비밀번호 설정</b><span>상단 메뉴 <b>🗣️ 아르봇(ARBOT) → 🔐 교사 비밀번호 설정</b>을 눌러 8자 이상으로 두 번 입력해요. 메뉴가 안 보이면 시트를 새로고침(F5)하세요.</span></div></div>
             <div class="step-card"><span class="n">3</span><div><b>여기서 다시 확인</b><span>아래 [연결 다시 확인]을 누르면 비밀번호 입력창이 나와요.</span></div></div>
           </div>
@@ -570,6 +575,7 @@
     <h3 id="pinTitle"><span class="ms">lock</span>교사 비밀번호</h3>
     <p id="pinMsg">교사 콘솔에 접근하려면 비밀번호가 필요해요.</p>
     <input id="pinInput" class="input" type="password" autocomplete="current-password" placeholder="비밀번호">
+    <p class="hint pin-forgot" id="pinForgot"><b>비밀번호를 잊으셨나요?</b> 연결한 스프레드시트를 열어 상단 메뉴 <b>🗣️ 아르봇(ARBOT) → ♻️ 교사 비밀번호 초기화</b>를 실행한 뒤, 이 페이지를 새로고침하세요. 초기 비밀번호(12345678)로 새 비밀번호를 정하는 칸이 나와요.</p>
     <div class="btn-row"><button id="btnPinOk" class="btn" type="button">확인</button></div>
   </div>
 </div>
@@ -595,9 +601,9 @@
     <details class="accordion" open>
       <summary><span class="ms" style="color:var(--blue)">hub</span>메뉴 1 · GAS 연동 — 스프레드시트와 콘솔 잇기<span class="ms chev">expand_more</span></summary>
       <div class="body"><ul class="gd-list">
-        <li>스프레드시트를 <b>파일 → 사본 만들기</b>로 복사하고 웹 앱으로 배포한 뒤, 이 콘솔에 연결하면 비밀번호를 정하는 칸이 나와요. <b>초기 비밀번호는 "12345678"입니다.</b> 초기 비밀번호와 새 비밀번호(8자 이상)를 넣으면 바로 시작할 수 있어요(상단 메뉴 <b>🗣️ 아르봇(ARBOT) → 🔐 교사 비밀번호 설정</b>에서 정해도 돼요). 정하기 전에는 다른 메뉴가 잠겨 있어요.</li>
+        <li>메뉴 1의 설정 가이드에 있는 <b>배부용 시트 사본 만들기</b> 버튼으로 아르봇 스프레드시트를 내 드라이브에 복사하고 웹 앱으로 배포한 뒤, 이 콘솔에 연결하면 비밀번호를 정하는 칸이 나와요. <b>초기 비밀번호는 "12345678"입니다.</b> 초기 비밀번호와 새 비밀번호(8자 이상)를 넣으면 바로 시작할 수 있어요(상단 메뉴 <b>🗣️ 아르봇(ARBOT) → 🔐 교사 비밀번호 설정</b>에서 정해도 돼요). 정하기 전에는 다른 메뉴가 잠겨 있어요.</li>
         <li><b>확장 프로그램 → Apps Script → 배포 → 새 배포</b>에서 유형 <b>웹 앱</b>, 액세스 권한 <b>"모든 사용자"</b>로 배포하고 발급된 주소(…/exec)를 복사해요.</li>
-        <li>콘솔에 주소를 붙여넣고 <b>연결 테스트 → URL 저장</b>, 이어서 교사 비밀번호를 입력해요. 연결되면 <b>스프레드시트 접속</b> 버튼으로 시트를 바로 열 수 있어요.</li>
+        <li>콘솔에 주소를 붙여넣고 <b>연결 테스트 → URL 저장 및 시트 연결</b>, 이어서 교사 비밀번호를 입력해요. 연결되면 <b>새 창에서 스프레드시트 보기</b> 버튼으로 시트를 바로 열 수 있어요.</li>
         <li><b>Gemini API 키</b>(aistudio.google.com에서 발급)를 입력해 저장해요. 저장된 키는 일부만 보이고, 그대로 두면 바뀌지 않아요. <b>추가 키</b>를 넣어 두면 한 키의 한도가 끝나거나 오류일 때 다음 키로 자동 전환돼요(<b>쉬는 중 해제</b>로 다시 쓰기).</li>
         <li>AI 모델은 비워 두면 자동으로 골라요. 바꾸고 싶을 때만 <b>모델 목록 불러오기 · 모델 테스트</b>를 쓰세요.</li>
         <li>설정 저장 버튼은 <b>불러오기</b>가 끝난 뒤에만 눌려요. 빈 화면으로 시트 설정을 덮어쓰는 사고를 막기 위한 장치예요.</li>
@@ -668,7 +674,7 @@
         <li>API 키는 화면에 전체가 다시 보이지 않아요. 링크나 QR이 학급 밖으로 퍼졌다면 새 입장 코드를 만들어 주세요.</li>
         <li><b>스프레드시트 공유 권한</b> — 웹 앱은 <b>선생님 계정으로</b> 시트에 기록해요(백업 시트도 같아요). 그래서 시트를 공유하지 않아도 학생 대화가 쌓여요. 시트의 [공유] → 일반 액세스는 <b>"제한됨"</b>으로 두세요. "링크가 있는 모든 사용자"로 열면 링크를 아는 사람에게 <code>환경설정</code> B1의 API 키와 학생 대화가 그대로 보여요.</li>
         <li><b>다른 사람을 추가할 때</b> — 뷰어도 API 키와 학생 대화를 볼 수 있고, 편집자는 설정을 바꾸고 시트 메뉴(♻️ 교사 비밀번호 초기화, 🔑 수업 입장 코드 보기, ⚠️ 설정·기록 초기화)를 실행하고 Apps Script 코드도 고칠 수 있어요. 함께 수업하는 믿을 수 있는 선생님만 편집자로 추가하세요. 교사 비밀번호는 암호화돼 있어 편집자도 원래 값은 볼 수 없어요.</li>
-        <li><b>다른 선생님께 나눠 줄 때</b> — 공유 대신 <b>사본 만들기</b>로 드리고, 그 전에 <code>환경설정</code> B1의 키, <code>API키</code> 탭, <code>채팅기록</code>을 비워 주세요. 사본에 그대로 따라가요.</li>
+        <li><b>다른 선생님께 나눠 줄 때</b> — 공유 대신 <b>사본 만들기</b>로 드리고, <b>사본에서</b> 시트 메뉴 ⚠️ 설정·기록 초기화를 한 뒤 <code>환경설정</code> B1(API 키)·B2(백업 스프레드시트 ID)와 <code>API키</code> 탭의 키 줄을 지워 주세요. 시트에 적힌 내용은 사본에 그대로 따라가요. 교사 비밀번호와 수업 입장 코드는 따라가지 않아요(사본은 초기 비밀번호 "12345678"로 시작해요).</li>
       </ul></div>
     </details>
 
@@ -2589,7 +2595,7 @@ table.d{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}tabl
   renderTplModal(); renderCharGrid(); renderTopicExamples();
   (async function init() {
     const saved = GasClient.getGasUrl();
-    if (!saved) { markConnected(false); return; }
+    if (!saved) { $('gasGuide').open = true; markConnected(false); return; } // 처음 온 선생님: 사본 만들기 버튼이 든 설정 가이드를 펼쳐 둔다
     $('gasUrlInput').value = saved;
     try { await testConnection(saved, true); markConnected(true); }
     catch (err) { showConnectError(err, '저장된 주소로 연결하지 못했어요'); markConnected(false); }

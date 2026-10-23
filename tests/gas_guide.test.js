@@ -139,7 +139,9 @@ ok('API 키처럼 보이는 값이 안내문에 없음', !/AIza[0-9A-Za-z_-]{10,
   e.ctx.showAbout_();
   const a = e.ui.alerts[0] || [], msg = String(a[1] || '');
   ok('정보 창이 하나 뜨고 시트·속성·캐시를 건드리지 않음', e.ui.alerts.length === 1 && before === snapshot(e), e.ui.alerts.length);
-  ok('정보 창의 버전이 v2.0 이고 웹 앱 API 버전을 함께 보여 줌(옛 v1.0 아님)', /v2\.0 \(2026\.10\)/.test(msg) && msg.includes('API v' + e.ctx.API_VERSION_) && !/v1\.0/.test(msg), msg.slice(0, 60));
+  // 시트의 정보 창과 교사 콘솔 사이드바(아르봇(ARBOT) vX.Y)가 같은 버전을 보여 줘야 한다
+  const consoleVer = (/<div class="side-foot"><span>아르봇\(ARBOT\)<\/span><span>(v\d+\.\d+)<\/span><\/div>/.exec(fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8')) || [])[1];
+  ok('정보 창의 버전이 교사 콘솔 사이드바 버전과 같고(v1.0) 웹 앱 API 버전을 함께 보여 줌', consoleVer === 'v1.0' && msg.includes('버전 ' + consoleVer + ' (2026.10)') && msg.includes('API v' + e.ctx.API_VERSION_), [consoleVer, msg.slice(0, 60)]);
   ok('데이터 안내: 대화가 Gemini API로 전달되고 무료 키는 서비스 개선에 쓰일 수 있음을 알림', /Gemini API로 전달/.test(msg) && /무료 등급/.test(msg) && /개인정보/.test(msg), msg);
   ok('데이터 안내에 이 앱이 모으지 않는 옛 항목(학번·응시 기록)이 없음', !/학번|응시/.test(msg), msg);
 }

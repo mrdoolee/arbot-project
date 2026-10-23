@@ -175,7 +175,7 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('메뉴 4 에서 "학생 기기 3단계 접속 가이드" 박스가 사라지고 안 쓰는 스타일도 없음', !/학생 기기 3단계/.test(idx) && !/device-step/.test(idx) && !/device-step/.test(read('public/css/admin.css')), '');
   ok('접속 안내(Wi-Fi·기본 카메라·직접 열기)는 사용 가이드 안으로 옮겨져 사라지지 않음', /Wi-Fi/.test(guideText) && /기본 카메라/.test(guideText) && /직접 열어요/.test(guideText), '');
   ok('사용 가이드 모달: role=dialog · aria-modal · 제목 연결 · 닫기 버튼 aria-label', /id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideModalTitle"/.test(idx) && /id="guideModalTitle"/.test(idx) && /id="btnGuideClose"[^>]*aria-label="[^"]+"/.test(idx), '');
-  ok('사이드바 "사용 가이드" 버튼이 모달을 엶(1단계로 이동하던 옛 동작은 없음)', /\$\('guideBtn'\)\.addEventListener\('click', openGuide\)/.test(script) && !/\$\('gasGuide'\)/.test(script), '');
+  ok('사이드바 "사용 가이드" 버튼이 모달을 엶(1단계로 이동하던 옛 동작은 없음)', /\$\('guideBtn'\)\.addEventListener\('click', openGuide\)/.test(script) && !/\$\('gasGuide'\)/.test(script.replace("if (!saved) { $('gasGuide').open = true;", '')), ''); // 처음 온 선생님에게 설정 가이드를 펼치는 한 줄만 허용
   ok('가이드 모달은 ✕ 버튼 · 배경 클릭 · Esc 로 닫힘', /\$\('btnGuideClose'\)\.addEventListener\('click', closeGuide\)/.test(script) && /guideModal\.addEventListener\('mousedown', \(e\) => \{ if \(e\.target === guideModal\) closeGuide\(\); \}\)/.test(script) && /e\.key === 'Escape'\) \{ e\.preventDefault\(\); closeGuide\(\)/.test(script), '');
   ok('가이드 모달이 열려 있는 동안 배경 스크롤을 막고 닫으면 원래대로 되돌림', /guideOverflow = document\.body\.style\.overflow; document\.body\.style\.overflow = 'hidden'/.test(script) && /document\.body\.style\.overflow = guideOverflow/.test(script), '');
   const gm = script.slice(script.indexOf('function openGuide()'), script.indexOf("$('guideBtn')"));
@@ -190,11 +190,27 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('두 사용 가이드 모두 시트 공유 권한을 안내함(제한됨 권장, 링크 공개 금지, 뷰어·편집자가 할 수 있는 일)', [guide, sheetGuide].every((g) => /공유/.test(g) && /"제한됨"/.test(g) && /링크가 있는 모든 사용자/.test(g) && /뷰어/.test(g) && /편집자/.test(g) && /선생님 계정으로/.test(g)), '');
   ok('가이드에 흐름 요약·메뉴 1~5·학생 화면·보안·문제 해결 항목이 있음', (guide.match(/class="step-card"/g) || []).length === 6 && sections.every((s) => guideText.includes(s)), sections.filter((s) => !guideText.includes(s)));
   // 가이드가 누르라고 안내하는 버튼 이름이 실제 화면에 있는지(없는 버튼을 안내하지 않게)
-  const consoleButtons = ['연결 테스트', 'URL 저장', '스프레드시트 접속', '쉬는 중 해제', '모델 목록 불러오기', '모델 테스트', '불러오기', '링크 복사', '코드 복사', '새 코드 만들기', '직접 정하기', '교실 TV 전체화면', 'A4 배부용 QR 인쇄', '대화 불러오기 및 분석 실행', '목록·기록 새로고침', 'HTML 보고서', 'CSV', '학생 화면 열어보기', '예시 채우기'];
+  const consoleButtons = ['연결 테스트', 'URL 저장 및 시트 연결', '새 창에서 스프레드시트 보기', '배부용 시트 사본 만들기', '쉬는 중 해제', '모델 목록 불러오기', '모델 테스트', '불러오기', '링크 복사', '코드 복사', '새 코드 만들기', '직접 정하기', '교실 TV 전체화면', 'A4 배부용 QR 인쇄', '대화 불러오기 및 분석 실행', '목록·기록 새로고침', 'HTML 보고서', 'CSV', '학생 화면 열어보기', '예시 채우기'];
   const missingBtn = consoleButtons.filter((b) => guideText.includes(b) && !restText.includes(b));
   ok('가이드가 안내하는 버튼 이름이 모두 실제 화면에 있음', consoleButtons.filter((b) => guideText.includes(b)).length >= 15 && missingBtn.length === 0, missingBtn);
   ok('가이드가 안내하는 학생 화면 버튼("탐구 대화방 입장하기")이 학생 화면에 있음', guideText.includes('탐구 대화방 입장하기') && pages['public/student.html'].includes('탐구 대화방 입장하기'), '');
   ok('가이드가 말하는 시트 메뉴 이름이 GAS 메뉴와 같음', ['🔐 교사 비밀번호 설정', '🔑 수업 입장 코드 보기', '🔄 주제 세부설정 맞추기', '🩺 시트 구조 점검', '🗣️ 아르봇(ARBOT)', '📖 사용 가이드'].every((m) => guideText.includes(m) && server.includes(m)), '');
+}
+
+// ───────── 6b) GAS 연동: 배부용 시트 사본 만들기, 버튼 이름, 비밀번호 분실 안내 ─────────
+{
+  const idx = pages['public/index.html'];
+  const a = (/<a id="btnCopySheet"[^>]*>/.exec(idx) || [''])[0];
+  ok('배부용 시트 사본 만들기 버튼이 구글 시트의 /copy 주소를 새 탭으로 엶(창 연결 끊음)',
+    /href="https:\/\/docs\.google\.com\/spreadsheets\/d\/[A-Za-z0-9_-]{30,}\/copy"/.test(a) && /target="_blank"/.test(a) && /rel="noopener noreferrer"/.test(a), a);
+  ok('사본 만들기 버튼은 설정 가이드(gasGuide) 안에 있고, 저장된 주소가 없으면 가이드가 펼쳐짐',
+    idx.indexOf('id="btnCopySheet"') > idx.indexOf('id="gasGuide"') && /if \(!saved\) \{ \$\('gasGuide'\)\.open = true;/.test(idx), '');
+  ok('GAS 연동 버튼 이름: URL 저장 및 시트 연결 · 새 창에서 스프레드시트 보기 (옛 이름 없음)',
+    />URL 저장 및 시트 연결<\/button>/.test(idx) && />새 창에서 스프레드시트 보기<\/button>/.test(idx) && !/>URL 저장<\/button>/.test(idx) && !/스프레드시트 접속/.test(idx) && !/스프레드시트 접속/.test(read('gas-source/Guide.html')), '');
+  const pinModal = (/<div class="modal-back" id="pinModal"[\s\S]*?<\/div>\s*<\/div>/.exec(idx) || [''])[0];
+  ok('교사 비밀번호 창에 비밀번호를 잊었을 때 안내(♻️ 교사 비밀번호 초기화 → 새로고침 → 12345678)가 있음',
+    /pinForgot/.test(pinModal) && pinModal.includes('♻️ 교사 비밀번호 초기화') && pinModal.includes('12345678') && server.includes("'♻️ 교사 비밀번호 초기화'"), '');
+  ok('사이드바 버전 표시는 v1.0', /<div class="side-foot"><span>아르봇\(ARBOT\)<\/span><span>v1\.0<\/span><\/div>/.test(idx), '');
 }
 
 // ───────── 7) 푸터 크레딧 + 제작자 모달 (교사 콘솔·학생 화면 공용) ─────────
