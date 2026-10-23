@@ -121,6 +121,54 @@ ok('setTeacherPin_ 는 7자를 거부, 8자는 허용, 초기 비밀번호(12345
     && route(e, 'setTeacherPin', { pin: '12345678', newPin: 'after-reset-77' }).success === true && route(e, 'getTeacherSettings', { pin: 'after-reset-77' }).success === true, '');
 }
 
+// ───────────────── 1d) 사본 감지: 스크립트 속성(비밀번호·입장 코드)은 '사본 만들기'에 따라가므로 사본에서는 지운다 ─────────────────
+const OWNER = 'OWNER_SPREADSHEET_ID';
+const asCopy = (e) => { e.ss.getId = () => 'SHEET_COPY_0002'; }; // 같은 속성을 가진 채 다른 스프레드시트에서 실행됨
+{
+  // 같은 시트: 아무것도 바뀌지 않음
+  const e = newEnv();
+  const auth = () => JSON.stringify(['TEACHER_PIN_HASH', 'TEACHER_PIN_SALT', CODE_PROP, OWNER].map((k) => e.props.get(k)));
+  const before = auth();
+  ok('같은 시트에서는 요청해도 비밀번호·입장 코드·주인 기록이 그대로', teacher(e, 'getTeacherSettings').success === true && chat(e).success === true && auth() === before, [...e.props.keys()]);
+}
+{
+  // 옛 시트(주인 기록 없음): 첫 요청에서 지금 시트를 주인으로 적고, 비밀번호·코드는 그대로
+  const e = newEnv({ noOwner: true });
+  const r = route(e, 'testConnection', { pin: PIN });
+  ok('주인 기록이 없던 옛 시트는 첫 요청에서 지금 시트 ID 를 적고 비밀번호·코드를 지우지 않음', r.authorized === true && e.props.get(OWNER) === 'SHEET_ORIGINAL_0001' && e.props.get(CODE_PROP) === CODE && e.ctx.isTeacherPinSet_(), r);
+  const e2 = newEnv({ noOwner: true }); e2.ctx.onOpen();
+  ok('시트를 열기만 해도(onOpen) 주인이 적힘 — 사본을 만들기 전에 원본이 표시됨', e2.props.get(OWNER) === 'SHEET_ORIGINAL_0001' && e2.ctx.isTeacherPinSet_() && e2.props.get(CODE_PROP) === CODE, [...e2.props.keys()]);
+}
+{
+  // 사본: 첫 요청에서 원래 비밀번호·입장 코드가 지워진다
+  const e = newEnv(); e.props.set('PROFILE_TEMPLATES_SEEDED', '1'); asCopy(e);
+  const stu = chat(e);
+  ok('사본에서는 원래 시트의 입장 코드로 학생이 들어올 수 없음(코드가 지워져 닫힘)', stu.success === false && stu.needCode === true && logRows(e) === 1 && e.calls.length === 0, stu);
+  ok('사본에서는 원래 선생님의 비밀번호가 통하지 않고 처음 설정 상태(needSetup)', teacher(e, 'getTeacherSettings').needSetup === true && route(e, 'testConnection', { pin: PIN }).needSetup === true, '');
+  ok('사본의 주인은 사본 시트로 바뀌고, 템플릿 표시 같은 다른 속성은 그대로', e.props.get(OWNER) === 'SHEET_COPY_0002' && !e.props.has(CODE_PROP) && !e.props.has('TEACHER_PIN_HASH') && !e.props.has('TEACHER_PIN_SALT') && e.props.get('PROFILE_TEMPLATES_SEEDED') === '1', [...e.props.keys()]);
+  const first = route(e, 'setTeacherPin', { pin: '12345678', newPin: 'copy-teacher-9' });
+  const code = teacher(e, 'getAccessCode', { pin: 'copy-teacher-9' }).code;
+  ok('사본은 초기 비밀번호 12345678 로 새 비밀번호를 정할 수 있음', first.success === true && teacher(e, 'getTeacherSettings', { pin: 'copy-teacher-9' }).success === true, first);
+  ok('사본의 수업 입장 코드는 새로 만들어지고 원래 코드와 다름', /^[A-Z2-9]{6}$/.test(code || '') && code !== CODE && e.props.get(CODE_PROP) === code, code);
+  ok('사본에서 정한 비밀번호·코드는 다음 요청에서 지워지지 않음', teacher(e, 'getTeacherSettings', { pin: 'copy-teacher-9' }).success === true && route(e, 'getInitialData', { accessCode: code }).success === true, '');
+}
+{
+  // 사본을 처음 열 때(onOpen)와 시트 메뉴에서도 지운다
+  const e = newEnv(); asCopy(e); e.ctx.onOpen();
+  ok('사본을 처음 열면(onOpen) 원래 비밀번호·입장 코드가 지워짐', !e.ctx.isTeacherPinSet_() && !e.props.has(CODE_PROP) && e.ui.menus.length === 1, [...e.props.keys()]);
+  const e2 = newEnv(); asCopy(e2); fakeUi(e2, []);
+  e2.ctx.showAccessCodeFromMenu();
+  const shown = e2.props.get(CODE_PROP);
+  ok('사본에서 🔑 수업 입장 코드 보기를 누르면 원래 코드가 아니라 새 코드가 만들어짐', shown && shown !== CODE && !e2.ctx.isTeacherPinSet_(), shown);
+  const e3 = newEnv(); asCopy(e3); fakeUi(e3, [{ text: 'menu-copy-pin-1' }, { text: 'menu-copy-pin-1' }]);
+  e3.ctx.setTeacherPinFromMenu();
+  ok('사본에서 🔐 메뉴로 비밀번호를 정하면 새 입장 코드도 함께 생김', e3.ctx.isTeacherPinSet_() && e3.props.get(CODE_PROP) && e3.props.get(CODE_PROP) !== CODE && teacher(e3, 'getTeacherSettings', { pin: 'menu-copy-pin-1' }).success === true, '');
+  // onOpen 이 단순 트리거 제한으로 실패해도 메뉴는 만들어짐
+  const e4 = newEnv(); asCopy(e4); e4.ss.getId = () => { throw new Error('권한 없음'); };
+  e4.ctx.onOpen();
+  ok('시트 ID 를 읽지 못하면 아무것도 지우지 않고 메뉴는 그대로 만들어짐', e4.ctx.isTeacherPinSet_() && e4.props.get(CODE_PROP) === CODE && e4.ui.menus.length === 1, '');
+}
+
 // ───────────────────────── 2) 수업 입장 코드 ─────────────────────────
 env = makeEnv({ pin: PIN }); // 비밀번호만 있고 코드는 아직 없음
 ok('코드가 아직 없으면 학생 입구는 닫혀 있음(코드를 만들어 주지 않음)',

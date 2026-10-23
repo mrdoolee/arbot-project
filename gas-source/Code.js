@@ -102,6 +102,38 @@ function isTeacherPinSet_() {
   return !!PropertiesService.getScriptProperties().getProperty(PIN_HASH_PROP_);
 }
 
+// ---- 사본 감지 ----
+// 교사 비밀번호·수업 입장 코드는 스크립트 속성에 있어서 '파일 → 사본 만들기'를 하면 사본에도 따라간다.
+// 그대로 두면 사본을 받은 선생님은 초기 비밀번호(12345678)로 시작하지 못하고(원래 선생님의 비밀번호를 묻는다),
+// 모든 사본이 같은 수업 입장 코드를 쓰게 된다. 그래서 속성이 어느 스프레드시트의 것인지 ID 를 적어 두고,
+// 다른 스프레드시트(= 사본)에서 실행되면 비밀번호와 입장 코드를 지워 처음 상태로 돌린다.
+// 같은 시트에서 ♻️ 교사 비밀번호 초기화를 할 때는 ID 가 같으므로 입장 코드가 그대로 남는다.
+// 시트의 내용(설정·대화 기록·API 키 칸)은 건드리지 않는다 — 그건 사본을 만든 사람이 지운다(사용 가이드).
+var OWNER_SHEET_PROP_ = "OWNER_SPREADSHEET_ID";
+function adoptCopiedSheet_() {
+  var id;
+  try { id = String(SpreadsheetApp.getActiveSpreadsheet().getId() || ""); } catch (e) { return false; }
+  if (!id) return false; // 시트 ID 를 모르면 아무것도 지우지 않는다
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty(OWNER_SHEET_PROP_) === id) return false;
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  var copied = false;
+  try {
+    var owner = props.getProperty(OWNER_SHEET_PROP_);
+    if (owner === id) return false;
+    if (owner) { // 다른 시트에서 따라온 값: 비밀번호·입장 코드를 지운다
+      props.deleteProperty(PIN_HASH_PROP_);
+      props.deleteProperty(PIN_SALT_PROP_);
+      props.deleteProperty(ACCESS_CODE_PROP_);
+      copied = true;
+    }
+    // 처음이면(이 기능이 생기기 전부터 쓰던 시트 포함) 지금 시트를 주인으로 적어 둔다
+    props.setProperty(OWNER_SHEET_PROP_, id);
+  } finally { lock.releaseLock(); }
+  return copied;
+}
+
 // 초기 비밀번호: 비밀번호를 아직 정하지 않은 시트에서 교사 콘솔로 '새 비밀번호 정하기'만 할 수 있게 하는 값.
 // 공개 저장소에 적혀 있으므로 이 값으로는 설정·대화 기록·API 키를 절대 열지 않는다(setInitialPin_ 만 받는다).
 // 새 비밀번호를 정하면 더 이상 쓸 수 없고, 이 값 자체를 비밀번호로 정할 수도 없다.
@@ -287,6 +319,7 @@ function isMaskedKey_(v) { return String(v == null ? "" : v).indexOf(KEY_MASK_) 
 function routeAction(action, params) {
   try {
     params = params || {};
+    adoptCopiedSheet_(); // 사본이면 원래 시트의 비밀번호·입장 코드를 먼저 지운다(학생 입구는 코드가 없어 닫힌다)
     // 비밀번호가 아직 없는 시트: 초기 비밀번호로 '새 비밀번호 정하기'만 받는다 (다른 교사 기능은 아래에서 모두 needSetup)
     if (action === "setTeacherPin" && !isTeacherPinSet_()) return setInitialPin_(params);
     if (TEACHER_ACTIONS_.indexOf(action) !== -1) {
@@ -380,12 +413,15 @@ function onOpen() {
     .addSeparator()
     .addItem('⚠️ 설정·기록 초기화…', 'resetSheetToDefaultsFromMenu')
     .addToUi();
+  // 사본을 처음 열면 원래 시트의 비밀번호·입장 코드를 지운다. 단순 트리거에서 안 되면 첫 웹 요청·메뉴에서 한다.
+  try { adoptCopiedSheet_(); } catch (e) {}
 }
 
 // 시트 메뉴: 교사 비밀번호 설정/재설정. 이 시트를 열 수 있는(편집 권한이 있는) 사람만 실행할 수 있다.
 // 웹 콘솔은 비밀번호가 정해지기 전에는 설정·분석을 열어 주지 않는다. 처음에는 이 메뉴로 정하거나,
 // 초기 비밀번호(DEFAULT_PIN_)로 콘솔에 들어가 새 비밀번호를 정한다(setInitialPin_). 잊었을 때도 이 메뉴로 다시 정한다.
 function setTeacherPinFromMenu() {
+  adoptCopiedSheet_();
   var ui = SpreadsheetApp.getUi();
   var first = ui.prompt('🔐 교사 비밀번호 설정',
     '교사 콘솔에 들어갈 때 쓸 비밀번호를 정해 주세요. (' + PIN_MIN_LENGTH_ + '자 이상)\n이미 정해 둔 비밀번호가 있으면 새 비밀번호로 바뀝니다.\n\n' +
@@ -407,6 +443,7 @@ function setTeacherPinFromMenu() {
 // 되돌리면 교사 콘솔에서 초기 비밀번호(DEFAULT_PIN_)로 새 비밀번호를 정해야 하고, 그 전까지 설정·분석은 잠긴다.
 // 초기 비밀번호를 계속 쓰는 비밀번호로 두지는 않는다(공개된 값이라 누구나 열 수 있게 되므로). 수업 입장 코드와 학생 대화는 그대로다.
 function resetTeacherPinFromMenu() {
+  adoptCopiedSheet_();
   var ui = SpreadsheetApp.getUi();
   var ans = ui.alert('♻️ 교사 비밀번호 초기화',
     '교사 비밀번호를 처음 상태로 되돌릴까요?\n\n' +
@@ -435,6 +472,7 @@ function syncTopicRowsFromMenu() {
 
 // 시트 메뉴: 수업 입장 코드 확인 (없으면 만들어 보여 준다)
 function showAccessCodeFromMenu() {
+  adoptCopiedSheet_();
   var ui = SpreadsheetApp.getUi();
   ui.alert('🔑 수업 입장 코드', '학생이 대화방에 들어갈 때 입력하는 코드예요:\n\n' + ensureAccessCode_() + '\n\n바꾸려면 교사 콘솔의 "학생 배부 링크 & QR"에서 새 코드를 만드세요.', ui.ButtonSet.OK);
 }

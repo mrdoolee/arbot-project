@@ -65,6 +65,8 @@ function makeEnv(opts) {
   const ss = {
     getSheetByName: (n) => sheets[n] || null,
     getName: () => '테스트 시트', getUrl: () => 'https://docs.google.com/spreadsheets/d/FAKE/edit',
+    // 사본 감지 시험: env.ss.getId 를 다른 값으로 바꾸면 '사본에서 실행됨'을 흉내 낸다
+    getId: () => opts.sheetId || 'SHEET_ORIGINAL_0001',
     deleteSheet: (sh) => { delete sheets[sh.name]; },
     insertSheet: (n) => { if (opts.insertSheetFails) throw new Error('시트 보호로 탭을 만들 수 없음'); sheets[n] = makeSheet(n, []); return sheets[n]; },
   };
@@ -137,6 +139,8 @@ function makeEnv(opts) {
   // 시험용 사전 설정: opts.pin → 교사 비밀번호, opts.accessCode → 수업 입장 코드 (실서비스는 시트 메뉴에서 정한다)
   if (opts.pin) ctx.setTeacherPin_({ newPin: opts.pin });
   if (opts.accessCode) props.set('STUDENT_ACCESS_CODE', opts.accessCode);
+  // 이미 이 시트의 것으로 적혀 있는 상태가 기본 (opts.noOwner: 사본 감지 기능이 생기기 전의 옛 시트)
+  if (!opts.noOwner) props.set('OWNER_SPREADSHEET_ID', ss.getId());
   return { ctx, ss, sheets, calls, keysUsed, modelsUsed, urls, sleeps, props, cache, ui };
 }
 module.exports = { makeEnv };
