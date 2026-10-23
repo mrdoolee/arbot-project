@@ -598,7 +598,7 @@
       <div class="step-card"><span class="n">6</span><div><b>결과 확인</b><span>대화를 불러와 논증 분석 보기 (메뉴 5)</span></div></div>
     </div>
 
-    <details class="accordion" open>
+    <details class="accordion">
       <summary><span class="ms" style="color:var(--blue)">hub</span>메뉴 1 · GAS 연동 — 스프레드시트와 콘솔 잇기<span class="ms chev">expand_more</span></summary>
       <div class="body"><ul class="gd-list">
         <li>메뉴 1의 설정 가이드에 있는 <b>배부용 시트 사본 만들기</b> 버튼으로 아르봇 스프레드시트를 내 드라이브에 복사하고 웹 앱으로 배포한 뒤, 이 콘솔에 연결하면 비밀번호를 정하는 칸이 나와요. <b>초기 비밀번호는 "12345678"입니다.</b> 초기 비밀번호와 새 비밀번호(8자 이상)를 넣으면 바로 시작할 수 있어요(상단 메뉴 <b>🗣️ 아르봇(ARBOT) → 🔐 교사 비밀번호 설정</b>에서 정해도 돼요). 정하기 전에는 다른 메뉴가 잠겨 있어요.</li>
@@ -775,6 +775,7 @@
     if (guideModal.classList.contains('on')) return;
     guideOpener = document.activeElement;
     guideOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    guideModal.querySelectorAll('details.accordion').forEach((d) => { d.open = false; }); // 열 때마다 모든 항목을 접은 상태로
     guideModal.classList.add('on');
     guideModal.querySelector('.modal').scrollTop = 0;
     $('btnGuideClose').focus();

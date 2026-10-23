@@ -213,6 +213,15 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('사이드바 버전 표시는 v1.0', /<div class="side-foot"><span>아르봇\(ARBOT\)<\/span><span>v1\.0<\/span><\/div>/.test(idx), '');
 }
 
+{
+  const idx = pages['public/index.html'];
+  const gStart = idx.indexOf('id="guideModal"'), gEnd = idx.indexOf('<script', gStart);
+  const guideHtml = idx.slice(gStart, gEnd);
+  const guideDetails = guideHtml.match(/<details[^>]*>/g) || [];
+  ok('사용 가이드의 항목은 처음부터 모두 접혀 있음(open 속성 없음)', gStart > 0 && guideDetails.length >= 8 && guideDetails.every((t) => !/\bopen\b/.test(t)), guideDetails.filter((t) => /\bopen\b/.test(t)));
+  ok('사용 가이드를 열 때마다 모든 항목을 접음', /function openGuide\(\) \{[\s\S]{0,300}querySelectorAll\('details\.accordion'\)\.forEach\(\(d\) => \{ d\.open = false; \}\)/.test(idx), '');
+}
+
 // ───────── 7) 푸터 크레딧 + 제작자 모달 (교사 콘솔·학생 화면 공용) ─────────
 {
   const js = read('public/js/credit-footer.js');
