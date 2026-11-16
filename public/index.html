@@ -576,7 +576,8 @@
     <p id="pinMsg">교사 콘솔에 접근하려면 비밀번호가 필요해요.</p>
     <input id="pinInput" class="input" type="password" autocomplete="current-password" placeholder="비밀번호">
     <p class="hint pin-forgot" id="pinForgot"><b>비밀번호를 잊으셨나요?</b> 연결한 스프레드시트를 열어 상단 메뉴 <b>🗣️ 아르봇(ARBOT) → ♻️ 교사 비밀번호 초기화</b>를 실행한 뒤, 이 페이지를 새로고침하세요. 초기 비밀번호(12345678)로 새 비밀번호를 정하는 칸이 나와요.</p>
-    <div class="btn-row"><button id="btnPinOk" class="btn" type="button">확인</button></div>
+    <p class="hint pin-forgot" id="pinDisconnectHint"><b>시트를 열 수 없거나 다른 시트로 연결하려면</b> <b>이 브라우저의 시트 연결 끊기</b>를 누르세요. 이 브라우저에 저장된 웹 앱 주소만 지워지고 첫 화면(GAS 연동)으로 돌아가요. 스프레드시트의 설정·대화 기록·비밀번호는 그대로예요.</p>
+    <div class="btn-row"><button id="btnPinDisconnect" class="btn ghost" type="button"><span class="ms">link_off</span>이 브라우저의 시트 연결 끊기</button><button id="btnPinOk" class="btn" type="button">확인</button></div>
   </div>
 </div>
 
@@ -684,6 +685,7 @@
         <li><b>연결 테스트가 실패해요</b> — 주소가 <code>https://script.google.com/…/exec</code> 형태인지, 웹 앱 액세스 권한이 "모든 사용자"인지 확인해요. 방금 배포했다면 5~10초 뒤에 다시 눌러 보세요.</li>
         <li><b>"GAS가 옛 버전이에요" 카드가 떠요</b> — 시트의 Apps Script가 콘솔보다 오래됐다는 뜻이에요. 최신 코드로 <b>배포 → 배포 관리 → 새 버전</b>으로 다시 배포하세요.</li>
         <li><b>사이드바 메뉴가 회색으로 잠겨 있어요</b> — 연결과 비밀번호 입력이 끝나야 열려요.</li>
+        <li><b>비밀번호를 잊어서 콘솔이 열리지 않아요</b> — 시트 메뉴 <b>♻️ 교사 비밀번호 초기화</b>를 실행하고 새로고침하면 초기 비밀번호(12345678)로 새로 정할 수 있어요. 시트를 열 수 없거나 다른 시트로 연결하려면 비밀번호 창의 <b>이 브라우저의 시트 연결 끊기</b>를 누르세요. 이 브라우저에 저장된 웹 앱 주소만 지워지고 첫 화면으로 돌아가요(시트 내용은 그대로).</li>
         <li><b>저장 버튼이 눌리지 않아요</b> — 같은 화면의 <b>불러오기</b>를 먼저 눌러 주세요.</li>
         <li><b>학생 화면에 "코드가 바뀌었어요"가 떠요</b> — 새 수업 입장 코드를 알려 주세요.</li>
         <li><b>"지금은 AI를 사용할 수 없어요"가 떠요</b> — API 키의 사용 한도가 끝났거나 오류예요. 키를 추가하거나 잠시 뒤 다시 해 보세요(메뉴 1에서 키 상태 확인).</li>
@@ -855,6 +857,17 @@
     catch (err) { showConnectError(err); markConnected(false); }
   }
   $('btnPinOk').addEventListener('click', submitPin);
+  // 비밀번호를 잊었거나 다른 시트로 바꾸고 싶을 때: 이 브라우저에 저장된 웹 앱 주소·임시 비밀번호만 지우고
+  // 새로고침해 첫 화면(GAS 연동)으로 돌아간다. 서버에는 아무 요청도 보내지 않는다(시트 내용·비밀번호는 그대로).
+  // 새로고침하므로 이전 시트에서 불러와 화면에 남아 있던 값도 함께 사라진다.
+  const DISCONNECT_FLAG = 'argu_disconnected';
+  function disconnectThisBrowser() {
+    if (!confirm('이 브라우저에 저장된 스프레드시트 연결(웹 앱 주소)을 지우고 첫 화면으로 돌아갈까요?\n\n스프레드시트의 설정·대화 기록·교사 비밀번호는 그대로예요. 웹 앱 주소를 다시 넣고 비밀번호를 입력하면 다시 연결돼요.')) return;
+    GasClient.forgetConnection();
+    try { sessionStorage.setItem(DISCONNECT_FLAG, '1'); } catch (e) { /* 저장 불가 환경은 안내만 빠진다 */ }
+    window.location.reload();
+  }
+  $('btnPinDisconnect').addEventListener('click', disconnectThisBrowser);
   $('pinInput').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) submitPin(); });
   // 서버가 비밀번호를 요구하는 어떤 요청이든 입력 창을 띄운다
   ['callGet', 'callPost'].forEach((fn) => {
@@ -2596,7 +2609,12 @@ table.d{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}tabl
   renderTplModal(); renderCharGrid(); renderTopicExamples();
   (async function init() {
     const saved = GasClient.getGasUrl();
-    if (!saved) { $('gasGuide').open = true; markConnected(false); return; } // 처음 온 선생님: 사본 만들기 버튼이 든 설정 가이드를 펼쳐 둔다
+    let justDisconnected = false; // 비밀번호 창에서 [이 브라우저의 시트 연결 끊기]를 누르고 새로고침된 경우
+    try { justDisconnected = sessionStorage.getItem(DISCONNECT_FLAG) === '1'; sessionStorage.removeItem(DISCONNECT_FLAG); } catch (e) { /* 저장 불가 환경 */ }
+    if (!saved) { $('gasGuide').open = true; markConnected(false); // 처음 온 선생님: 사본 만들기 버튼이 든 설정 가이드를 펼쳐 둔다
+      if (justDisconnected) setStatus($('step1Status'), 'ok', '이 브라우저의 시트 연결을 끊었어요', '웹 앱 주소를 다시 넣고 [연결 테스트]를 누르면 다시 연결돼요. 비밀번호를 잊었다면 먼저 시트 메뉴 ♻️ 교사 비밀번호 초기화를 실행하세요.');
+      return;
+    }
     $('gasUrlInput').value = saved;
     try { await testConnection(saved, true); markConnected(true); }
     catch (err) { showConnectError(err, '저장된 주소로 연결하지 못했어요'); markConnected(false); }
