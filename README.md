@@ -53,7 +53,10 @@
 npm install
 npm start          # http://localhost:3000  (교사 콘솔) / http://localhost:3000/student.html (학생 화면)
 npm test           # 문법 검사 + 자동 테스트 전체 (실제 시트·Gemini를 건드리지 않음)
+npm run hooks      # 클론마다 한 번: 비밀 정보 커밋·푸시 차단 훅 켜기
 ```
+
+> 🔒 이 저장소는 **공개**이고 `main`에 푸시하면 **바로 프로덕션에 배포**됩니다. API 키·`.env`·`.clasprc.json`은 절대 커밋하지 마세요. `.gitignore`가 이 파일들을 빼 주고, `npm run hooks`로 켠 git 훅(`.githooks/`, `tools/secret-guard.js`)이 키가 든 커밋·푸시를 막습니다. `npm test`도 추적 중인 파일 전체를 검사합니다.
 
 실제 시트 없이 화면을 눌러 보려면 `node tests/fake_gas_server.js` 를 실행하고 `http://localhost:3101/` 을 여세요. 시험용 비밀번호와 코드는 `tests/fake_gas_server.js` 맨 위에 있습니다. 자세한 방법은 [CLAUDE.md](CLAUDE.md)의 Commands를 보세요.
 

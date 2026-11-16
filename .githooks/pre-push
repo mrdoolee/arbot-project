@@ -1,0 +1,3 @@
+#!/bin/sh
+# 공개 저장소이고 main 푸시는 곧바로 Vercel 프로덕션 배포다. 푸시할 커밋 전체에서 비밀 정보를 찾아 막는다.
+exec node tools/secret-guard.js --pre-push
