@@ -1,0 +1,3 @@
+#!/bin/sh
+# 공개 저장소: 비밀 정보(.env, .clasprc.json, API 키 등)가 들어간 커밋을 막는다. tools/secret-guard.js 참고.
+exec node tools/secret-guard.js --staged
