@@ -2374,17 +2374,20 @@
 
   // ---- 대화 흐름 그래프: 가로 = 발화 순서(시간 흐름), 세로 = 논증 요소, 배경 띠 = 하나로 묶인 맥락 ----
   const FLOW_COLORS = { claim: '#3b7dd8', evidence: '#22c1a3', warrant: '#8b5cf6', rebuttal: '#ef4444', qualifier: '#6366f1', evade: '#f59e0b', offtopic: '#f43f5e', question: '#64748b', hold: '#94a3b8' };
+  // 세로 축은 아래에서 위로 이 순서다: 기타 → 주장 → 근거·증거 → 정당화·추론 → 한정어 → 반박 (논증이 쌓일수록 위로 올라간다)
   const FLOW_LANES = [
+    { label: '기타', tags: null }, // 질문·회피·일탈·판단 유보 (맨 아래)
     { label: '주장', tags: ['주장'] },
     { label: '근거·증거', tags: ['근거', '증거'] },
     { label: '정당화·추론', tags: ['정당화', '추론'] },
-    { label: '반박', tags: ['반박'] },
     { label: '한정어', tags: ['한정어'] },
-    { label: '기타', tags: null }, // 질문·회피·일탈·판단 유보
+    { label: '반박', tags: ['반박'] }, // 맨 위
   ];
+  const OTHER_LANE = FLOW_LANES.findIndex((l) => !l.tags);
+  const isElementLane = (i) => !!FLOW_LANES[i].tags; // 기타가 아닌 논증 요소 줄
   const flowLaneOf = (u) => {
     const i = FLOW_LANES.findIndex((l) => l.tags && l.tags.includes(AS.tagText(u.judgment)));
-    return i < 0 ? FLOW_LANES.length - 1 : i;
+    return i < 0 ? OTHER_LANE : i;
   };
   const flowColorOf = (u) => FLOW_COLORS[AS.tagClass(u.judgment).replace('chip chip-', '')] || FLOW_COLORS.hold;
 
@@ -2398,7 +2401,7 @@
       if (l.label === '기타') return used.has(l.i);
       return true;
     });
-    const rowOf = new Map(lanes.map((l, r) => [l.i, r]));
+    const rowOf = new Map(lanes.map((l, r) => [l.i, lanes.length - 1 - r])); // FLOW_LANES 앞쪽이 아래 줄 (행 번호는 위에서부터 센다)
     const LW = 108, STEP = utterances.length > 12 ? 52 : 68, LH = 46, TOP = 6, AX = 46, HEAD = ctxs.length ? 40 : 8;
     const T0 = TOP + HEAD, BOT = T0 + lanes.length * LH;
     const W = LW + 30 + Math.max(utterances.length - 1, 0) * STEP + 30, H = BOT + AX;
@@ -2415,8 +2418,8 @@
         <text x="${cx}" y="${TOP + 29}" text-anchor="middle" font-size="10" fill="${col}">${escapeHtml(label)}</text></g>`;
     }).join('');
 
-    g += lanes.map((l, r) => `<line x1="${LW - 6}" x2="${W - 8}" y1="${py(r)}" y2="${py(r)}" stroke="#e2e8f0" stroke-dasharray="3 4"/>
-      <text x="${LW - 14}" y="${py(r) + 4}" text-anchor="end" font-size="12" font-weight="600" fill="#43474e">${escapeHtml(l.label)}</text>`).join('');
+    g += lanes.map((l) => rowOf.get(l.i)).map((r, j) => `<line x1="${LW - 6}" x2="${W - 8}" y1="${py(r)}" y2="${py(r)}" stroke="#e2e8f0" stroke-dasharray="3 4"/>
+      <text x="${LW - 14}" y="${py(r) + 4}" text-anchor="end" font-size="12" font-weight="600" fill="#43474e">${escapeHtml(lanes[j].label)}</text>`).join('');
 
     const pts = utterances.map((u, k) => [px(k), py(rowOf.get(flowLaneOf(u)))]);
     const ctxIdx = (k) => ctxs.findIndex((c) => k >= c.start && k <= c.end);
@@ -2428,7 +2431,7 @@
 
     const seen = new Set();
     utterances.forEach((u, k) => {
-      const lane = flowLaneOf(u); const first = lane < 5 && !seen.has(lane); seen.add(lane);
+      const lane = flowLaneOf(u); const first = isElementLane(lane) && !seen.has(lane); seen.add(lane);
       const [x, y] = pts[k]; const c = flowColorOf(u);
       g += `<g class="fdot" data-i="${k}" tabindex="0" role="button" aria-label="발화 ${u.no} ${escapeHtml(tagOf(u))}">
         <title>발화 ${u.no} · ${escapeHtml(tagOf(u))}</title>
@@ -2456,7 +2459,7 @@
 
     // "주장 #1 → 근거 #3 → 정당화 #5" 처럼 각 요소가 처음 나타난 순서를 한 줄로 요약
     const first = []; const seen = new Set();
-    us.forEach((u) => { const l = flowLaneOf(u); if (l < 5 && !seen.has(l)) { seen.add(l); first.push(`${FLOW_LANES[l].label} #${u.no}`); } });
+    us.forEach((u) => { const l = flowLaneOf(u); if (isElementLane(l) && !seen.has(l)) { seen.add(l); first.push(`${FLOW_LANES[l].label} #${u.no}`); } });
     $('flowSummary').textContent = first.length ? '처음 나타난 순서: ' + first.join(' → ') : '논증 요소가 아직 나타나지 않았어요';
 
     const counts = new Map();

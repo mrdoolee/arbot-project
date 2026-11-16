@@ -235,6 +235,13 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
     ok('forgetConnection: 저장된 웹 앱 주소와 임시 비밀번호가 지워지고(새로 읽어도 빈 값) 다른 저장 값은 남음',
       before && G.getGasUrl() === '' && G.getPin() === '' && ls.m.size === 1 && ls.getItem('argu_student_theme') === 'dark' && ss.m.size === 0, [...ls.m.keys(), ...ss.m.keys()]);
   }
+  // 결과 분석 그래프 세로 축: 아래에서 위로 기타 → 주장 → 근거·증거 → 정당화·추론 → 한정어 → 반박
+  const lanesSrc = (/const FLOW_LANES = \[([\s\S]*?)\];/.exec(idx) || [])[1] || '';
+  const laneLabels = [...lanesSrc.matchAll(/label: '([^']+)'/g)].map((m) => m[1]);
+  ok('그래프 세로 축 줄 정의가 아래부터 기타·주장·근거·증거·정당화·추론·한정어·반박 순서',
+    laneLabels.join('|') === '기타|주장|근거·증거|정당화·추론|한정어|반박', laneLabels);
+  ok('그래프는 줄 정의의 앞쪽을 아래에 그림(행 번호를 뒤집음), 기타는 처음 나타난 순서 요약에서 빠짐',
+    idx.includes('const rowOf = new Map(lanes.map((l, r) => [l.i, lanes.length - 1 - r]));') && !/lane < 5|l < 5/.test(idx) && idx.includes('const isElementLane = (i) => !!FLOW_LANES[i].tags;'), '');
   ok('사이드바 버전 표시는 v1.0', /<div class="side-foot"><span>아르봇\(ARBOT\)<\/span><span>v1\.0<\/span><\/div>/.test(idx), '');
 }
 
