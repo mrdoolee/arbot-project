@@ -190,7 +190,7 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   ok('두 사용 가이드 모두 시트 공유 권한을 안내함(제한됨 권장, 링크 공개 금지, 뷰어·편집자가 할 수 있는 일)', [guide, sheetGuide].every((g) => /공유/.test(g) && /"제한됨"/.test(g) && /링크가 있는 모든 사용자/.test(g) && /뷰어/.test(g) && /편집자/.test(g) && /선생님 계정으로/.test(g)), '');
   ok('가이드에 흐름 요약·메뉴 1~5·학생 화면·보안·문제 해결 항목이 있음', (guide.match(/class="step-card"/g) || []).length === 6 && sections.every((s) => guideText.includes(s)), sections.filter((s) => !guideText.includes(s)));
   // 가이드가 누르라고 안내하는 버튼 이름이 실제 화면에 있는지(없는 버튼을 안내하지 않게)
-  const consoleButtons = ['연결 테스트', 'URL 저장 및 시트 연결', '새 창에서 스프레드시트 보기', '배부용 시트 사본 만들기', '쉬는 중 해제', '모델 목록 불러오기', '모델 테스트', '불러오기', '링크 복사', '코드 복사', '새 코드 만들기', '직접 정하기', '교실 TV 전체화면', 'A4 배부용 QR 인쇄', '대화 불러오기 및 분석 실행', '목록·기록 새로고침', 'HTML 보고서', 'CSV', '학생 화면 열어보기', '예시 채우기'];
+  const consoleButtons = ['연결 테스트', '이 브라우저의 시트 연결 끊기', 'URL 저장 및 시트 연결', '새 창에서 스프레드시트 보기', '배부용 시트 사본 만들기', '쉬는 중 해제', '모델 목록 불러오기', '모델 테스트', '불러오기', '링크 복사', '코드 복사', '새 코드 만들기', '직접 정하기', '교실 TV 전체화면', 'A4 배부용 QR 인쇄', '대화 불러오기 및 분석 실행', '목록·기록 새로고침', 'HTML 보고서', 'CSV', '학생 화면 열어보기', '예시 채우기'];
   const missingBtn = consoleButtons.filter((b) => guideText.includes(b) && !restText.includes(b));
   ok('가이드가 안내하는 버튼 이름이 모두 실제 화면에 있음', consoleButtons.filter((b) => guideText.includes(b)).length >= 15 && missingBtn.length === 0, missingBtn);
   ok('가이드가 안내하는 학생 화면 버튼("탐구 대화방 입장하기")이 학생 화면에 있음', guideText.includes('탐구 대화방 입장하기') && pages['public/student.html'].includes('탐구 대화방 입장하기'), '');
@@ -210,6 +210,31 @@ ok('기본 설정 안내가 ①~③ 세 단계', /처음이라면 ①부터 ③�
   const pinModal = (/<div class="modal-back" id="pinModal"[\s\S]*?<\/div>\s*<\/div>/.exec(idx) || [''])[0];
   ok('교사 비밀번호 창에 비밀번호를 잊었을 때 안내(♻️ 교사 비밀번호 초기화 → 새로고침 → 12345678)가 있음',
     /pinForgot/.test(pinModal) && pinModal.includes('♻️ 교사 비밀번호 초기화') && pinModal.includes('12345678') && server.includes("'♻️ 교사 비밀번호 초기화'"), '');
+  // 비밀번호를 잊었을 때 막히지 않게: 비밀번호 창에서 이 브라우저의 시트 연결을 끊고 첫 화면으로 돌아갈 수 있음
+  ok('교사 비밀번호 창에 [이 브라우저의 시트 연결 끊기] 버튼과 안내(시트 내용은 그대로)가 있음',
+    /<button id="btnPinDisconnect"[^>]*>[\s\S]*?이 브라우저의 시트 연결 끊기<\/button>/.test(pinModal) && pinModal.includes('id="pinDisconnectHint"') && /시트[^<]*그대로/.test(pinModal), pinModal.slice(-400));
+  const discStart = idx.indexOf('function disconnectThisBrowser() {');
+  const disc = discStart < 0 ? '' : idx.slice(discStart, idx.indexOf('\n  }', discStart) + 4);
+  ok('연결 끊기는 먼저 확인을 받고, 저장된 주소·임시 비밀번호만 지운 뒤 새로고침함(서버 요청 없음)',
+    disc.includes('if (!confirm(') && disc.indexOf('confirm(') < disc.indexOf('GasClient.forgetConnection()') && disc.indexOf('GasClient.forgetConnection()') < disc.indexOf('location.reload()') &&
+    !/callGet|callPost|fetch\(|localStorage\.clear|sessionStorage\.clear/.test(disc) && idx.includes("$('btnPinDisconnect').addEventListener('click', disconnectThisBrowser)"), disc);
+  ok('연결을 끊고 새로고침하면 첫 화면에서 "연결을 끊었어요" 안내를 한 번 보여 줌',
+    idx.includes("sessionStorage.getItem(DISCONNECT_FLAG) === '1'; sessionStorage.removeItem(DISCONNECT_FLAG)") && idx.includes("if (justDisconnected) setStatus($('step1Status'), 'ok', '이 브라우저의 시트 연결을 끊었어요'"), '');
+  {
+    // gasClient.forgetConnection 을 가짜 저장소에서 실행: 웹 앱 주소·비밀번호만 지우고 테마 등 다른 값은 남김
+    const mk = () => { const m = new Map(); return { m, getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) }; };
+    const ls = mk(), ss = mk();
+    const sb = { console, URL, URLSearchParams, localStorage: ls, sessionStorage: ss };
+    sb.window = sb; sb.window.location = { search: '', origin: 'http://x', pathname: '/' };
+    vm.runInNewContext(gasClient, sb);
+    const G = sb.GasClient;
+    ls.setItem('argu_student_theme', 'dark');
+    G.setGasUrl('https://script.google.com/macros/s/ABC/exec'); G.setPin('pw123456');
+    const before = G.getGasUrl() && G.getPin();
+    G.forgetConnection();
+    ok('forgetConnection: 저장된 웹 앱 주소와 임시 비밀번호가 지워지고(새로 읽어도 빈 값) 다른 저장 값은 남음',
+      before && G.getGasUrl() === '' && G.getPin() === '' && ls.m.size === 1 && ls.getItem('argu_student_theme') === 'dark' && ss.m.size === 0, [...ls.m.keys(), ...ss.m.keys()]);
+  }
   ok('사이드바 버전 표시는 v1.0', /<div class="side-foot"><span>아르봇\(ARBOT\)<\/span><span>v1\.0<\/span><\/div>/.test(idx), '');
 }
 

@@ -71,6 +71,15 @@
     try { if (pin) sessionStorage.setItem(PIN_KEY, pin); else sessionStorage.removeItem(PIN_KEY); } catch (e) { /* 저장 불가 환경은 무시 */ }
   }
 
+  // 이 브라우저의 시트 연결을 끊는다: 저장된 웹 앱 주소와 이 탭의 임시 비밀번호만 지운다.
+  // 서버(시트·스크립트)에는 아무 요청도 보내지 않으므로 시트의 설정·대화 기록·교사 비밀번호는 그대로다.
+  // (비밀번호를 잊어 콘솔이 열리지 않을 때, 다른 시트로 바꿔 연결할 때 쓴다. 화면 테마 같은 다른 저장 값은 건드리지 않는다)
+  function forgetConnection() {
+    memoryUrl = '';
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* 저장 불가 환경은 무시 */ }
+    setPin('');
+  }
+
   function buildStudentLink(gasUrl) {
     // 교사 콘솔(index.html)과 같은 폴더의 student.html 이 학생 전용 입구다
     const base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'student.html';
@@ -150,5 +159,5 @@
     return data;
   }
 
-  global.GasClient = { getGasUrl, setGasUrl, adoptGasUrlFromQuery, isValidGasUrl, getPin, setPin, buildStudentLink, callGet, callPost };
+  global.GasClient = { getGasUrl, setGasUrl, adoptGasUrlFromQuery, isValidGasUrl, getPin, setPin, forgetConnection, buildStudentLink, callGet, callPost };
 })(window);
